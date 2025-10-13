@@ -28,7 +28,9 @@ JWT_EXPIRY = timedelta(days=1000)
 
 # DB
 DB_HOST_CREDS = f"{os.getenv("DB_HOST", "localhost")}:{os.getenv("DB_PORT", 5132)}"
-DB_USER_CREDS = f"{os.getenv("DB_USER", "postgres")}:{quote(os.getenv("PASSWORD", "password"))}"
+DB_USER_CREDS = (
+    f"{os.getenv("DB_USER", "postgres")}:{quote(os.getenv("PASSWORD", "password"))}"
+)
 DB_NAME = os.getenv("DB_NAME", "ai_chat_mod")
 DB_ENGINE = create_async_engine(
     f"postgresql+asyncpg://{DB_USER_CREDS}@{DB_HOST_CREDS}/{DB_NAME}"
@@ -49,9 +51,11 @@ logger.addHandler(handler)
 
 # Prompts
 with open(os.path.join(PROMPTS_PATH, "topic-system-prompt.txt")) as f:
-    TOPIC_PROMPT = f.read()
+    TOPIC_SYSTEM_PROMPT = f.read()
 with open(os.path.join(PROMPTS_PATH, "score-system-prompt.txt")) as f:
-    SCORE_PROMPT = f.read()
+    SCORE_SYSTEM_PROMPT = f.read()
+with open(os.path.join(PROMPTS_PATH, "security-system-prompt.txt")) as f:
+    SECURITY_SYSTEM_PROMPT = f.read()
 with open(os.path.join(PROMPTS_PATH, "final-prompt.txt")) as f:
     FINAL_PROMPT = f.read()
 
@@ -59,3 +63,5 @@ with open(os.path.join(PROMPTS_PATH, "final-prompt.txt")) as f:
 # LLM
 LLM_API_KEY = os.getenv("LLM_API_KEY")
 LLM_AGENT_ID = os.getenv("LLM_AGENT_ID")
+LLM_BASE_URL = "https://api/mistral.ai/v1"
+LLM_MODEL_NAME = "mstral-tiny"

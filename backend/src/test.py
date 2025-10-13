@@ -9,8 +9,8 @@ from config import (
     BASE_PATH,
     LLM_API_KEY,
     RESOURCES_PATH,
-    SCORE_PROMPT,
-    TOPIC_PROMPT,
+    SCORE_SYSTEM_PROMPT,
+    TOPIC_SYSTEM_PROMPT,
     FINAL_PROMPT,
 )
 
@@ -84,7 +84,7 @@ actions = ["ban", "mute"]
 var = []
 for log in chat_log:
     # Topic
-    sys_prompt = TOPIC_PROMPT
+    sys_prompt = TOPIC_SYSTEM_PROMPT
     body = {
         "model": model,
         "messages": [
@@ -98,7 +98,7 @@ for log in chat_log:
     topics = parse_output(content)
 
     # Score
-    sys_prompt = SCORE_PROMPT.format(guidelines=GUIDELINES, topics=topics)
+    sys_prompt = SCORE_SYSTEM_PROMPT.format(guidelines=GUIDELINES, topics=topics)
     log["channel"] = random.choice(["general", "music"])
     body = {
         "model": model,
@@ -134,7 +134,7 @@ for log in chat_log:
     data = rsp.json()
     content = data["choices"][0]["message"]["content"]
     print("Prompt")
-    print(body['messages'][0]['content'])
+    print(body["messages"][0]["content"])
     print("Content")
     print(content)
     final_output = parse_output(content)
