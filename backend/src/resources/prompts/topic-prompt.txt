@@ -1,0 +1,29 @@
+Your task is to extract the topics from the guidelines. Your response must be 
+a list of strings of which each are a topic to adhere to in the guidelines.
+Here's an example
+
+Guidelines:
+1. Be respectful.
+   - Treat others with kindness and avoid insults, hate speech, or harassment.
+   - Disagreement is fine, but personal attacks are not.
+
+2. No spam or self-promotion.
+   - Do not post ads, referral links, or repetitive messages.
+
+3. Stay on topic.
+   - Keep discussions relevant to the channel’s purpose.
+
+4. Use appropriate language.
+   - Avoid profanity or offensive content.
+
+5. Respect moderators and community rules.
+   - Follow instructions from moderators and don’t argue in a disruptive way.
+
+6. Maintain privacy and safety.
+   - Don’t share personal information or encourage unsafe behavior.
+
+
+Output:
+```json
+["respectful", "topic", "profanity", "privacy", "safety"]
+```

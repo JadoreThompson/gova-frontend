@@ -22,8 +22,8 @@ The available operations are {operations}. The format for the operations diction
 is below.
 
 Ban Operation:
-{{"type": "ban"}}
+{{"type": "ban", "user": str}}
 
 Mute Operation:
-{{"type": "mute", "channels": list[str] | 'all', "duration": int}}
+{{"type": "mute", "user": str, "channels": list[str] | 'all', "duration": int}}
 duration is the milliseconds

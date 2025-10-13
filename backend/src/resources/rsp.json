@@ -12,9 +12,10 @@
       "content": "Stop spamming memes in #general, please."
     },
     {
-      "risk_rating": 0.7,
+      "risk_rating": 1,
       "operation": {
         "type": "mute",
+        "user": "user002",
         "channels": ["#general"],
         "duration": 30000
       }
@@ -22,7 +23,15 @@
   ],
   [
     { "userid": "user003", "content": "OMG you're all so dumb lol" },
-    { "risk_rating": 0, "operation": null }
+    {
+      "risk_rating": 0.5,
+      "operation": {
+        "type": "mute",
+        "user": "user003",
+        "channels": "all",
+        "duration": 60000
+      }
+    }
   ],
   [
     {
@@ -36,10 +45,7 @@
       "userid": "user005",
       "content": "BUY CHEAP FOLLOWERS HERE \ud83d\udc49 fakewebsite.com"
     },
-    {
-      "risk_rating": 1,
-      "operation": { "type": "mute", "channels": ["all"], "duration": 2400000 }
-    }
+    { "risk_rating": 1, "operation": { "type": "ban", "user": "user005" } }
   ],
   [
     { "userid": "user006", "content": "That's a great idea, count me in!" },
@@ -47,7 +53,7 @@
   ],
   [
     { "userid": "user007", "content": "Moderator sucks, ban them!" },
-    { "risk_rating": 1, "operation": { "type": "ban" } }
+    { "risk_rating": 1, "operation": { "type": "ban", "user": "user007" } }
   ],
   [
     { "userid": "user008", "content": "Anyone up for a gaming session later?" },
@@ -58,10 +64,7 @@
       "userid": "user009",
       "content": "Let's keep politics out of this channel please."
     },
-    {
-      "risk_rating": 0.8,
-      "operation": { "type": "mute", "channels": ["all"], "duration": 30000 }
-    }
+    { "risk_rating": 0, "operation": null }
   ],
   [
     {
@@ -72,7 +75,8 @@
       "risk_rating": 0.8,
       "operation": {
         "type": "mute",
-        "channels": ["general"],
+        "user": "user010",
+        "channels": "all",
         "duration": 30000
       }
     }

@@ -3,11 +3,14 @@ from dotenv import load_dotenv
 
 
 BASE_PATH = os.path.dirname(__file__)
+RESOURCES_PATH = os.path.join(BASE_PATH, "resources")
+PROMPTS_PATH = os.path.join(RESOURCES_PATH, "prompts")
 
 
 load_dotenv(os.path.join(BASE_PATH, ".env"))
 
-with open(os.path.join(BASE_PATH, "resources", "system-prompt.txt")) as f:
+
+with open(os.path.join(PROMPTS_PATH, "system-prompt.txt")) as f:
     SYSTEM_PROMPT = f.read()
 
 

@@ -3,10 +3,10 @@ import os
 
 import requests
 
-from config import BASE_PATH, LLM_API_KEY, SYSTEM_PROMPT
+from config import BASE_PATH, LLM_API_KEY, RESOURCES_PATH, SYSTEM_PROMPT
 
 
-with open(os.path.join(BASE_PATH, "resources", "guidelines.txt")) as f:
+with open(os.path.join(RESOURCES_PATH, "guidelines.txt")) as f:
     GUIDELINES = f.read()
 
 
@@ -66,8 +66,8 @@ for log in chat_log:
     body = {
         "model": model,
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": log["content"]},
+            {"role": "system", "content": sys_prompt},
+            {"role": "user", "content": json.dumps(log)},
         ],
     }
     rsp = requests.post(base_url + "/chat/completions", headers=headers, json=body)
@@ -86,5 +86,5 @@ for log in chat_log:
     var.append(obj)
 
 
-with open(os.path.join(BASE_PATH, "resources", "rsp.json"), "w") as f:
+with open(os.path.join(RESOURCES_PATH, "rsp.json"), "w") as f:
     json.dump(var, f)
