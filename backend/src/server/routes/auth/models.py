@@ -1,5 +1,5 @@
 from pydantic import EmailStr
-from core.typing import CustomBaseModel
+from core.models import CustomBaseModel
 
 
 class UserCreate(CustomBaseModel):
