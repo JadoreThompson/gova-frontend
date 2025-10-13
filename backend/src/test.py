@@ -57,8 +57,12 @@ base_url = "https://api.mistral.ai/v1"
 headers = {"Authorization": f"Bearer {LLM_API_KEY}"}
 model = "mistral-tiny"
 
+operations = ["ban", "mute"]
+
+
 var = []
 for log in chat_log:
+    sys_prompt = SYSTEM_PROMPT.format(guidelines=GUIDELINES, operations=operations)
     body = {
         "model": model,
         "messages": [
@@ -68,9 +72,19 @@ for log in chat_log:
     }
     rsp = requests.post(base_url + "/chat/completions", headers=headers, json=body)
     data = rsp.json()
-    obj = (log, rsp.json())
-    var.append(obj)
-    
+    content = data["choices"][0]["message"]["content"]
 
-with open("rsp.json", "w") as f:
+    s = "```json"
+    py_ind = content.index(s)
+    content = content[py_ind + len(s) :]
+
+    s = "```"
+    quote_ind = content.index(s)
+    content = content[:quote_ind]
+
+    obj = (log, json.loads(content))
+    var.append(obj)
+
+
+with open(os.path.join(BASE_PATH, "resources", "rsp.json"), "w") as f:
     json.dump(var, f)
