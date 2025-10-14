@@ -13,7 +13,7 @@ from config import (
     SCORE_SYSTEM_PROMPT,
 )
 from core.enums import ActionType, ChatPlatformType
-from engine.actions import BanAction, MuteAction
+from engine.discord.actions import BanAction, MuteAction
 from engine.models import ChatContext, ChatEvaluation
 from engine.prompt_validator import PromptValidator
 from utils.db import get_db_sess
@@ -23,9 +23,6 @@ from utils.llm import parse_to_dict
 class ChatModerator:
     def __init__(self, project_id: UUID) -> None:
         self._project_id = project_id
-        self._http_sess = ClientSession(
-            base_url=LLM_BASE_URL, headers={"Authorization": f"Bearer {LLM_API_KEY}"}
-        )
         self._topics: list[str] = None
 
         with open(os.path.join(RESOURCES_PATH, "guidelines.txt")) as f:
@@ -94,3 +91,12 @@ class ChatModerator:
             topics = res.all()
 
         return topics
+
+    async def __aenter__(self):
+        self._http_sess = ClientSession(
+            base_url=LLM_BASE_URL, headers={"Authorization": f"Bearer {LLM_API_KEY}"}
+        )
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, tcb) -> None:
+        await self._http_sess.close()

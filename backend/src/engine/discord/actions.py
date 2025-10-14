@@ -1,6 +1,6 @@
 from pydantic import Field
 
-from backend.src.core.models import CustomBaseModel
+from core.models import CustomBaseModel
 from core.enums import ActionType
 
 
