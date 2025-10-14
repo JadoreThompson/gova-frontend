@@ -18,19 +18,3 @@ class CustomBaseModel(BaseModel):
 
     def to_serialisable_dict(self) -> dict:
         return loads(self.model_dump_json())
-
-
-class Action(CustomBaseModel):
-    type: ActionType
-    reason: str
-
-
-class BanAction(Action):
-    type: ActionType = ActionType.BAN
-
-
-class MuteAction(Action):
-    type: ActionType = ActionType.MUTE
-    duration: int = Field(
-        ..., ge=0, description="Duration in milliseconds to mute the user."
-    )
