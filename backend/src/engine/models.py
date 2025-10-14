@@ -16,6 +16,18 @@ class ChatContext(CustomBaseModel):
     message: str
 
 
+class DiscordServer(BaseModel):
+    name: str
+    id: int
+
+
+class DiscordChatContext(ChatContext):
+    platform: ChatPlatformType = ChatPlatformType.DISCORD
+    server: DiscordServer  # The server the message ws sent in
+    channel: str  # The channel the message was sent in
+    user_id: int  # The user who sent the message
+
+
 class ChatEvaluation(CustomBaseModel):
     evaluation_score: float
     action: Action | None
