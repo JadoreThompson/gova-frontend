@@ -19,13 +19,6 @@ load_dotenv(os.path.join(BASE_PATH, ".env"))
 PRODUCTION = False
 
 
-# Auth
-COOKIE_ALIAS = "app-cookie"
-JWT_ALGO = os.getenv("JWT_ALGO", "HS256")
-JWT_SECRET = os.getenv("JWT_SECRET", "secret")
-JWT_EXPIRY = timedelta(days=1000)
-
-
 # DB
 DB_HOST_CREDS = f"{os.getenv("DB_HOST", "localhost")}:{os.getenv("DB_PORT", 5132)}"
 DB_USER_CREDS = (
@@ -37,16 +30,18 @@ DB_ENGINE = create_async_engine(
 )
 
 
-# Logging
-logging.basicConfig(format="%(asctime)s - [%(levelname)s] - %(module)s - %(message)s")
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+# Auth
+COOKIE_ALIAS = "app-cookie"
+JWT_ALGO = os.getenv("JWT_ALGO", "HS256")
+JWT_SECRET = os.getenv("JWT_SECRET", "secret")
+JWT_EXPIRY = timedelta(days=1000)
 
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(
-    logging.Formatter("%(asctime)s - [%(levelname)s] - %(module)s - %(message)s")
-)
-logger.addHandler(handler)
+
+# LLM
+LLM_API_KEY = os.getenv("LLM_API_KEY")
+LLM_AGENT_ID = os.getenv("LLM_AGENT_ID")
+LLM_BASE_URL = "https://api/mistral.ai/v1"
+LLM_MODEL_NAME = "mstral-tiny"
 
 
 # Prompts
@@ -60,8 +55,24 @@ with open(os.path.join(PROMPTS_PATH, "final-prompt.txt")) as f:
     FINAL_PROMPT = f.read()
 
 
-# LLM
-LLM_API_KEY = os.getenv("LLM_API_KEY")
-LLM_AGENT_ID = os.getenv("LLM_AGENT_ID")
-LLM_BASE_URL = "https://api/mistral.ai/v1"
-LLM_MODEL_NAME = "mstral-tiny"
+# Discord
+DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
+DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
+DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI")
+DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+
+
+# Logging
+logging.basicConfig(
+    filename="app.log",
+    filemode="a",
+    format="%(asctime)s - [%(levelname)s] - %(module)s - %(message)s",
+)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(
+    logging.Formatter("%(asctime)s - [%(levelname)s] - %(module)s - %(message)s")
+)
+logger.addHandler(handler)

@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy import insert, select, and_
@@ -6,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db_models import Users
 from server.dependencies import depends_db_sess
 from server.services import JWTService
+from .controller import fetch_discord_access_token
 from .models import UserCreate, UserLogin
 
 
@@ -39,16 +41,21 @@ async def login(body: UserLogin, db_sess: AsyncSession = Depends(depends_db_sess
             content={"error": "Either username or email must be provided."},
         )
 
-    conditions = [Users.password == body.password]
-    if body.email:
-        conditions.append(Users.email == body.email)
-    if body.username:
-        conditions.append(Users.username == body.username)
-
-    res = await db_sess.execute(select(Users).where(and_(*conditions)))
+    res = await db_sess.execute(
+        select(Users).where(
+            Users.username == body.username, Users.password == body.password
+        )
+    )
     user = res.scalar_one_or_none()
 
     if user is None:
         return JSONResponse(status_code=401, content={"error": "Invalid user."})
 
     return JWTService.set_cookie(user)
+
+
+@router.get("/discord/oauth")
+async def discord_callback(code: str):
+    data = await fetch_discord_access_token(code)
+    with open("discord-token.json", "w") as f: # TODO: Remove
+        json.dump(data, f)
