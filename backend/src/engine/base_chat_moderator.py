@@ -2,6 +2,7 @@ import os
 from uuid import UUID
 
 from aiohttp import ClientSession
+from sqlalchemy import select
 
 from config import (
     LLM_API_KEY,
@@ -11,6 +12,9 @@ from config import (
     TOPIC_SYSTEM_PROMPT,
 )
 from core.enums import ChatPlatformType
+from db_models import Projects
+from engine.models import MessageContext, MessageEvaluation
+from utils.db import get_db_sess
 from utils.llm import parse_to_json
 
 
@@ -33,13 +37,25 @@ class BaseChatModerator:
         with open(os.path.join(RESOURCES_PATH, "guidelines.txt")) as f:
             return f.read()
 
-    async def _fetch_topics(self, platform: ChatPlatformType) -> list[str]:
+    async def _fetch_topics(self) -> list[str]:
+        async with get_db_sess() as db_sess:
+            topics = await db_sess.scalar(
+                select(Projects.topics).where(Projects.project_id == self._project_id)
+            )
+
+        if topics:
+            return topics
+
         return await self._fetch_llm_response(
             [
                 {"role": "system", "content": TOPIC_SYSTEM_PROMPT},
                 {"role": "user", "content": self._guidelines},
             ]
         )
+
+    async def _save_evaluation(
+        self, eval: MessageEvaluation, ctx: MessageContext
+    ) -> None: ...
 
     async def __aenter__(self):
         self._http_sess = ClientSession(

@@ -41,7 +41,7 @@ class DiscordChatModerator(BaseChatModerator):
             self._guidelines = guidelines
 
         if not self._topics:
-            topics = await self._fetch_topics(ctx.platform)
+            topics = await self._fetch_topics()
             if not topics:
                 print("No topics")
                 return
@@ -49,7 +49,7 @@ class DiscordChatModerator(BaseChatModerator):
 
         attempt = 0
         while attempt < max_attempts:
-            msgs= []
+            msgs = []
             try:
                 # Fetching topic scores
                 sys_prompt = SCORE_SYSTEM_PROMPT.format(
@@ -84,8 +84,7 @@ class DiscordChatModerator(BaseChatModerator):
                     [{"role": "user", "content": prompt}]
                 )
 
-                
-                eval =  MessageEvaluation(**data)
+                eval = MessageEvaluation(**data)
                 msgs.append(data)
 
                 for msg in msgs:

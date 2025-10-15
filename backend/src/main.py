@@ -10,11 +10,6 @@ def main():
 
 
 async def test():
-    # from engine.discord.chat_stream import DiscordChatStream
-
-    # stream = DiscordChatStream(DISCORD_BOT_TOKEN, 1334317047995432980)
-    # async for msg in stream:
-    #     print("Received context:", msg)
     from engine.discord.chat_moderator import DiscordChatModerator
     from engine.discord.chat_stream import DiscordChatStream
 
