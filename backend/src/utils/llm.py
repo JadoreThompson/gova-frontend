@@ -1,13 +1,17 @@
 from json import loads
+import logging
 
 from aiohttp import ClientSession
 
 from config import LLM_API_KEY, LLM_BASE_URL, LLM_MODEL_NAME
 
+
+logger = logging.getLogger("llm")
 HTTP_SESS: ClientSession | None = None
 
 
 def parse_to_json(value: str) -> dict | list:
+    logger.info(f"Handling '{value}'")
     s = "```json"
     ind = value.index(s)
     value = value[ind + len(s) :]
@@ -16,6 +20,7 @@ def parse_to_json(value: str) -> dict | list:
     ind = value.index(s)
     value = value[:ind]
 
+    logger.info(f"Parsed to {value}")
     return loads(value)
 
 

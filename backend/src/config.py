@@ -5,6 +5,7 @@ from datetime import timedelta
 from urllib.parse import quote
 
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine
 
 
@@ -24,10 +25,19 @@ DB_HOST_CREDS = f"{os.getenv("DB_HOST", "localhost")}:{os.getenv("DB_PORT", 5132
 DB_USER_CREDS = (
     f"{os.getenv("DB_USER", "postgres")}:{quote(os.getenv("PASSWORD", "password"))}"
 )
-DB_NAME = os.getenv("DB_NAME", "ai_chat_mod")
+DB_NAME = os.getenv("DB_NAME")
 DB_ENGINE = create_async_engine(
     f"postgresql+asyncpg://{DB_USER_CREDS}@{DB_HOST_CREDS}/{DB_NAME}"
 )
+DB_ENGINE_SYNC = create_engine(
+    f"postgresql+psycopg2://{DB_USER_CREDS}@{DB_HOST_CREDS}/{DB_NAME}"
+)
+
+
+# Kafka
+KAFKA_HOST = os.getenv("KAFKA_HOST")
+KAFKA_PORT = int(os.getenv("KAFKA_PORT"))
+KAFKA_DEPLOYMENT_EVENTS_TOPIC = os.getenv("KAFKA_DEPLOYMENT_EVENTS_TOPIC")
 
 
 # Auth

@@ -85,6 +85,8 @@ class ModeratorDeployments(Base):
         SaUUID(as_uuid=True), ForeignKey("moderators.moderator_id"), nullable=False
     )
     platform: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    conf: Mapped[dict] = mapped_column(JSONB, nullable=False)
     state: Mapped[str] = mapped_column(
         String, nullable=False, default=ModeratorDeploymentState.OFFLINE.value
     )

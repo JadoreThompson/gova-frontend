@@ -1,6 +1,10 @@
+from typing import AsyncGenerator
+
+from aiokafka import AIOKafkaProducer
 from fastapi import Request
 
 from config import COOKIE_ALIAS
+from infra.kafka_manager import KafkaManager
 from utils.db import smaker
 from server.exc import JWTError
 from server.services import JWTService
@@ -35,3 +39,7 @@ async def depends_jwt(req: Request) -> JWTPayload:
 
     payload = JWTService.decode_jwt(token)
     return await JWTService.validate_payload(payload)
+
+
+async def depends_kafka_producer() -> AsyncGenerator[AIOKafkaProducer, None]:
+    return KafkaManager.get_producer()

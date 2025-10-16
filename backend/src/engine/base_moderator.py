@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import logging
 from uuid import UUID
 
@@ -9,10 +10,10 @@ from config import LLM_API_KEY, LLM_BASE_URL, LLM_MODEL_NAME
 from db_models import Guidelines, MessagesEvaluations, Moderators
 from engine.models import MessageContext, MessageEvaluation
 from utils.db import get_db_sess
-from utils.llm import parse_to_json
+from utils.llm import fetch_response, parse_to_json
 
 
-class BaseChatModerator:
+class BaseModerator:
     _embedding_model: SentenceTransformer | None = None
 
     def __init__(
@@ -24,23 +25,24 @@ class BaseChatModerator:
         self._topics: list[str] | None = None
         self._guidelines: str | None = None
 
-    def _load_embedding_model(self):
+    @abstractmethod
+    async def moderate(self) -> None: ...
+
+    def _load_embedding_model(self) -> None:
         if self._embedding_model:
             return
         self._embedding_model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B")
 
     async def _fetch_llm_response(self, messages: list[dict]):
-        body = {"model": LLM_MODEL_NAME, "messages": messages}
-        rsp = await self._http_sess.post("chat/completions", json=body)
-        rsp.raise_for_status()
-        data = await rsp.json()
+        data = await fetch_response(messages)
         content = data["choices"][0]["message"]["content"]
+        self._logger.info(f"Content: {content}")
         return parse_to_json(content)
 
     async def _fetch_guidelines(self) -> tuple[str, list[str]]:
         async with get_db_sess() as db_sess:
             res = await db_sess.execute(
-                select(Guidelines.text, Guidelines.topcis).where(
+                select(Guidelines.text, Guidelines.topics).where(
                     Guidelines.guideline_id
                     == select(Moderators.guideline_id).where(
                         Moderators.moderator_id == self._moderator_id

@@ -5,28 +5,35 @@ from uuid import UUID
 
 from aiohttp import ClientError
 
+import engine.discord.actions as actions_module
 from config import FINAL_PROMPT, SCORE_SYSTEM_PROMPT
-from engine.base_moderator import BaseChatModerator
-from engine.discord.actions import BanAction, DiscordActionType, MuteAction
-from engine.enums import MaliciousState
+from engine.base_moderator import BaseModerator
 from engine.models import TopicEvaluation, MessageContext, MessageEvaluation
+from engine.enums import MaliciousState
 from engine.prompt_validator import PromptValidator
+from .actions import BanAction, DiscordActionType, MuteAction
+from .config import DiscordConfig
 from .stream import DiscordStream
 
 
-class DiscordModerator(BaseChatModerator):
+class DiscordModerator(BaseModerator):
 
-    def __init__(self, moderator_id: UUID, stream: DiscordStream):
+    def __init__(
+        self, moderator_id: UUID, stream: DiscordStream, config: DiscordConfig
+    ):
         super().__init__(
-            moderator_id, logging.getLogger(f"discord-moderator-{self._moderator_id}")
+            moderator_id, logging.getLogger(f"discord-moderator-{moderator_id}")
         )
+        self._config = config
         self._stream = stream
 
     async def moderate(self) -> None:
+        self._logger.info("Launching moderation...")
         self._load_embedding_model()
 
         async for ctx in self._stream:
             eval = await self._evaluate(ctx)
+            print("Eval", eval)
             if not eval:
                 continue
 
@@ -42,6 +49,13 @@ class DiscordModerator(BaseChatModerator):
 
         if not self._guidelines:
             self._guidelines, self._topics = await self._fetch_guidelines()
+
+        allowed_actions = [a.type.value for a in self._config.allowed_actions]
+        action_formats = []
+        for a in allowed_actions:
+            ac = actions_module.__dict__.get(a)
+            if ac:
+                action_formats.append(ac.model_json_schema())
 
         attempt = 0
         while attempt < max_attempts:
@@ -60,12 +74,9 @@ class DiscordModerator(BaseChatModerator):
                     guidelines=self._guidelines,
                     topics=self._topics,
                     topic_scores=topic_scores,
-                    actions=DiscordActionType._value2member_map_.keys(),
+                    actions=allowed_actions,
                     message=ctx.content,
-                    action_formats=[
-                        BanAction.model_json_schema(),
-                        MuteAction.model_json_schema(),
-                    ],
+                    action_formats=action_formats,
                     context=ctx.to_serialisable_dict(),
                 )
                 data = await self._fetch_llm_response(

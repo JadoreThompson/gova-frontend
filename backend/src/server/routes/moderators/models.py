@@ -1,6 +1,9 @@
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
+from engine.discord.config import DiscordConfig
+from core.enums import MessagePlatformType, ModeratorDeploymentState
 from core.models import CustomBaseModel
 
 
@@ -20,4 +23,19 @@ class ModeratorUpdate(ModeratorBase):
 
 class ModeratorResponse(ModeratorBase):
     moderator_id: UUID
+    created_at: datetime
+
+
+class ModeratorDeploymentCreate(CustomBaseModel):
+    platform: MessagePlatformType
+    name: str | None
+    conf: dict[str, Any]
+
+
+class ModeratorDeploymentResponse(CustomBaseModel):
+    deployment_id: UUID
+    moderator_id: UUID
+    platform: MessagePlatformType
+    conf: DiscordConfig
+    state: ModeratorDeploymentState
     created_at: datetime

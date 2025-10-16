@@ -1,19 +1,25 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
+from aiokafka import AIOKafkaProducer
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, insert, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config import PAGE_SIZE
-from db_models import Moderators
-from server.dependencies import depends_db_sess, depends_jwt
+from config import KAFKA_DEPLOYMENT_EVENTS_TOPIC, PAGE_SIZE
+from core.enums import MessagePlatformType
+from core.events import DeploymentEvent
+from db_models import ModeratorDeployments, Moderators
+from engine.discord.config import DiscordConfig
+from server.dependencies import depends_db_sess, depends_jwt, depends_kafka_producer
 from server.models import PaginatedResponse
 from server.typing import JWTPayload
+from utils.kafka import dump_model
 from .models import (
-    ModeratorBase,
     ModeratorCreate,
+    ModeratorDeploymentResponse,
     ModeratorResponse,
     ModeratorUpdate,
+    ModeratorDeploymentCreate,
 )
 
 
@@ -24,9 +30,9 @@ router = APIRouter(prefix="/moderators", tags=["Moderators"])
 async def create_moderator(
     body: ModeratorCreate,
     jwt: JWTPayload = Depends(depends_jwt),
-    db: AsyncSession = Depends(depends_db_sess),
+    db_sess: AsyncSession = Depends(depends_db_sess),
 ):
-    mod = await db.scalar(
+    mod = await db_sess.scalar(
         insert(Moderators)
         .values(user_id=jwt.sub, name=body.name, guideline_id=body.guideline_id)
         .returning(Moderators)
@@ -37,7 +43,62 @@ async def create_moderator(
         guideline_id=body.guideline_id,
         created_at=mod.created_at,
     )
-    await db.commit()
+    await db_sess.commit()
+    return rsp_body
+
+
+@router.post("/deploy/{moderator_id}", response_model=ModeratorDeploymentResponse)
+async def deploy_moderator(
+    moderator_id: UUID,
+    body: ModeratorDeploymentCreate,
+    jwt: JWTPayload = Depends(depends_jwt),
+    db_sess: AsyncSession = Depends(depends_db_sess),
+    kafka_producer: AIOKafkaProducer = Depends(depends_kafka_producer),
+):
+    mod = await db_sess.scalar(
+        select(Moderators).where(
+            Moderators.moderator_id == moderator_id, Moderators.user_id == jwt.sub
+        )
+    )
+    if not mod:
+        raise HTTPException(status_code=404, detail="Moderator not found.")
+
+    conf = None
+    if body.platform == MessagePlatformType.DISCORD:
+        conf = DiscordConfig(**body.conf)
+    else:
+        raise HTTPException(status_code=400, detail="Unknown message platform.")
+
+    name = body.name or str(uuid4())
+    dep = await db_sess.scalar(
+        insert(ModeratorDeployments)
+        .values(
+            moderator_id=moderator_id,
+            platform=body.platform.value,
+            conf=conf.to_serialisable_dict(),
+            name=name,
+        )
+        .returning(ModeratorDeployments)
+    )
+
+    print(vars(dep))
+
+    rsp_body = ModeratorDeploymentResponse(
+        deployment_id=dep.deployment_id,
+        moderator_id=moderator_id,
+        platform=dep.platform,
+        conf=conf,
+        state=dep.state,
+        created_at=dep.created_at,
+    )
+
+    ev = DeploymentEvent(
+        deployment_id=dep.deployment_id, platform=body.platform, conf=conf
+    )
+    await db_sess.commit()
+
+    await kafka_producer.send(KAFKA_DEPLOYMENT_EVENTS_TOPIC, dump_model(ev))
+
     return rsp_body
 
 

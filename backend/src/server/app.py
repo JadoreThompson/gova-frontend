@@ -1,10 +1,19 @@
 from fastapi import FastAPI
+
+from infra.kafka_manager import KafkaManager
 from server.routes.auth.route import router as auth_router
 from server.routes.guidelines.route import router as guidelines_router
 from server.routes.moderators.route import router as moderators_router
 
 
-app = FastAPI()
+async def lifespan(app: FastAPI):
+    await KafkaManager.start()
+    yield
+    await KafkaManager.stop()
+
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth_router)
 app.include_router(guidelines_router)

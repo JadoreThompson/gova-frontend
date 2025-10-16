@@ -1,12 +1,15 @@
 import asyncio
 from json import JSONDecodeError
+import logging
 
 from aiohttp import ClientSession, ClientError
 from pydantic import ValidationError
 
 from engine.enums import MaliciousState
-from config import LLM_API_KEY, LLM_BASE_URL, LLM_MODEL_NAME, SECURITY_SYSTEM_PROMPT
-from utils.llm import parse_to_json
+from config import LLM_API_KEY, LLM_BASE_URL, SECURITY_SYSTEM_PROMPT
+from utils.llm import fetch_response, parse_to_json
+
+logger = logging.getLogger("prompt_validator")
 
 
 class PromptValidator:
@@ -33,23 +36,19 @@ class PromptValidator:
                 headers={"Authorization": f"Bearer {LLM_API_KEY}"},
             )
 
+        logger.info(f"Handling prompt '{prompt}'")
         attempt = 0
         try:
             while attempt < max_attempts:
                 try:
-                    body = {
-                        "model": LLM_MODEL_NAME,
-                        "messages": [
+                    data = await fetch_response(
+                        [
                             {"role": "system", "content": SECURITY_SYSTEM_PROMPT},
                             {"role": "user", "content": prompt},
-                        ],
-                    }
-
-                    rsp = await sess.post("chat/completions", json=body)
-                    rsp.raise_for_status()
-                    data = await rsp.json()
-
+                        ]
+                    )
                     content = data["choices"][0]["message"]["content"]
+                    logger.info(f"Content: {content}")
                     parsed = parse_to_json(content)
 
                     return (
@@ -58,7 +57,12 @@ class PromptValidator:
                         else MaliciousState.NOT_MALICIOUS
                     )
 
-                except (ClientError, asyncio.TimeoutError, ValidationError, JSONDecodeError):
+                except (
+                    ClientError,
+                    asyncio.TimeoutError,
+                    ValidationError,
+                    JSONDecodeError,
+                ):
                     pass
                 finally:
                     attempt += 1

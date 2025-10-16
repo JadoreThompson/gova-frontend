@@ -3,7 +3,7 @@ from typing import AsyncIterator
 
 import discord
 
-from backend.src.engine.base_stream import BaseChatStream
+from engine.base_stream import BaseChatStream
 from .context import DiscordMessageContext, DiscordServer
 
 
