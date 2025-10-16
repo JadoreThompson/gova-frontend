@@ -1,0 +1,98 @@
+import { Bell, Box, FileText } from "lucide-react";
+import type { FC, ReactNode } from "react";
+import { Link, useLocation } from "react-router";
+import SiteLogo from "../site-logo";
+import ThemeToggle from "../theme-toggle";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from "../ui/sidebar";
+
+const Header: FC = () => {
+  return (
+    <header className="bg-background/80 fixed top-0 left-0 z-50 flex h-12 w-full items-center justify-between p-2 backdrop-blur-sm">
+      <div className="flex w-20 items-center justify-center">
+        <SiteLogo />
+      </div>
+
+      <div className="flex items-center justify-center gap-6">
+        <Bell size={15} />
+        <ThemeToggle />
+      </div>
+    </header>
+  );
+};
+
+const DashboardSidebar: FC = () => {
+  const location = useLocation();
+
+  const menuItems = [
+    ["Guidelines", "/guidelines", FileText],
+    ["Deployments", "/deployments", Box],
+  ] as const;
+
+  return (
+    <Sidebar className="border-transparent mt-12">
+      <SidebarContent className="bg-background">
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map(([title, url, Icon]) => {
+                const isActive = location.pathname === url;
+
+                return (
+                  <SidebarMenuItem key={title}>
+                    <SidebarMenuButton asChild>
+                      <Link
+                        to={url}
+                        className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors duration-200 ${
+                          isActive
+                            ? "bg-blue-500/15 font-medium text-blue-600 dark:text-blue-400"
+                            : "text-neutral-700 hover:bg-blue-500/10 hover:text-blue-500 dark:text-neutral-300 dark:hover:text-blue-400"
+                        } `}
+                      >
+                        <Icon
+                          size={16}
+                          className={`${isActive ? "text-blue-500 dark:text-blue-400" : ""}`}
+                        />
+                        {title}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
+};
+
+interface DashboardLayoutProps {
+  children: ReactNode;
+}
+
+const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <DashboardSidebar />
+        <div className="flex flex-1 flex-col pb-5">
+          <Header />
+          <div className="mt-12 min-h-200 w-full rounded-l-lg border-2 p-4 bg-neutral-100 dark:bg-neutral-900">
+            <main>{children}</main>
+          </div>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+};
+
+export default DashboardLayout;

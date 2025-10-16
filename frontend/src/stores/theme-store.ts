@@ -39,7 +39,7 @@ export const useThemeStore = create<ThemeState>()(
 );
 
 function applyTheme(theme: Theme) {
-  const root = window.document.documentElement;
+  const root = window.document.body;
 
   if (theme === "system") {
     const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
