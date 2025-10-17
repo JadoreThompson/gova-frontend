@@ -48,7 +48,7 @@ async def list_deployments(
                 platform=d.platform,
                 name=d.name,
                 conf=d.conf,
-                state=d.state,
+                status=d.state,
                 created_at=d.created_at,
             )
             for d in deployments[:PAGE_SIZE]
@@ -76,7 +76,7 @@ async def get_deployment(
         platform=dep.platform,
         name=dep.name,
         conf=dep.conf,
-        state=dep.state,
+        status=dep.state,
         created_at=dep.created_at,
     )
 
@@ -116,7 +116,7 @@ async def update_deployment(
         platform=dep.platform,
         name=dep.name,
         conf=dep.conf,
-        state=dep.state,
+        status=dep.state,
         created_at=dep.created_at,
     )
 

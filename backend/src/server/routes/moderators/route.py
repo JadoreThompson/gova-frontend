@@ -86,7 +86,7 @@ async def deploy_moderator(
         moderator_id=moderator_id,
         platform=dep.platform,
         conf=conf,
-        state=dep.state,
+        status=dep.state,
         created_at=dep.created_at,
     )
 

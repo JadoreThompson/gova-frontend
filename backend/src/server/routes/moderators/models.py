@@ -3,7 +3,7 @@ from typing import Any
 from uuid import UUID
 
 from engine.discord.config import DiscordConfig
-from core.enums import MessagePlatformType, ModeratorDeploymentState
+from core.enums import MessagePlatformType, ModeratorDeploymentStatus
 from core.models import CustomBaseModel
 
 
@@ -37,5 +37,5 @@ class ModeratorDeploymentResponse(CustomBaseModel):
     moderator_id: UUID
     platform: MessagePlatformType
     conf: DiscordConfig
-    state: ModeratorDeploymentState
+    status: ModeratorDeploymentStatus
     created_at: datetime

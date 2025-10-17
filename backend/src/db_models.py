@@ -6,7 +6,7 @@ from sqlalchemy import UUID as SaUUID, Float, String, DateTime, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
-from core.enums import ModeratorDeploymentState
+from core.enums import ModeratorDeploymentStatus
 from utils.db import get_datetime
 
 
@@ -69,10 +69,13 @@ class Moderators(Base):
     )
 
     # Relationships
+    user: Mapped["Users"] = relationship(back_populates="moderators")
     deployments: Mapped[list["ModeratorDeployments"]] = relationship(
         back_populates="moderator", cascade="all, delete-orphan"
     )
-    user: Mapped["Users"] = relationship(back_populates="moderators")
+    logs: Mapped[list["ModeratorLogs"]] = relationship(
+        back_populates="moderator", cascade="all, delete-orphan"
+    )
 
 
 class ModeratorDeployments(Base):
@@ -88,7 +91,7 @@ class ModeratorDeployments(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     conf: Mapped[dict] = mapped_column(JSONB, nullable=False)
     state: Mapped[str] = mapped_column(
-        String, nullable=False, default=ModeratorDeploymentState.OFFLINE.value
+        String, nullable=False, default=ModeratorDeploymentStatus.OFFLINE.value
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=get_datetime
@@ -96,6 +99,26 @@ class ModeratorDeployments(Base):
 
     # Relationships
     moderator: Mapped[list["Moderators"]] = relationship(back_populates="deployments")
+
+
+class ModeratorLogs(Base):
+    __tablename__ = "moderator_logs"
+
+    log_id: Mapped[UUID] = mapped_column(
+        SaUUID(as_uuid=True), primary_key=True, nullable=False, default=get_uuid
+    )
+    moderator_id: Mapped[UUID] = mapped_column(
+        SaUUID(as_uuid=True), ForeignKey("moderators.moderator_id"), nullable=False
+    )
+    action_type: Mapped[str] = mapped_column(String, nullable=False)
+    action_params: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=get_datetime
+    )
+
+    # Relationships
+    moderator = relationship(back_populates="logs")
 
 
 class MessagesEvaluations(Base):

@@ -5,11 +5,12 @@ from uuid import UUID
 
 from aiohttp import ClientError
 
+from backend.src.core.enums import ActionStatus
 import engine.discord.actions as actions_module
-from config import FINAL_PROMPT, SCORE_SYSTEM_PROMPT
+from config import FINAL_PROMPT
 from engine.base_moderator import BaseModerator
-from engine.models import TopicEvaluation, MessageContext, MessageEvaluation
 from engine.enums import MaliciousState
+from engine.models import TopicEvaluation, MessageContext, MessageEvaluation
 from engine.prompt_validator import PromptValidator
 from .config import DiscordConfig
 from .stream import DiscordStream
@@ -27,6 +28,7 @@ class DiscordModerator(BaseModerator):
         self._stream = stream
 
     async def moderate(self) -> None:
+        # TODO: Improve for throughput & latency
         self._logger.info("Launching moderation...")
         self._load_embedding_model()
 
@@ -35,13 +37,18 @@ class DiscordModerator(BaseModerator):
             if not evaluation:
                 continue
 
+            if evaluation.action:
+                log_id = await self._log_action(evaluation.action)
+                # Perform action
+                await self._update_action_status(log_id, ActionStatus.SUCCESS)
+
             await self._save_evaluation(evaluation, ctx)
 
     async def _evaluate(
         self, ctx: MessageContext, max_attempts: int = 3
     ) -> MessageEvaluation:
-        mstate = await PromptValidator.validate_prompt(ctx.content)
-        if mstate == MaliciousState.MALICIOUS:
+        mal_state = await PromptValidator.validate_prompt(ctx.content)
+        if mal_state == MaliciousState.MALICIOUS:
             self._logger.critical(f'Malicious content "{ctx.content}"')
             return
 
@@ -97,48 +104,8 @@ class DiscordModerator(BaseModerator):
                 json.JSONDecodeError,
                 ValueError,
             ) as e:
-                self._logger.info(f"Attempt {attempt + 1} failed. Error -> {type(e)} - {str(e)}")
+                self._logger.info(
+                    f"Attempt {attempt + 1} failed. Error -> {type(e)} - {str(e)}"
+                )
             finally:
                 attempt += 1
-
-    async def _fetch_topic_scores(self, ctx: MessageContext, topics: list[str]):
-        sys_prompt = SCORE_SYSTEM_PROMPT.format(
-            guidelines=self._guidelines, topics=topics
-        )
-        topic_scores: dict[str, float] = await self._fetch_llm_response(
-            [
-                {"role": "system", "content": sys_prompt},
-                {
-                    "role": "user",
-                    "content": json.dumps(ctx.to_serialisable_dict()),
-                },
-            ]
-        )
-        return topic_scores
-
-    async def _handle_similars(
-        self, ctx: MessageContext, similars: tuple[tuple[str, float], ...]
-    ) -> dict[str, float]:
-        topic_scores = {}
-
-        # TODO: Optimise
-        for topic, score in similars:
-            if topic in topic_scores:
-                score, count = topic_scores[topic]
-                score += score
-                count += 1
-                topic_scores[topic] = (round(score / count, 2), count)
-            else:
-                topic_scores[topic] = (score, 1)
-
-        items = topic_scores.items()
-        for k, (score, _) in items:
-            topic_scores[k] = score
-
-        remaining = set(self._topics).difference(set(topic_scores.keys()))
-        if remaining:
-            rem_scores = await self._fetch_topic_scores(ctx, list(remaining))
-            for k, v in rem_scores:
-                topic_scores[k] = v
-
-        return topic_scores

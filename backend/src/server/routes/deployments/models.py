@@ -3,7 +3,7 @@ from typing import Any
 from uuid import UUID
 
 from engine.discord.config import DiscordConfig
-from core.enums import MessagePlatformType, ModeratorDeploymentState
+from core.enums import MessagePlatformType, ModeratorDeploymentStatus
 from core.models import CustomBaseModel
 
 
@@ -15,7 +15,7 @@ class DeploymentBase(CustomBaseModel):
 
 class DeploymentUpdate(CustomBaseModel):
     name: str | None = None
-    conf: dict[str, Any] | None = None    
+    conf: dict[str, Any] | None = None
 
 
 class DeploymentResponse(CustomBaseModel):
@@ -24,5 +24,5 @@ class DeploymentResponse(CustomBaseModel):
     platform: MessagePlatformType
     name: str
     conf: DiscordConfig
-    state: ModeratorDeploymentState
+    status: ModeratorDeploymentStatus
     created_at: datetime

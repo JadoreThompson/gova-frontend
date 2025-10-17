@@ -1,13 +1,17 @@
-from abc import abstractmethod
+import json
 import logging
+from abc import abstractmethod
 from uuid import UUID
 
 from aiohttp import ClientSession
 from sentence_transformers import SentenceTransformer
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, update
 
-from config import LLM_API_KEY, LLM_BASE_URL, LLM_MODEL_NAME
-from db_models import Guidelines, MessagesEvaluations, Moderators
+from backend.src.core.enums import ActionStatus
+from backend.src.engine.base_action import BaseAction
+from config import LLM_API_KEY, LLM_BASE_URL, SCORE_SYSTEM_PROMPT
+from core.models import CustomBaseModel
+from db_models import Guidelines, MessagesEvaluations, ModeratorLogs, Moderators
 from engine.models import MessageContext, MessageEvaluation
 from utils.db import get_db_sess
 from utils.llm import fetch_response, parse_to_json
@@ -52,6 +56,31 @@ class BaseModerator:
 
             return res.first()
 
+    async def _log_action(self, action: BaseAction) -> UUID:
+        async with get_db_sess() as db_sess:
+            res = await db_sess.scalar(
+                insert(ModeratorLogs).values(
+                    action_type=action.type,
+                    params=action.to_serialisable_dict(),
+                    status=(
+                        ActionStatus.AWAITING_APPROVAL
+                        if action.requires_approval
+                        else ActionStatus.PENDING
+                    ),
+                )
+                .returning(ModeratorLogs.log_id)
+            )
+
+            await db_sess.commit()
+        
+        return res
+    
+    async def _update_action_status(self, log_id: UUID, status: ActionStatus) -> None:
+        async with get_db_sess() as db_sess:
+            await db_sess.execute(update(ModeratorLogs).values(status=status.value).where(ModeratorLogs.log_id == log_id))
+            await db_sess.commit()
+
+
     async def _save_evaluation(
         self, eval: MessageEvaluation, ctx: MessageContext
     ) -> None:
@@ -84,6 +113,21 @@ class BaseModerator:
             await db_sess.execute(insert(MessagesEvaluations), records)
             await db_sess.commit()
 
+    async def _fetch_topic_scores(self, ctx: MessageContext, topics: list[str]):
+        sys_prompt = SCORE_SYSTEM_PROMPT.format(
+            guidelines=self._guidelines, topics=topics
+        )
+        topic_scores: dict[str, float] = await self._fetch_llm_response(
+            [
+                {"role": "system", "content": sys_prompt},
+                {
+                    "role": "user",
+                    "content": json.dumps(ctx.to_serialisable_dict()),
+                },
+            ]
+        )
+        return topic_scores
+
     async def _fetch_similar(self, text: str) -> tuple[tuple[str, float], ...]:
         embedding = self._embedding_model.encode([text])[0]
         async with get_db_sess() as db_sess:
@@ -95,6 +139,33 @@ class BaseModerator:
             )
 
             return tuple((r.topic, r.topic_score) for r in res.yield_per(1000))
+
+    async def _handle_similars(
+        self, ctx: MessageContext, similars: tuple[tuple[str, float], ...]
+    ) -> dict[str, float]:
+        topic_scores = {}
+
+        # TODO: Optimise
+        for topic, score in similars:
+            if topic in topic_scores:
+                score, count = topic_scores[topic]
+                score += score
+                count += 1
+                topic_scores[topic] = (round(score / count, 2), count)
+            else:
+                topic_scores[topic] = (score, 1)
+
+        items = topic_scores.items()
+        for k, (score, _) in items:
+            topic_scores[k] = score
+
+        remaining = set(self._topics).difference(set(topic_scores.keys()))
+        if remaining:
+            rem_scores = await self._fetch_topic_scores(ctx, list(remaining))
+            for k, v in rem_scores:
+                topic_scores[k] = v
+
+        return topic_scores
 
     async def __aenter__(self):
         self._http_sess = ClientSession(
