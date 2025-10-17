@@ -1,15 +1,11 @@
 from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, insert, update, delete
+from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from aiokafka import AIOKafkaProducer
-
-from config import KAFKA_DEPLOYMENT_EVENTS_TOPIC, PAGE_SIZE
-from core.enums import MessagePlatformType
-from core.events import DeploymentEvent
+from config import PAGE_SIZE
 from db_models import ModeratorDeployments, Moderators
-from engine.discord.config import DiscordConfig
 from server.dependencies import depends_db_sess, depends_jwt
 from server.models import PaginatedResponse
 from server.typing import JWTPayload

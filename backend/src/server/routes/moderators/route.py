@@ -91,7 +91,10 @@ async def deploy_moderator(
     )
 
     ev = DeploymentEvent(
-        deployment_id=dep.deployment_id, platform=body.platform, conf=conf
+        deployment_id=dep.deployment_id,
+        moderator_id=dep.moderator_id,
+        platform=body.platform,
+        conf=conf,
     )
     await db_sess.commit()
 
@@ -112,7 +115,7 @@ async def list_moderators(
         .offset((page - 1) * 10)
         .limit(PAGE_SIZE + 1)
     )
-    
+
     mods = res.all()
     n = len(res)
 
