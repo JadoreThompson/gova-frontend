@@ -1,8 +1,9 @@
 import { BrowserRouter, Route, Routes } from "react-router";
 import DeploymentPage from "./pages/DeploymentPage";
 import DeploymentsPage from "./pages/DeploymentsPage";
-import HomePage from "./pages/HomePage";
 import GuidelinesPage from "./pages/GuidelinesPage";
+import HomePage from "./pages/HomePage";
+import ModeratorsPage from "./pages/ModeratorsPage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
             element={<DeploymentPage />}
           />
           <Route path="/guidelines" element={<GuidelinesPage />} />
+          <Route path="/moderators" element={<ModeratorsPage />} />
         </Routes>
       </BrowserRouter>
     </>

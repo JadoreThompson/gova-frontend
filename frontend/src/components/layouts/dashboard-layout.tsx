@@ -1,4 +1,4 @@
-import { Bell, Box, FileText } from "lucide-react";
+import { Bell, Bot, Box, FileText } from "lucide-react";
 import type { FC, ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 import SiteLogo from "../site-logo";
@@ -35,10 +35,11 @@ const DashboardSidebar: FC = () => {
   const menuItems = [
     ["Guidelines", "/guidelines", FileText],
     ["Deployments", "/deployments", Box],
+    ["Moderators", "/moderators", Bot],
   ] as const;
 
   return (
-    <Sidebar className="border-transparent mt-12">
+    <Sidebar className="mt-12 border-transparent">
       <SidebarContent className="bg-background">
         <SidebarGroup>
           <SidebarGroupContent>
@@ -86,7 +87,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
         <DashboardSidebar />
         <div className="flex flex-1 flex-col pb-5">
           <Header />
-          <div className="mt-12 min-h-200 w-full rounded-l-lg border-y-2 border-l-2 p-4 bg-neutral-100 dark:bg-neutral-900">
+          <div className="mt-12 min-h-200 w-full rounded-l-lg border-y-2 border-l-2 bg-neutral-100 p-4 dark:bg-neutral-900">
             <main>{children}</main>
           </div>
         </div>
