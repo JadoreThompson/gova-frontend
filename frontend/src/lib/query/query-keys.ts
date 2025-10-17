@@ -1,1 +1,19 @@
-export const queryKeys = {};
+export const queryKeys = {
+  // Global / General
+  auth: () => ["auth"] as const,
+
+  // Guidelines
+  guidelines: (params?: unknown) => ["guidelines", params] as const,
+  guideline: (guidelineId: string) =>
+    [...queryKeys.guidelines(), guidelineId] as const,
+
+  // Moderators
+  moderators: (params?: unknown) => ["moderators", params] as const,
+  moderator: (moderatorId: string) =>
+    [...queryKeys.moderators(), moderatorId] as const,
+
+  // Deployments (Global list)
+  deployments: (params?: unknown) => ["deployments", params] as const,
+  deployment: (deploymentId: string) =>
+    [...queryKeys.deployments(), deploymentId] as const,
+};
