@@ -86,7 +86,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
         <DashboardSidebar />
         <div className="flex flex-1 flex-col pb-5">
           <Header />
-          <div className="mt-12 min-h-200 w-full rounded-l-lg border-2 p-4 bg-neutral-100 dark:bg-neutral-900">
+          <div className="mt-12 min-h-200 w-full rounded-l-lg border-y-2 border-l-2 p-4 bg-neutral-100 dark:bg-neutral-900">
             <main>{children}</main>
           </div>
         </div>
