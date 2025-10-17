@@ -1,7 +1,8 @@
 import { BrowserRouter, Route, Routes } from "react-router";
+import DeploymentPage from "./pages/DeploymentPage";
 import DeploymentsPage from "./pages/DeploymentsPage";
 import HomePage from "./pages/HomePage";
-import DeploymentPage from "./pages/DeploymentPage";
+import GuidelinesPage from "./pages/GuidelinesPage";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
             path="/deployment/:deploymentId"
             element={<DeploymentPage />}
           />
+          <Route path="/guidelines" element={<GuidelinesPage />} />
         </Routes>
       </BrowserRouter>
     </>
