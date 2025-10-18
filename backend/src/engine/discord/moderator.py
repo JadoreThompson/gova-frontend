@@ -15,6 +15,7 @@ from engine.discord.context import DiscordMessageContext
 from engine.enums import MaliciousState
 from engine.models import TopicEvaluation, MessageEvaluation
 from engine.prompt_validator import PromptValidator
+from engine.task_pool import TaskPool
 from .config import DiscordConfig
 from .stream import DiscordStream
 
@@ -30,7 +31,6 @@ class DiscordModerator(BaseModerator):
         )
         self._token = token
         self._config = config
-        self._action_handlers = {}
         self._client: discord.Client | None = None
         self._stream: DiscordStream | None = None
         self._client_task: asyncio.Task | None = None
@@ -51,29 +51,31 @@ class DiscordModerator(BaseModerator):
         self._client_task = asyncio.create_task(self._client.start(self._token))
 
     async def moderate(self) -> None:
-        # TODO: Improve for throughput & latency
         self._logger.info("Launching moderation...")
         self._initialise_discord()
         self._load_embedding_model()
 
-        async for ctx in self._stream:
-            evaluation = await self._evaluate(ctx)
-            if not evaluation:
-                continue
+        self._task_pool = TaskPool(size=20)
+        async with self._task_pool:
+            async for ctx in self._stream:
+                await self._task_pool.submit(self._handle_context(ctx))
 
-            if evaluation.action:
-                action = evaluation.action
-                log_id = await self._log_action()
+    async def _handle_context(self, ctx: DiscordMessageContext) -> None:
+        evaluation = await self._evaluate(ctx)
+        if not evaluation:
+            return
 
-                if action.requires_approval:
-                    await self._update_action_status(
-                        log_id, ActionStatus.AWAITING_APPROVAL
-                    )
-                else:
-                    await self._action_handler.handle(action, ctx)
-                    await self._update_action_status(log_id, ActionStatus.SUCCESS)
+        if evaluation.action:
+            action = evaluation.action
+            log_id = await self._log_action()
 
-            await self._save_evaluation(evaluation, ctx)
+            if action.requires_approval:
+                await self._update_action_status(log_id, ActionStatus.AWAITING_APPROVAL)
+            else:
+                await self._action_handler.handle(action, ctx)
+                await self._update_action_status(log_id, ActionStatus.SUCCESS)
+
+        await self._save_evaluation(evaluation, ctx)
 
     async def _evaluate(
         self, ctx: DiscordMessageContext, max_attempts: int = 3
@@ -83,7 +85,7 @@ class DiscordModerator(BaseModerator):
         if mal_state == MaliciousState.MALICIOUS:
             self._logger.critical(f'Malicious content "{ctx.content}"')
             return
-        
+
         self._logger.info("Checking guidelines.")
         if not self._guidelines:
             self._guidelines, self._topics = await self._fetch_guidelines()
@@ -139,7 +141,9 @@ class DiscordModerator(BaseModerator):
                 json.JSONDecodeError,
                 ValueError,
             ) as e:
-                import traceback; traceback.print_exc()
+                import traceback
+
+                traceback.print_exc()
                 self._logger.info(
                     f"Attempt {attempt + 1} failed. Error -> {type(e)} - {str(e)}"
                 )

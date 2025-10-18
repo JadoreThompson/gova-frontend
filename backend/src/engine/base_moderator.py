@@ -9,7 +9,6 @@ from sqlalchemy import insert, select, update
 
 from config import LLM_API_KEY, LLM_BASE_URL, SCORE_SYSTEM_PROMPT
 from core.enums import ActionStatus, ModeratorDeploymentStatus
-from engine.base_action import BaseAction
 from db_models import (
     Guidelines,
     MessagesEvaluations,
@@ -17,7 +16,9 @@ from db_models import (
     ModeratorLogs,
     Moderators,
 )
+from engine.base_action import BaseAction
 from engine.models import MessageContext, MessageEvaluation
+from engine.task_pool import TaskPool
 from utils.db import get_db_sess
 from utils.llm import fetch_response, parse_to_json
 
@@ -37,6 +38,7 @@ class BaseModerator:
         self._http_sess: ClientSession | None = None
         self._topics: list[str] | None = None
         self._guidelines: str | None = None
+        self._task_pool = TaskPool()
 
     @abstractmethod
     async def moderate(self) -> None: ...
