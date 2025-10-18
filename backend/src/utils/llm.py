@@ -12,6 +12,7 @@ HTTP_SESS: ClientSession | None = None
 
 def parse_to_json(value: str) -> dict | list:
     logger.info(f"Handling '{value}'")
+    
     s = "```json"
     ind = value.index(s)
     value = value[ind + len(s) :]

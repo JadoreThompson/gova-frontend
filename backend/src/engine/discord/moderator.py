@@ -16,6 +16,7 @@ from engine.enums import MaliciousState
 from engine.models import TopicEvaluation, MessageEvaluation
 from engine.prompt_validator import PromptValidator
 from engine.task_pool import TaskPool
+from utils.llm import fetch_response
 from .config import DiscordConfig
 from .stream import DiscordStream
 
@@ -64,6 +65,8 @@ class DiscordModerator(BaseModerator):
         evaluation = await self._evaluate(ctx)
         if not evaluation:
             return
+        
+        await self._save_evaluation(evaluation, ctx)
 
         if evaluation.action:
             action = evaluation.action
@@ -72,10 +75,9 @@ class DiscordModerator(BaseModerator):
             if action.requires_approval:
                 await self._update_action_status(log_id, ActionStatus.AWAITING_APPROVAL)
             else:
-                await self._action_handler.handle(action, ctx)
-                await self._update_action_status(log_id, ActionStatus.SUCCESS)
-
-        await self._save_evaluation(evaluation, ctx)
+                success = await self._action_handler.handle(action, ctx)
+                if success:
+                    await self._update_action_status(log_id, ActionStatus.SUCCESS)
 
     async def _evaluate(
         self, ctx: DiscordMessageContext, max_attempts: int = 3
@@ -91,7 +93,7 @@ class DiscordModerator(BaseModerator):
             self._guidelines, self._topics = await self._fetch_guidelines()
 
         self._logger.info("Building actions list.")
-        allowed_actions = [a.type.value for a in self._config.allowed_actions]
+        allowed_actions = tuple(a.type.value for a in self._config.allowed_actions)
         action_formats = []
         for a in allowed_actions:
             ac = actions_module.__dict__.get(a)
@@ -121,7 +123,7 @@ class DiscordModerator(BaseModerator):
                     action_formats=action_formats,
                     context=ctx.to_serialisable_dict(),
                 )
-                data = await self._fetch_llm_response(
+                data = await fetch_response(
                     [{"role": "user", "content": prompt}]
                 )
 
@@ -141,12 +143,10 @@ class DiscordModerator(BaseModerator):
                 json.JSONDecodeError,
                 ValueError,
             ) as e:
-                import traceback
-
-                traceback.print_exc()
                 self._logger.info(
                     f"Attempt {attempt + 1} failed. Error -> {type(e)} - {str(e)}"
                 )
+                import traceback; traceback.print_exc()
             finally:
                 attempt += 1
 

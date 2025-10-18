@@ -20,7 +20,7 @@ from engine.base_action import BaseAction
 from engine.models import MessageContext, MessageEvaluation
 from engine.task_pool import TaskPool
 from utils.db import get_db_sess
-from utils.llm import fetch_response, parse_to_json
+from utils.llm import fetch_response
 
 
 class BaseModerator:
@@ -48,11 +48,6 @@ class BaseModerator:
             return
         self._embedding_model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B")
 
-    async def _fetch_llm_response(self, messages: list[dict]):
-        data = await fetch_response(messages)
-        content = data["choices"][0]["message"]["content"]
-        self._logger.info(f"Content: {content}")
-        return parse_to_json(content)
 
     async def _fetch_guidelines(self) -> tuple[str, list[str]]:
         async with get_db_sess() as db_sess:
@@ -132,7 +127,7 @@ class BaseModerator:
         sys_prompt = SCORE_SYSTEM_PROMPT.format(
             guidelines=self._guidelines, topics=topics
         )
-        topic_scores: dict[str, float] = await self._fetch_llm_response(
+        topic_scores: dict[str, float] = await fetch_response(
             [
                 {"role": "system", "content": sys_prompt},
                 {
