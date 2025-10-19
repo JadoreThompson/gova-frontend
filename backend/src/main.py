@@ -1,10 +1,73 @@
 import asyncio
+import logging
+import time
+from multiprocessing import Process
+from types import CoroutineType
+from typing import Any, Callable
 
 import uvicorn
 
+from engine.deployment_listener import DeploymentListener
 
-def main():
-    uvicorn.run("server.app:app", host="localhost", port=8000, reload=True)
+
+logger = logging.getLogger("main")
+
+
+def run_sever():
+    uvicorn.run("server.app:app", host="localhost", port=8000)
+
+
+async def run_deployment_listener() -> None:
+    listener = DeploymentListener()
+    listener.listen()
+
+
+def asyncio_run(func: Callable[[], CoroutineType[Any, Any, Any]]) -> None:
+    asyncio.run(func())
+
+
+def main() -> None:
+    pargs = (
+        (asyncio_run, (run_deployment_listener,), {}, "Deployment Listener"),
+        (run_sever, (), {}, "Server"),
+    )
+
+    ps = [
+        Process(target=target, args=args, kwargs=kw, name=name, daemon=True)
+        for target, args, kw, name in pargs
+    ]
+
+    for p in ps:
+        p.start()
+
+    try:
+        while True:
+            for idx, p in enumerate(ps):
+                if not p.is_alive():
+                    logger.critical(f"Process {p.name} has died.")
+                    p.kill()
+                    p.join()
+
+                    target, args, kw, name = pargs[idx]
+                    ps[idx] = Process(target=target, args=args, kwargs=kw, name=name, daemon=True)
+                    ps[idx].start()
+
+                    logger.critical(f"Process {p.name} has been relaunced successfully.")
+
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        logger.info("Shutting down all processes.")
+
+        for p in ps:
+            logger.info(f"Process '{p.name}' is shutting down.")
+            p.kill()
+            p.join()
+            logger.info(f"Process '{p.name}' shut down successfully.")
+        
+        logger.info("All processes shut down.")
+
 
 
 async def test():
@@ -27,22 +90,14 @@ async def test():
         await mod.moderate()
 
 
-async def test1():
-    from engine.deployment_listener import DeploymentListener
-
-    listener = DeploymentListener()
-    listener.listen()
-
-
 if __name__ == "__main__":
     import sys
 
-    arg = sys.argv[1]
+    args = sys.argv
 
-    try:
-        if arg == "1":
-            asyncio.run(test())
-        else:
-            main()
-    except KeyboardInterrupt:
-        sys.exit(1)
+    if len(args) == 1 or args[1] == "0":
+        uvicorn.run("server.app:app", host="localhost", port=8000, reload=True)
+    elif args[1] == "1":
+        asyncio.run(test())
+    elif args[1] == "2":
+        main()
