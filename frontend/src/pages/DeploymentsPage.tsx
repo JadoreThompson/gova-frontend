@@ -189,7 +189,7 @@ const DeploymentsPage: FC = () => {
               <TableRow
                 key={deployment.deployment_id}
                 onClick={() =>
-                  navigate(`/deployment/${deployment.deployment_id}`)
+                  navigate(`/deployments/${deployment.deployment_id}`)
                 }
                 className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50"
               >
@@ -197,11 +197,6 @@ const DeploymentsPage: FC = () => {
                   {deployment.name || "Unnamed Deployment"}
                 </TableCell>
                 <TableCell className="text-muted-foreground capitalize">
-                  {/* <img
-                    src={getPlatformImageSrc(deployment.platform)}
-                    alt=""
-                    className="h-5 w-5"
-                  /> */}
                   <MessagePlatformImg
                     platform={deployment.platform}
                     className="h-5 w-5"

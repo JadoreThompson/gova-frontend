@@ -2,9 +2,11 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from engine.discord.config import DiscordConfig
-from core.enums import MessagePlatformType, ModeratorDeploymentStatus
+from pydantic import BaseModel
+
+from core.enums import ActionStatus, MessagePlatformType
 from core.models import CustomBaseModel
+from server.shared.models import MessageChartData
 
 
 class DeploymentBase(CustomBaseModel):
@@ -18,11 +20,16 @@ class DeploymentUpdate(CustomBaseModel):
     conf: dict[str, Any] | None = None
 
 
-class DeploymentResponse(CustomBaseModel):
+class DeploymentStats(BaseModel):
+    total_messages: int
+    total_actions: int
+    message_chart: dict[MessagePlatformType, list[MessageChartData]]
+
+
+class DeploymentAction(BaseModel):
+    log_id: UUID
     deployment_id: UUID
-    moderator_id: UUID
-    platform: MessagePlatformType
-    name: str
-    conf: DiscordConfig
-    status: ModeratorDeploymentStatus
+    action_type: str
+    action_params: dict
+    status: ActionStatus
     created_at: datetime

@@ -5,14 +5,18 @@ import {
   createModeratorModeratorsPost,
   deleteModeratorModeratorsModeratorIdDelete,
   deployModeratorModeratorsDeployModeratorIdPost,
+  getDeploymentsModeratorsModeratorIdDeploymentsGet,
   getModeratorModeratorsModeratorIdGet,
+  getModeratorStatsModeratorsModeratorIdStatsGet,
   listModeratorsModeratorsGet,
   updateModeratorModeratorsModeratorIdPut,
+  type DeploymentCreate,
+  type GetDeploymentsModeratorsModeratorIdDeploymentsGetParams,
   type ListModeratorsModeratorsGetParams,
   type ModeratorCreate,
-  type ModeratorDeploymentCreate,
   type ModeratorDeploymentResponse,
   type ModeratorResponse,
+  type ModeratorStats,
   type ModeratorUpdate,
   type PaginatedResponseModeratorResponse,
 } from "@/openapi";
@@ -42,6 +46,32 @@ export function useCreateModeratorMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.moderators() });
     },
+  });
+}
+
+export function useModeratorStatsQuery(moderatorId?: string) {
+  return useQuery<ModeratorStats>({
+    queryKey: queryKeys.moderatorStats(moderatorId!),
+    queryFn: async () =>
+      handleApi(
+        await getModeratorStatsModeratorsModeratorIdStatsGet(moderatorId!),
+      ),
+  });
+}
+
+export function useModeratorDeploymentsQuery(
+  moderatorId?: string,
+  params?: GetDeploymentsModeratorsModeratorIdDeploymentsGetParams,
+) {
+  return useQuery({
+    queryKey: queryKeys.moderatorDeployments(moderatorId!, params!),
+    queryFn: async () =>
+      handleApi(
+        await getDeploymentsModeratorsModeratorIdDeploymentsGet(
+          moderatorId!,
+          params,
+        ),
+      ),
   });
 }
 
@@ -81,7 +111,7 @@ export function useDeployModeratorMutation() {
   return useMutation<
     ModeratorDeploymentResponse,
     Error,
-    { moderatorId: string; data: ModeratorDeploymentCreate }
+    { moderatorId: string; data: DeploymentCreate }
   >({
     mutationFn: async (params) =>
       handleApi(

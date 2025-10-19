@@ -2,13 +2,14 @@ import DashboardLayout from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
+import { useDeploymentStatsQuery } from "@/hooks/deployments-hooks";
 import dayjs from "dayjs";
 import { Loader2 } from "lucide-react";
 import { useState, type FC } from "react";
@@ -81,6 +82,9 @@ const DeploymentPage: FC = () => {
   const { deploymentId } = useParams<{ deploymentId: string }>();
   const [isStopping, setIsStopping] = useState(false);
 
+  const deploymentStatsQuery = useDeploymentStatsQuery(deploymentId!);
+  console.log(deploymentStatsQuery.data);
+
   const handleStopDeployment = async () => {
     setIsStopping(true);
     await new Promise((r) => setTimeout(r, 1500)); // simulate API delay
@@ -93,8 +97,7 @@ const DeploymentPage: FC = () => {
 
   return (
     <DashboardLayout>
-      {/* Top Row */}
-      <div className="mb-6 flex items-center justify-between">
+      <section className="mb-6 flex items-center justify-between">
         <div>
           <h4 className="text-xl font-semibold">{deployment.name}</h4>
           <p className="text-muted-foreground text-sm">
@@ -111,12 +114,9 @@ const DeploymentPage: FC = () => {
           {isStopping && <Loader2 className="h-4 w-4 animate-spin" />}
           {isStopping ? "Stopping..." : "Stop Deployment"}
         </Button>
-      </div>
+      </section>
 
-      <MessagesProcessedChart />
-
-      {/* Second Row - Stats */}
-      <div className="mb-6 grid grid-cols-3 gap-4">
+      <section className="mb-6 grid grid-cols-3 gap-4">
         <div className="rounded-md border p-4 shadow-sm">
           <p className="text-muted-foreground text-sm">Messages Processed</p>
           <p className="text-2xl font-bold">
@@ -131,7 +131,11 @@ const DeploymentPage: FC = () => {
           <p className="text-muted-foreground text-sm">Actions Pending</p>
           <p className="text-2xl font-bold">{deployment.actions_pending}</p>
         </div>
-      </div>
+      </section>
+
+      <section className="mb-6">
+        <MessagesProcessedChart />
+      </section>
 
       {/* Third Row - Actions Table */}
       <div className="rounded-md border bg-transparent shadow-sm">

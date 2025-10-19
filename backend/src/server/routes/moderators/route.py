@@ -1,26 +1,34 @@
+from datetime import date, datetime, timedelta
 from uuid import UUID, uuid4
 
 from aiokafka import AIOKafkaProducer
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, insert, update, delete
+from sqlalchemy import func, select, insert, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import KAFKA_DEPLOYMENT_EVENTS_TOPIC, PAGE_SIZE
 from core.enums import MessagePlatformType
 from core.events import DeploymentEvent
-from db_models import ModeratorDeployments, Moderators
+from db_models import (
+    MessagesEvaluations,
+    ModeratorDeployments,
+    ModeratorLogs,
+    Moderators,
+)
 from engine.discord.config import DiscordConfig
 from server.dependencies import depends_db_sess, depends_jwt, depends_kafka_producer
 from server.models import PaginatedResponse
+from server.shared.models import DeploymentResponse, MessageChartData
 from server.typing import JWTPayload
+from utils.db import get_datetime
 from utils.kafka import dump_model
 from .controllers import fetch_moderators_with_platforms
 from .models import (
     ModeratorCreate,
-    ModeratorDeploymentResponse,
     ModeratorResponse,
+    ModeratorStats,
     ModeratorUpdate,
-    ModeratorDeploymentCreate,
+    DeploymentCreate,
 )
 
 router = APIRouter(prefix="/moderators", tags=["Moderators"])
@@ -41,7 +49,7 @@ async def create_moderator(
     res = await fetch_moderators_with_platforms(
         db_sess, user_id=jwt.sub, moderator_id=mod.moderator_id
     )
-    
+
     mod_obj, platforms = res[0] if res else (mod, [])
     rsp_body = ModeratorResponse(
         moderator_id=mod_obj.moderator_id,
@@ -50,16 +58,16 @@ async def create_moderator(
         created_at=mod_obj.created_at,
         deployment_platforms=platforms if platforms and platforms[0] else [],
     )
-    
+
     await db_sess.commit()
 
     return rsp_body
 
 
-@router.post("/deploy/{moderator_id}", response_model=ModeratorDeploymentResponse)
+@router.post("/deploy/{moderator_id}", response_model=DeploymentResponse)
 async def deploy_moderator(
     moderator_id: UUID,
-    body: ModeratorDeploymentCreate,
+    body: DeploymentCreate,
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
     kafka_producer: AIOKafkaProducer = Depends(depends_kafka_producer),
@@ -90,10 +98,11 @@ async def deploy_moderator(
         .returning(ModeratorDeployments)
     )
 
-    rsp_body = ModeratorDeploymentResponse(
+    rsp_body = DeploymentResponse(
         deployment_id=dep.deployment_id,
         moderator_id=moderator_id,
         platform=dep.platform,
+        name=dep.name,
         conf=conf,
         status=dep.state,
         created_at=dep.created_at,
@@ -166,6 +175,173 @@ async def get_moderator(
         guideline_id=mod.guideline_id,
         created_at=mod.created_at,
         deployment_platforms=platforms if platforms and platforms[0] else [],
+    )
+
+
+# @router.get("/{moderator_id}/deployments")
+# async def get_deployments(
+#     moderator_id: UUID,
+#     jwt: JWTPayload = Depends(depends_jwt),
+#     db_sess: AsyncSession = Depends(depends_db_sess),
+# ):
+#     deps = (
+#         await db_sess.scalars(
+#             select(ModeratorDeployments)
+#             .join(
+#                 Moderators, Moderators.moderator_id == ModeratorDeployments.moderator_id
+#             )
+#             .where(
+#                 Moderators.user_id == jwt.sub,
+#                 ModeratorDeployments.moderator_id == moderator_id,
+#             )
+#         )
+#     ).all()
+
+#     return [
+#         DeploymentResponse(
+#             deployment_id=d.deployment_id,
+#             moderator_id=d.moderator_id,
+#             platform=d.platform,
+#             name=d.name,
+#             conf=d.conf,
+#             status=d.state,
+#             created_at=d.created_at,
+#         )
+#         for d in deps
+#     ]
+
+
+@router.get(
+    "/{moderator_id}/deployments", response_model=PaginatedResponse[DeploymentResponse]
+)
+async def get_deployments(
+    moderator_id: UUID,
+    page: int = Query(1, ge=1),
+    jwt: JWTPayload = Depends(depends_jwt),
+    db_sess: AsyncSession = Depends(depends_db_sess),
+):
+    deps = (
+        await db_sess.scalars(
+            select(ModeratorDeployments)
+            .join(
+                Moderators, Moderators.moderator_id == ModeratorDeployments.moderator_id
+            )
+            .where(
+                Moderators.user_id == jwt.sub,
+                ModeratorDeployments.moderator_id == moderator_id,
+            )
+            .order_by(ModeratorDeployments.created_at.desc())
+            .offset((page - 1) * PAGE_SIZE)
+            .limit(PAGE_SIZE + 1)
+        )
+    ).all()
+
+    n = len(deps)
+
+    return PaginatedResponse[DeploymentResponse](
+        page=page,
+        size=n,
+        has_next=n > PAGE_SIZE,
+        data=[
+            DeploymentResponse(
+                deployment_id=d.deployment_id,
+                moderator_id=d.moderator_id,
+                platform=d.platform,
+                name=d.name,
+                conf=d.conf,
+                status=d.state,
+                created_at=d.created_at,
+            )
+            for d in deps
+        ],
+    )
+
+
+@router.get("/{moderator_id}/stats", response_model=ModeratorStats)
+async def get_moderator_stats(
+    moderator_id: UUID,
+    jwt: JWTPayload = Depends(depends_jwt),
+    db_sess: AsyncSession = Depends(depends_db_sess),
+):
+    moderator_exists = await db_sess.scalar(
+        select(func.count(Moderators.moderator_id)).where(
+            Moderators.moderator_id == moderator_id,
+            Moderators.user_id == jwt.sub,
+        )
+    )
+    if not moderator_exists:
+        raise HTTPException(status_code=404, detail="Moderator not found")
+
+    today = get_datetime().date()
+    week_starts = [
+        today - timedelta(weeks=i, days=today.weekday()) for i in reversed(range(6))
+    ]
+    earliest_week = week_starts[0]
+
+    total_messages = await db_sess.scalar(
+        select(func.count(MessagesEvaluations.message_id)).where(
+            MessagesEvaluations.moderator_id == moderator_id
+        )
+    )
+    total_messages = total_messages or 0
+
+    total_actions = await db_sess.scalar(
+        select(func.count(ModeratorLogs.log_id)).where(
+            ModeratorLogs.moderator_id == moderator_id
+        )
+    )
+    total_actions = total_actions or 0
+
+    weekly_result = await db_sess.execute(
+        select(
+            MessagesEvaluations.platform.label("platform"),
+            func.date_trunc("week", MessagesEvaluations.created_at).label("week_start"),
+            func.count(MessagesEvaluations.message_id).label("frequency"),
+        )
+        .where(
+            MessagesEvaluations.moderator_id == moderator_id,
+            MessagesEvaluations.created_at >= earliest_week,
+        )
+        .group_by("platform", "week_start")
+        .order_by("platform", "week_start")
+    )
+
+    all_platforms = await db_sess.scalars(
+        select(func.distinct(MessagesEvaluations.platform)).where(
+            MessagesEvaluations.moderator_id == moderator_id
+        )
+    )
+    all_platform_list = list(all_platforms.all())
+
+    data_map: dict[str, dict[date, int]] = {}
+    for row in weekly_result.all():
+        platform = row.platform
+        week_start = row.week_start.date()
+        if platform not in data_map:
+            data_map[platform] = {}
+        data_map[platform][week_start] = row.frequency
+
+    message_chart: dict[MessagePlatformType, list[MessageChartData]] = {}
+
+    for platform in all_platform_list:
+        platform_data = []
+        week_data = data_map.get(platform, {})
+
+        for week_start in week_starts:
+            platform_data.append(
+                MessageChartData(
+                    platform=platform,
+                    date=datetime.combine(week_start, datetime.min.time()),
+                    frequency=week_data.get(week_start, 0),
+                )
+            )
+
+        message_chart[platform] = platform_data
+
+    return ModeratorStats(
+        total_messages=total_messages,
+        total_actions=total_actions,
+        message_chart=message_chart,
     )
 
 

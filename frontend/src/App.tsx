@@ -14,7 +14,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/deployments" element={<DeploymentsPage />} />
           <Route
-            path="/deployment/:deploymentId"
+            path="/deployments/:deploymentId"
             element={<DeploymentPage />}
           />
           <Route path="/guidelines" element={<GuidelinesPage />} />

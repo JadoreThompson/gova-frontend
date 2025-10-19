@@ -2,9 +2,11 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from engine.discord.config import DiscordConfig
-from core.enums import MessagePlatformType, ModeratorDeploymentStatus
+from pydantic import BaseModel
+
+from core.enums import MessagePlatformType
 from core.models import CustomBaseModel
+from server.shared.models import MessageChartData
 
 
 class ModeratorBase(CustomBaseModel):
@@ -27,16 +29,13 @@ class ModeratorResponse(ModeratorBase):
     deployment_platforms: list[MessagePlatformType]
 
 
-class ModeratorDeploymentCreate(CustomBaseModel):
+class ModeratorStats(BaseModel):
+    total_messages: int
+    total_actions: int
+    message_chart: dict[MessagePlatformType, list[MessageChartData]]
+
+
+class DeploymentCreate(CustomBaseModel):
     platform: MessagePlatformType
     name: str | None
     conf: dict[str, Any]
-
-
-class ModeratorDeploymentResponse(CustomBaseModel):
-    deployment_id: UUID
-    moderator_id: UUID
-    platform: MessagePlatformType
-    conf: DiscordConfig
-    status: ModeratorDeploymentStatus
-    created_at: datetime

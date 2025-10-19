@@ -28,6 +28,16 @@ export interface BodyListDeploymentsDeploymentsGet {
   platform?: BodyListDeploymentsDeploymentsGetPlatform;
 }
 
+export type DeploymentCreateName = string | null;
+
+export type DeploymentCreateConf = { [key: string]: unknown };
+
+export interface DeploymentCreate {
+  platform: MessagePlatformType;
+  name: DeploymentCreateName;
+  conf: DeploymentCreateConf;
+}
+
 export interface DeploymentResponse {
   deployment_id: string;
   moderator_id: string;
@@ -36,6 +46,14 @@ export interface DeploymentResponse {
   conf: DiscordConfig;
   status: ModeratorDeploymentStatus;
   created_at: string;
+}
+
+export type DeploymentStatsMessageChart = { [key: string]: MessageChartData[] };
+
+export interface DeploymentStats {
+  total_messages: number;
+  total_actions: number;
+  message_chart: DeploymentStatsMessageChart;
 }
 
 export type DeploymentUpdateName = string | null;
@@ -49,10 +67,14 @@ export interface DeploymentUpdate {
   conf?: DeploymentUpdateConf;
 }
 
+export type DiscordConfigAllowedChannelsItem = number | "*";
+
+export type DiscordConfigAllowedActionsItem = BaseActionDefinition | "*";
+
 export interface DiscordConfig {
   guild_id: number;
-  allowed_channels: number[];
-  allowed_actions: BaseActionDefinition[];
+  allowed_channels: DiscordConfigAllowedChannelsItem[];
+  allowed_actions: DiscordConfigAllowedActionsItem[];
 }
 
 export interface GuidelineCreate {
@@ -81,6 +103,12 @@ export interface HTTPValidationError {
   detail?: ValidationError[];
 }
 
+export interface MessageChartData {
+  platform: MessagePlatformType;
+  frequency: number;
+  date: string;
+}
+
 export type MessagePlatformType =
   (typeof MessagePlatformType)[keyof typeof MessagePlatformType];
 
@@ -92,25 +120,6 @@ export const MessagePlatformType = {
 export interface ModeratorCreate {
   name: string;
   guideline_id: string;
-}
-
-export type ModeratorDeploymentCreateName = string | null;
-
-export type ModeratorDeploymentCreateConf = { [key: string]: unknown };
-
-export interface ModeratorDeploymentCreate {
-  platform: MessagePlatformType;
-  name: ModeratorDeploymentCreateName;
-  conf: ModeratorDeploymentCreateConf;
-}
-
-export interface ModeratorDeploymentResponse {
-  deployment_id: string;
-  moderator_id: string;
-  platform: MessagePlatformType;
-  conf: DiscordConfig;
-  status: ModeratorDeploymentStatus;
-  created_at: string;
 }
 
 export type ModeratorDeploymentStatus =
@@ -129,6 +138,14 @@ export interface ModeratorResponse {
   moderator_id: string;
   created_at: string;
   deployment_platforms: MessagePlatformType[];
+}
+
+export type ModeratorStatsMessageChart = { [key: string]: MessageChartData[] };
+
+export interface ModeratorStats {
+  total_messages: number;
+  total_actions: number;
+  message_chart: ModeratorStatsMessageChart;
 }
 
 export type ModeratorUpdateName = string | null;
@@ -205,6 +222,13 @@ export type ListModeratorsModeratorsGetParams = {
    * @minimum 1
    */
   page: number;
+};
+
+export type GetDeploymentsModeratorsModeratorIdDeploymentsGetParams = {
+  /**
+   * @minimum 1
+   */
+  page?: number;
 };
 
 /**
@@ -544,6 +568,52 @@ export const deleteDeploymentDeploymentsDeploymentIdDelete = async (
     {
       ...options,
       method: "DELETE",
+    },
+  );
+};
+
+/**
+ * Return aggregated stats for a specific deployment (messages, actions, chart).
+ * @summary Get Deployment Stats
+ */
+export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse200 = {
+  data: DeploymentStats;
+  status: 200;
+};
+
+export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponseSuccess =
+  getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse200 & {
+    headers: Headers;
+  };
+export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponseError =
+  getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse422 & {
+    headers: Headers;
+  };
+
+export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse =
+  | getDeploymentStatsDeploymentsDeploymentIdStatsGetResponseSuccess
+  | getDeploymentStatsDeploymentsDeploymentIdStatsGetResponseError;
+
+export const getGetDeploymentStatsDeploymentsDeploymentIdStatsGetUrl = (
+  deploymentId: string,
+) => {
+  return `/deployments/${deploymentId}/stats`;
+};
+
+export const getDeploymentStatsDeploymentsDeploymentIdStatsGet = async (
+  deploymentId: string,
+  options?: RequestInit,
+): Promise<getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse> => {
+  return customFetch<getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse>(
+    getGetDeploymentStatsDeploymentsDeploymentIdStatsGetUrl(deploymentId),
+    {
+      ...options,
+      method: "GET",
     },
   );
 };
@@ -894,7 +964,7 @@ export const listModeratorsModeratorsGet = async (
  * @summary Deploy Moderator
  */
 export type deployModeratorModeratorsDeployModeratorIdPostResponse200 = {
-  data: ModeratorDeploymentResponse;
+  data: DeploymentResponse;
   status: 200;
 };
 
@@ -924,7 +994,7 @@ export const getDeployModeratorModeratorsDeployModeratorIdPostUrl = (
 
 export const deployModeratorModeratorsDeployModeratorIdPost = async (
   moderatorId: string,
-  moderatorDeploymentCreate: ModeratorDeploymentCreate,
+  deploymentCreate: DeploymentCreate,
   options?: RequestInit,
 ): Promise<deployModeratorModeratorsDeployModeratorIdPostResponse> => {
   return customFetch<deployModeratorModeratorsDeployModeratorIdPostResponse>(
@@ -933,7 +1003,7 @@ export const deployModeratorModeratorsDeployModeratorIdPost = async (
       ...options,
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(moderatorDeploymentCreate),
+      body: JSON.stringify(deploymentCreate),
     },
   );
 };
@@ -1072,6 +1142,113 @@ export const deleteModeratorModeratorsModeratorIdDelete = async (
     {
       ...options,
       method: "DELETE",
+    },
+  );
+};
+
+/**
+ * @summary Get Deployments
+ */
+export type getDeploymentsModeratorsModeratorIdDeploymentsGetResponse200 = {
+  data: PaginatedResponseDeploymentResponse;
+  status: 200;
+};
+
+export type getDeploymentsModeratorsModeratorIdDeploymentsGetResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type getDeploymentsModeratorsModeratorIdDeploymentsGetResponseSuccess =
+  getDeploymentsModeratorsModeratorIdDeploymentsGetResponse200 & {
+    headers: Headers;
+  };
+export type getDeploymentsModeratorsModeratorIdDeploymentsGetResponseError =
+  getDeploymentsModeratorsModeratorIdDeploymentsGetResponse422 & {
+    headers: Headers;
+  };
+
+export type getDeploymentsModeratorsModeratorIdDeploymentsGetResponse =
+  | getDeploymentsModeratorsModeratorIdDeploymentsGetResponseSuccess
+  | getDeploymentsModeratorsModeratorIdDeploymentsGetResponseError;
+
+export const getGetDeploymentsModeratorsModeratorIdDeploymentsGetUrl = (
+  moderatorId: string,
+  params?: GetDeploymentsModeratorsModeratorIdDeploymentsGetParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/moderators/${moderatorId}/deployments?${stringifiedParams}`
+    : `/moderators/${moderatorId}/deployments`;
+};
+
+export const getDeploymentsModeratorsModeratorIdDeploymentsGet = async (
+  moderatorId: string,
+  params?: GetDeploymentsModeratorsModeratorIdDeploymentsGetParams,
+  options?: RequestInit,
+): Promise<getDeploymentsModeratorsModeratorIdDeploymentsGetResponse> => {
+  return customFetch<getDeploymentsModeratorsModeratorIdDeploymentsGetResponse>(
+    getGetDeploymentsModeratorsModeratorIdDeploymentsGetUrl(
+      moderatorId,
+      params,
+    ),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * @summary Get Moderator Stats
+ */
+export type getModeratorStatsModeratorsModeratorIdStatsGetResponse200 = {
+  data: ModeratorStats;
+  status: 200;
+};
+
+export type getModeratorStatsModeratorsModeratorIdStatsGetResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type getModeratorStatsModeratorsModeratorIdStatsGetResponseSuccess =
+  getModeratorStatsModeratorsModeratorIdStatsGetResponse200 & {
+    headers: Headers;
+  };
+export type getModeratorStatsModeratorsModeratorIdStatsGetResponseError =
+  getModeratorStatsModeratorsModeratorIdStatsGetResponse422 & {
+    headers: Headers;
+  };
+
+export type getModeratorStatsModeratorsModeratorIdStatsGetResponse =
+  | getModeratorStatsModeratorsModeratorIdStatsGetResponseSuccess
+  | getModeratorStatsModeratorsModeratorIdStatsGetResponseError;
+
+export const getGetModeratorStatsModeratorsModeratorIdStatsGetUrl = (
+  moderatorId: string,
+) => {
+  return `/moderators/${moderatorId}/stats`;
+};
+
+export const getModeratorStatsModeratorsModeratorIdStatsGet = async (
+  moderatorId: string,
+  options?: RequestInit,
+): Promise<getModeratorStatsModeratorsModeratorIdStatsGetResponse> => {
+  return customFetch<getModeratorStatsModeratorsModeratorIdStatsGetResponse>(
+    getGetModeratorStatsModeratorsModeratorIdStatsGetUrl(moderatorId),
+    {
+      ...options,
+      method: "GET",
     },
   );
 };

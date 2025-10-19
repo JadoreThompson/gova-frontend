@@ -4,6 +4,7 @@ import { handleApi } from "@/lib/utils/base";
 import {
   deleteDeploymentDeploymentsDeploymentIdDelete,
   getDeploymentDeploymentsDeploymentIdGet,
+  getDeploymentStatsDeploymentsDeploymentIdStatsGet,
   listDeploymentsDeploymentsGet,
   updateDeploymentDeploymentsDeploymentIdPut,
   type BodyListDeploymentsDeploymentsGet,
@@ -20,7 +21,13 @@ export function useDeploymentsQuery(
 ) {
   return useQuery<PaginatedResponseDeploymentResponse>({
     queryKey: queryKeys.deployments(params),
-    queryFn: async () => handleApi(await listDeploymentsDeploymentsGet({status: params.status, platform: params.platform}, params)),
+    queryFn: async () =>
+      handleApi(
+        await listDeploymentsDeploymentsGet(
+          { status: params.status, platform: params.platform },
+          params,
+        ),
+      ),
     enabled: !!params.page,
   });
 }
@@ -33,8 +40,6 @@ export function useDeploymentQuery(deploymentId?: string) {
     enabled: !!deploymentId,
   });
 }
-
-// --- Deployment Mutations ---
 
 export function useUpdateDeploymentMutation() {
   return useMutation({
@@ -66,5 +71,15 @@ export function useDeleteDeploymentMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.deployments() });
     },
+  });
+}
+
+export function useDeploymentStatsQuery(deploymentId: string) {
+  return useQuery({
+    queryKey: queryKeys.deploymentStats(deploymentId),
+    queryFn: async () =>
+      handleApi(
+        await getDeploymentStatsDeploymentsDeploymentIdStatsGet(deploymentId!),
+      ),
   });
 }

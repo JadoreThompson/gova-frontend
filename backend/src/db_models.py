@@ -51,7 +51,7 @@ class Guidelines(Base):
     )
 
     # Relationships
-    moderators: Mapped[list['Moderators']] = relationship(back_populates="guideline")
+    moderators: Mapped[list["Moderators"]] = relationship(back_populates="guideline")
 
 
 class Moderators(Base):
@@ -79,7 +79,7 @@ class Moderators(Base):
     logs: Mapped[list["ModeratorLogs"]] = relationship(
         back_populates="moderator", cascade="all, delete-orphan"
     )
-    guideline: Mapped['Guidelines']  = relationship(back_populates="moderators")
+    guideline: Mapped["Guidelines"] = relationship(back_populates="moderators")
 
 
 class ModeratorDeployments(Base):
@@ -93,7 +93,7 @@ class ModeratorDeployments(Base):
     )
     platform: Mapped[str] = mapped_column(String, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    conf: Mapped[dict] = mapped_column(JSONB, nullable=False) # The platform's config obj
+    conf: Mapped[dict] = mapped_column(JSONB, nullable=False)
     state: Mapped[str] = mapped_column(
         String, nullable=False, default=ModeratorDeploymentStatus.OFFLINE.value
     )
@@ -103,6 +103,9 @@ class ModeratorDeployments(Base):
 
     # Relationships
     moderator: Mapped["Moderators"] = relationship(back_populates="deployments")
+    logs: Mapped[list["ModeratorLogs"]] = relationship(
+        back_populates="deployment", cascade="all, delete-orphan"
+    )
 
 
 class ModeratorLogs(Base):
@@ -114,6 +117,12 @@ class ModeratorLogs(Base):
     moderator_id: Mapped[UUID] = mapped_column(
         SaUUID(as_uuid=True), ForeignKey("moderators.moderator_id"), nullable=False
     )
+    deployment_id: Mapped[UUID] = mapped_column(
+        SaUUID(as_uuid=True),
+        ForeignKey("moderator_deployments.deployment_id"),
+        nullable=False,
+    )
+
     action_type: Mapped[str] = mapped_column(String, nullable=False)
     action_params: Mapped[dict] = mapped_column(JSONB, nullable=False)
     status: Mapped[str] = mapped_column(String, nullable=False)
@@ -123,6 +132,7 @@ class ModeratorLogs(Base):
 
     # Relationships
     moderator: Mapped["Moderators"] = relationship(back_populates="logs")
+    deployment: Mapped["ModeratorDeployments"] = relationship(back_populates="logs")
 
 
 class MessagesEvaluations(Base):
