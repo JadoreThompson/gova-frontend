@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import AsyncIterator
+from typing import AsyncIterator, Literal
 
 import discord
 
@@ -13,12 +13,16 @@ logger = logging.getLogger("discord-stream")
 
 class DiscordStream(BaseChatStream):
     def __init__(
-        self, client: discord.Client, guild_id: int, allowed_channels: list[int]
+        self,
+        client: discord.Client,
+        guild_id: int,
+        allowed_channels: list[int | Literal["*"]],
     ) -> None:
         super().__init__()
         self._client: discord.Client = client
         self._guild_id = guild_id
         self._allowed_channels = set(allowed_channels)
+        self._allowed_all_channels = allowed_channels[0] == "*"
         self._msg_queue: asyncio.Queue[discord.Message] = asyncio.Queue()
 
     @property
@@ -32,9 +36,12 @@ class DiscordStream(BaseChatStream):
 
         @self._client.event
         async def on_message(msg: discord.Message):
+            if msg.guild.id != self._guild_id:
+                return
+
             if (
-                msg.guild.id != self._guild_id
-                or msg.channel.id not in self._allowed_channels
+                not self._allowed_all_channels
+                and msg.channel.id not in self._allowed_channels
             ):
                 return
 
@@ -44,8 +51,6 @@ class DiscordStream(BaseChatStream):
                 await msg.channel.send("Hello!")
 
     async def __aiter__(self) -> AsyncIterator[DiscordMessageContext]:
-        self.append_events()
-
         while True:
             item = await self._msg_queue.get()
             ctx = DiscordMessageContext(
