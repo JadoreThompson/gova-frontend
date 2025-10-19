@@ -2,7 +2,7 @@ from uuid import UUID, uuid4
 
 from aiokafka import AIOKafkaProducer
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select, insert, update, delete
+from sqlalchemy import select, insert, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import KAFKA_DEPLOYMENT_EVENTS_TOPIC, PAGE_SIZE
@@ -14,6 +14,7 @@ from server.dependencies import depends_db_sess, depends_jwt, depends_kafka_prod
 from server.models import PaginatedResponse
 from server.typing import JWTPayload
 from utils.kafka import dump_model
+from .controllers import fetch_moderators_with_platforms
 from .models import (
     ModeratorCreate,
     ModeratorDeploymentResponse,
@@ -21,7 +22,6 @@ from .models import (
     ModeratorUpdate,
     ModeratorDeploymentCreate,
 )
-
 
 router = APIRouter(prefix="/moderators", tags=["Moderators"])
 
@@ -37,13 +37,22 @@ async def create_moderator(
         .values(user_id=jwt.sub, name=body.name, guideline_id=body.guideline_id)
         .returning(Moderators)
     )
-    rsp_body = ModeratorResponse(
-        moderator_id=mod.moderator_id,
-        name=body.name,
-        guideline_id=body.guideline_id,
-        created_at=mod.created_at,
+
+    res = await fetch_moderators_with_platforms(
+        db_sess, user_id=jwt.sub, moderator_id=mod.moderator_id
     )
+    
+    mod_obj, platforms = res[0] if res else (mod, [])
+    rsp_body = ModeratorResponse(
+        moderator_id=mod_obj.moderator_id,
+        name=mod_obj.name,
+        guideline_id=mod_obj.guideline_id,
+        created_at=mod_obj.created_at,
+        deployment_platforms=platforms if platforms and platforms[0] else [],
+    )
+    
     await db_sess.commit()
+
     return rsp_body
 
 
@@ -99,7 +108,6 @@ async def deploy_moderator(
     await db_sess.commit()
 
     await kafka_producer.send(KAFKA_DEPLOYMENT_EVENTS_TOPIC, dump_model(ev))
-
     return rsp_body
 
 
@@ -110,32 +118,13 @@ async def list_moderators(
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
 ):
-    query = (
-        select(
-            Moderators,
-            func.array_agg(func.distinct(ModeratorDeployments.platform)).label(
-                "platforms"
-            ),
-        )
-        .join(
-            ModeratorDeployments,
-            ModeratorDeployments.moderator_id == Moderators.moderator_id,
-            isouter=True,
-        )
-        .where(Moderators.user_id == jwt.sub)
+    mods = await fetch_moderators_with_platforms(
+        db_sess=db_sess,
+        user_id=jwt.sub,
+        name=name,
+        page=page,
     )
 
-    if name:
-        query = query.where(Moderators.name.like(f"%{name}%"))
-
-    res = await db_sess.execute(
-        query.group_by(Moderators.moderator_id)
-        .order_by(Moderators.created_at.desc())
-        .offset((page - 1) * 10)
-        .limit(PAGE_SIZE + 1)
-    )
-
-    mods = res.all()
     n = len(mods)
 
     return PaginatedResponse[ModeratorResponse](
@@ -148,9 +137,9 @@ async def list_moderators(
                 guideline_id=m.guideline_id,
                 name=m.name,
                 created_at=m.created_at,
-                deployment_platforms=deployment_plats,
+                deployment_platforms=platforms if platforms and platforms[0] else [],
             )
-            for m, deployment_plats in mods[:PAGE_SIZE]
+            for m, platforms in mods[:PAGE_SIZE]
         ],
     )
 
@@ -161,18 +150,22 @@ async def get_moderator(
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
 ):
-    mod = await db_sess.scalar(
-        select(Moderators).where(
-            Moderators.moderator_id == moderator_id, Moderators.user_id == jwt.sub
-        )
+    res = await fetch_moderators_with_platforms(
+        db_sess=db_sess,
+        user_id=jwt.sub,
+        moderator_id=moderator_id,
     )
-    if not mod:
+
+    if not res:
         raise HTTPException(status_code=404, detail="Moderator not found")
+
+    mod, platforms = res[0]
     return ModeratorResponse(
         moderator_id=mod.moderator_id,
         name=mod.name,
         guideline_id=mod.guideline_id,
         created_at=mod.created_at,
+        deployment_platforms=platforms if platforms and platforms[0] else [],
     )
 
 
@@ -216,13 +209,22 @@ async def update_moderator(
         .values(**vals)
         .returning(Moderators)
     )
+    if not updated:
+        raise HTTPException(status_code=404, detail="Moderator not found")
 
     await db_sess.commit()
+
+    res = await fetch_moderators_with_platforms(
+        db_sess, user_id=jwt.sub, moderator_id=moderator_id
+    )
+    mod_obj, platforms = res[0] if res else (updated, [])
+
     return ModeratorResponse(
-        moderator_id=updated.moderator_id,
-        name=updated.name,
-        guideline_id=updated.guideline_id,
-        created_at=updated.created_at,
+        moderator_id=mod_obj.moderator_id,
+        name=mod_obj.name,
+        guideline_id=mod_obj.guideline_id,
+        created_at=mod_obj.created_at,
+        deployment_platforms=platforms if platforms and platforms[0] else [],
     )
 
 
