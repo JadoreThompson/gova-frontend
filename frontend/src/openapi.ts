@@ -5,6 +5,16 @@
  * OpenAPI spec version: 0.1.0
  */
 import { customFetch } from "./lib/custom-fetch";
+export type ActionStatus = (typeof ActionStatus)[keyof typeof ActionStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ActionStatus = {
+  pending: "pending",
+  success: "success",
+  awaiting_approval: "awaiting_approval",
+  approved: "approved",
+} as const;
+
 /**
  * The client facing model(s) which allow prefilling
 parameters. Used in the platforms config for defining
@@ -26,6 +36,17 @@ export type BodyListDeploymentsDeploymentsGetPlatform =
 export interface BodyListDeploymentsDeploymentsGet {
   status?: BodyListDeploymentsDeploymentsGetStatus;
   platform?: BodyListDeploymentsDeploymentsGetPlatform;
+}
+
+export type DeploymentActionActionParams = { [key: string]: unknown };
+
+export interface DeploymentAction {
+  log_id: string;
+  deployment_id: string;
+  action_type: string;
+  action_params: DeploymentActionActionParams;
+  status: ActionStatus;
+  created_at: string;
 }
 
 export type DeploymentCreateName = string | null;
@@ -157,6 +178,13 @@ export interface ModeratorUpdate {
   guideline_id?: ModeratorUpdateGuidelineId;
 }
 
+export interface PaginatedResponseDeploymentAction {
+  page: number;
+  size: number;
+  has_next: boolean;
+  data: DeploymentAction[];
+}
+
 export interface PaginatedResponseDeploymentResponse {
   page: number;
   size: number;
@@ -206,6 +234,13 @@ export type ListDeploymentsDeploymentsGetParams = {
    */
   page: number;
   name?: string | null;
+};
+
+export type GetDeploymentActionsDeploymentsDeploymentIdActionsGetParams = {
+  /**
+   * @minimum 1
+   */
+  page?: number;
 };
 
 export type ListGuidelinesGuidelinesGetParams = {
@@ -619,6 +654,70 @@ export const getDeploymentStatsDeploymentsDeploymentIdStatsGet = async (
 };
 
 /**
+ * Get all actions (ModeratorLogs) for a specific deployment.
+Fully type-safe and paginated.
+ * @summary Get Deployment Actions
+ */
+export type getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse200 = {
+  data: PaginatedResponseDeploymentAction;
+  status: 200;
+};
+
+export type getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type getDeploymentActionsDeploymentsDeploymentIdActionsGetResponseSuccess =
+  getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse200 & {
+    headers: Headers;
+  };
+export type getDeploymentActionsDeploymentsDeploymentIdActionsGetResponseError =
+  getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse422 & {
+    headers: Headers;
+  };
+
+export type getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse =
+  | getDeploymentActionsDeploymentsDeploymentIdActionsGetResponseSuccess
+  | getDeploymentActionsDeploymentsDeploymentIdActionsGetResponseError;
+
+export const getGetDeploymentActionsDeploymentsDeploymentIdActionsGetUrl = (
+  deploymentId: string,
+  params?: GetDeploymentActionsDeploymentsDeploymentIdActionsGetParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/deployments/${deploymentId}/actions?${stringifiedParams}`
+    : `/deployments/${deploymentId}/actions`;
+};
+
+export const getDeploymentActionsDeploymentsDeploymentIdActionsGet = async (
+  deploymentId: string,
+  params?: GetDeploymentActionsDeploymentsDeploymentIdActionsGetParams,
+  options?: RequestInit,
+): Promise<getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse> => {
+  return customFetch<getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse>(
+    getGetDeploymentActionsDeploymentsDeploymentIdActionsGetUrl(
+      deploymentId,
+      params,
+    ),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
  * @summary Create Guideline
  */
 export type createGuidelineGuidelinesPostResponse200 = {
@@ -963,42 +1062,42 @@ export const listModeratorsModeratorsGet = async (
 /**
  * @summary Deploy Moderator
  */
-export type deployModeratorModeratorsDeployModeratorIdPostResponse200 = {
+export type deployModeratorModeratorsModeratorIdDeployPostResponse200 = {
   data: DeploymentResponse;
   status: 200;
 };
 
-export type deployModeratorModeratorsDeployModeratorIdPostResponse422 = {
+export type deployModeratorModeratorsModeratorIdDeployPostResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type deployModeratorModeratorsDeployModeratorIdPostResponseSuccess =
-  deployModeratorModeratorsDeployModeratorIdPostResponse200 & {
+export type deployModeratorModeratorsModeratorIdDeployPostResponseSuccess =
+  deployModeratorModeratorsModeratorIdDeployPostResponse200 & {
     headers: Headers;
   };
-export type deployModeratorModeratorsDeployModeratorIdPostResponseError =
-  deployModeratorModeratorsDeployModeratorIdPostResponse422 & {
+export type deployModeratorModeratorsModeratorIdDeployPostResponseError =
+  deployModeratorModeratorsModeratorIdDeployPostResponse422 & {
     headers: Headers;
   };
 
-export type deployModeratorModeratorsDeployModeratorIdPostResponse =
-  | deployModeratorModeratorsDeployModeratorIdPostResponseSuccess
-  | deployModeratorModeratorsDeployModeratorIdPostResponseError;
+export type deployModeratorModeratorsModeratorIdDeployPostResponse =
+  | deployModeratorModeratorsModeratorIdDeployPostResponseSuccess
+  | deployModeratorModeratorsModeratorIdDeployPostResponseError;
 
-export const getDeployModeratorModeratorsDeployModeratorIdPostUrl = (
+export const getDeployModeratorModeratorsModeratorIdDeployPostUrl = (
   moderatorId: string,
 ) => {
-  return `/moderators/deploy/${moderatorId}`;
+  return `/moderators/${moderatorId}/deploy`;
 };
 
-export const deployModeratorModeratorsDeployModeratorIdPost = async (
+export const deployModeratorModeratorsModeratorIdDeployPost = async (
   moderatorId: string,
   deploymentCreate: DeploymentCreate,
   options?: RequestInit,
-): Promise<deployModeratorModeratorsDeployModeratorIdPostResponse> => {
-  return customFetch<deployModeratorModeratorsDeployModeratorIdPostResponse>(
-    getDeployModeratorModeratorsDeployModeratorIdPostUrl(moderatorId),
+): Promise<deployModeratorModeratorsModeratorIdDeployPostResponse> => {
+  return customFetch<deployModeratorModeratorsModeratorIdDeployPostResponse>(
+    getDeployModeratorModeratorsModeratorIdDeployPostUrl(moderatorId),
     {
       ...options,
       method: "POST",
