@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 import discord
@@ -10,8 +10,15 @@ from aiohttp import ClientError
 import engine.discord.actions as actions_module
 from config import FINAL_PROMPT_TEMPLATE, FINAL_SYSTEM_PROMPT
 from core.enums import ActionStatus
+from core.models import CustomBaseModel
 from engine.base_moderator import BaseModerator
-from engine.discord.actions import BanAction, DiscordAction, DiscordActionType, MuteAction
+from engine.discord.actions import (
+    BanAction,
+    DiscordAction,
+    DiscordActionType,
+    MuteAction,
+)
+from engine.base_action import BaseActionDefinition
 from engine.discord.action_handler import DiscordActionHandler
 from engine.discord.context import DiscordMessageContext
 from engine.enums import MaliciousState
@@ -38,6 +45,7 @@ class DiscordModerator(BaseModerator):
         self._stream: DiscordStream | None = None
         self._client_task: asyncio.Task | None = None
         self._action_handler: DiscordActionHandler | None = None
+        self._allowed_action_formats: list[dict] | None = None
 
     def _initialise_discord(self) -> None:
         intents = discord.Intents.default()
@@ -96,12 +104,9 @@ class DiscordModerator(BaseModerator):
             self._guidelines, self._topics = await self._fetch_guidelines()
 
         self._logger.info("Building actions list.")
-        action_formats = []
-        for a in self._config.allowed_actions:
-            name = a.__class__.__name__.replace("Definition", "")
-            ac = actions_module.__dict__.get(name)
-            if ac:
-                action_formats.append(ac.model_json_schema())
+
+        if self._allowed_action_formats is None:
+            self._allowed_action_formats = self._build_action_formats(self._config.allowed_actions)
 
         self._logger.info("Fetching eval.")
         attempt = 0
@@ -119,7 +124,7 @@ class DiscordModerator(BaseModerator):
                     topics=self._topics,
                     topic_scores=topic_scores,
                     message=ctx.content,
-                    action_formats=action_formats,
+                    action_formats=self._allowed_action_formats,
                     context=ctx.to_serialisable_dict(),
                 )
 
@@ -129,17 +134,17 @@ class DiscordModerator(BaseModerator):
                         {"role": "user", "content": prompt},
                     ]
                 )
-                data = parse_to_json(content['choices'][0]['message']['content'])
-                
+                data = parse_to_json(content["choices"][0]["message"]["content"])
+
                 action_data = data.get("action")
                 if action_data:
-                    action_data['requires_approval'] = False
+                    action_data["requires_approval"] = False
                     action = self._build_action(action_data)
                 else:
                     action = None
 
                 evaluation = MessageEvaluation(
-                    evaluation_score=data['evaluation_score'],
+                    evaluation_score=data["evaluation_score"],
                     action=action,
                     topic_evaluations=[
                         TopicEvaluation(topic=key, topic_score=val)
@@ -164,13 +169,35 @@ class DiscordModerator(BaseModerator):
                 attempt += 1
 
     def _build_action(self, data: dict[str, Any]) -> DiscordAction:
-        typ = data.get('type')
-        
+        typ = data.get("type")
+
         if typ == DiscordActionType.BAN:
             return BanAction(**data)
         if typ == DiscordActionType.MUTE:
             return MuteAction(**data)
+        
         raise NotImplemented(f"Action type '{typ}' not implemented.")
+
+    def _build_action_formats(self, action_defs: list[BaseActionDefinition | Literal["*"]]) -> list[dict]:
+        formats: list[dict] = []
+        mod_dict = actions_module.__dict__
+
+        if action_defs[0] == "*":
+            keys = [*mod_dict.keys()]
+            for key in keys:
+                if key.endswith("Definition"):
+                    _cls: CustomBaseModel = mod_dict.get(key)
+                    if _cls:
+                        formats.append(_cls.model_json_schema())
+        else:
+            for ac_def in action_defs:
+                key = ac_def.__class__.__name__.replace("Definition", "")
+                ac: CustomBaseModel = actions_module.__dict__.get(key)
+                if ac:
+                    formats.append(ac.model_json_schema())
+
+        return formats
+        
 
     def __del__(self):
         if self._client_task:

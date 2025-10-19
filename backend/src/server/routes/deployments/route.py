@@ -110,7 +110,6 @@ async def get_deployment_stats(
 ):
     """Return aggregated stats for a specific deployment (messages, actions, chart)."""
 
-    # 1️⃣ Validate that deployment belongs to user
     deployment = await db_sess.scalar(
         select(ModeratorDeployments)
         .join(Moderators, ModeratorDeployments.moderator_id == Moderators.moderator_id)
@@ -125,7 +124,6 @@ async def get_deployment_stats(
             status_code=404, detail="Deployment not found or unauthorized"
         )
 
-    # 2️⃣ Compute total messages for that deployment (filtered by platform + moderator_id)
     total_messages = await db_sess.scalar(
         select(func.count(MessagesEvaluations.message_id)).where(
             MessagesEvaluations.moderator_id == deployment.moderator_id,
@@ -133,18 +131,15 @@ async def get_deployment_stats(
         )
     )
 
-    # 3️⃣ Compute total actions from moderator logs (all actions related to this moderator)
     total_actions = await db_sess.scalar(
         select(func.count(ModeratorLogs.log_id)).where(
             ModeratorLogs.moderator_id == deployment.moderator_id
         )
     )
 
-    # 4️⃣ Build 6-week message chart
     now = get_datetime()
     six_weeks_ago = now - timedelta(weeks=6)
 
-    # Group messages by week
     weekly_counts = (
         await db_sess.execute(
             select(
@@ -161,7 +156,6 @@ async def get_deployment_stats(
         )
     ).all()
 
-    # Convert SQL result to chart data objects
     message_chart_data = [
         MessageChartData(
             week=row.week.strftime("%Y-%m-%d"),
@@ -170,7 +164,6 @@ async def get_deployment_stats(
         for row in weekly_counts
     ]
 
-    # Construct the final stats object
     return DeploymentStats(
         total_messages=total_messages or 0,
         total_actions=total_actions or 0,
