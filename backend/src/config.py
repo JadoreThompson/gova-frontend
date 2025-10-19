@@ -94,4 +94,6 @@ logger.addHandler(handler)
 kafka_logger = logging.getLogger("kafka")
 kafka_logger.setLevel(logging.CRITICAL)
 
+del kafka_logger
+
 PAGE_SIZE = 10

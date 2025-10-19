@@ -10,7 +10,7 @@ from core.enums import MessagePlatformType, ModeratorDeploymentStatus
 from db_models import (
     MessagesEvaluations,
     ModeratorDeployments,
-    ModeratorLogs,
+    ModeratorDeploymentLogs,
     Moderators,
 )
 from server.dependencies import depends_db_sess, depends_jwt
@@ -132,8 +132,8 @@ async def get_deployment_stats(
     )
 
     total_actions = await db_sess.scalar(
-        select(func.count(ModeratorLogs.log_id)).where(
-            ModeratorLogs.moderator_id == deployment.moderator_id
+        select(func.count(ModeratorDeploymentLogs.log_id)).where(
+            ModeratorDeploymentLogs.moderator_id == deployment.moderator_id
         )
     )
 
@@ -201,9 +201,9 @@ async def get_deployment_actions(
 
     logs = (
         await db_sess.scalars(
-            select(ModeratorLogs)
-            .where(ModeratorLogs.deployment_id == deployment_id)
-            .order_by(ModeratorLogs.created_at.desc())
+            select(ModeratorDeploymentLogs)
+            .where(ModeratorDeploymentLogs.deployment_id == deployment_id)
+            .order_by(ModeratorDeploymentLogs.created_at.desc())
             .offset((page - 1) * PAGE_SIZE)
             .limit(PAGE_SIZE + 1)
         )

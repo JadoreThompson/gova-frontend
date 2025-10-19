@@ -13,7 +13,7 @@ from db_models import (
     Guidelines,
     MessagesEvaluations,
     ModeratorDeployments,
-    ModeratorLogs,
+    ModeratorDeploymentLogs,
     Moderators,
 )
 from engine.base_action import BaseAction
@@ -64,9 +64,10 @@ class BaseModerator:
     async def _log_action(self, action: BaseAction) -> UUID:
         async with get_db_sess() as db_sess:
             res = await db_sess.scalar(
-                insert(ModeratorLogs)
+                insert(ModeratorDeploymentLogs)
                 .values(
                     moderator_id=self._moderator_id,
+                    deployment_id=self._deployment_id,
                     action_type=(
                         action.type.value
                         if isinstance(action.type, Enum)
@@ -79,7 +80,7 @@ class BaseModerator:
                         else ActionStatus.PENDING.value
                     ),
                 )
-                .returning(ModeratorLogs.log_id)
+                .returning(ModeratorDeploymentLogs.log_id)
             )
 
             await db_sess.commit()
@@ -89,9 +90,9 @@ class BaseModerator:
     async def _update_action_status(self, log_id: UUID, status: ActionStatus) -> None:
         async with get_db_sess() as db_sess:
             await db_sess.execute(
-                update(ModeratorLogs)
+                update(ModeratorDeploymentLogs)
                 .values(status=status.value)
-                .where(ModeratorLogs.log_id == log_id)
+                .where(ModeratorDeploymentLogs.log_id == log_id)
             )
             await db_sess.commit()
 

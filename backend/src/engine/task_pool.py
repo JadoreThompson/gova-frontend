@@ -87,7 +87,5 @@ class TaskPool:
     async def _wrapper(self, coro: CoroutineType[Any, Any, Any], ind: int) -> None:
         try:
             await coro
-        except:
-            raise
         finally:
             self._slot_idxs.put_nowait(ind)

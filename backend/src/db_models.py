@@ -76,7 +76,7 @@ class Moderators(Base):
     deployments: Mapped[list["ModeratorDeployments"]] = relationship(
         back_populates="moderator", cascade="all, delete-orphan"
     )
-    logs: Mapped[list["ModeratorLogs"]] = relationship(
+    logs: Mapped[list["ModeratorDeploymentLogs"]] = relationship(
         back_populates="moderator", cascade="all, delete-orphan"
     )
     guideline: Mapped["Guidelines"] = relationship(back_populates="moderators")
@@ -103,12 +103,12 @@ class ModeratorDeployments(Base):
 
     # Relationships
     moderator: Mapped["Moderators"] = relationship(back_populates="deployments")
-    logs: Mapped[list["ModeratorLogs"]] = relationship(
+    logs: Mapped[list["ModeratorDeploymentLogs"]] = relationship(
         back_populates="deployment", cascade="all, delete-orphan"
     )
 
 
-class ModeratorLogs(Base):
+class ModeratorDeploymentLogs(Base):
     __tablename__ = "moderator_logs"
 
     log_id: Mapped[UUID] = mapped_column(

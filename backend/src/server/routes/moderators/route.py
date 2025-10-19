@@ -12,7 +12,7 @@ from core.events import DeploymentEvent
 from db_models import (
     MessagesEvaluations,
     ModeratorDeployments,
-    ModeratorLogs,
+    ModeratorDeploymentLogs,
     Moderators,
 )
 from engine.discord.config import DiscordConfig
@@ -286,8 +286,8 @@ async def get_moderator_stats(
     total_messages = total_messages or 0
 
     total_actions = await db_sess.scalar(
-        select(func.count(ModeratorLogs.log_id)).where(
-            ModeratorLogs.moderator_id == moderator_id
+        select(func.count(ModeratorDeploymentLogs.log_id)).where(
+            ModeratorDeploymentLogs.moderator_id == moderator_id
         )
     )
     total_actions = total_actions or 0

@@ -44,15 +44,19 @@ def main() -> None:
         while True:
             for idx, p in enumerate(ps):
                 if not p.is_alive():
-                    logger.critical(f"Process {p.name} has died.")
+                    logger.critical(f"Process '{p.name}' has died.")
                     p.kill()
                     p.join()
 
                     target, args, kw, name = pargs[idx]
-                    ps[idx] = Process(target=target, args=args, kwargs=kw, name=name, daemon=True)
+                    ps[idx] = Process(
+                        target=target, args=args, kwargs=kw, name=name, daemon=True
+                    )
                     ps[idx].start()
 
-                    logger.critical(f"Process {p.name} has been relaunced successfully.")
+                    logger.critical(
+                        f"Process '{p.name}' has been relaunced successfully."
+                    )
 
             time.sleep(0.5)
     except KeyboardInterrupt:
@@ -65,9 +69,8 @@ def main() -> None:
             p.kill()
             p.join()
             logger.info(f"Process '{p.name}' shut down successfully.")
-        
-        logger.info("All processes shut down.")
 
+        logger.info("All processes shut down.")
 
 
 async def test():
