@@ -33,7 +33,7 @@ def main() -> None:
     )
 
     ps = [
-        Process(target=target, args=args, kwargs=kw, name=name, daemon=True)
+        Process(target=target, args=args, kwargs=kw, name=name)#, daemon=True)
         for target, args, kw, name in pargs
     ]
 
@@ -50,7 +50,7 @@ def main() -> None:
 
                     target, args, kw, name = pargs[idx]
                     ps[idx] = Process(
-                        target=target, args=args, kwargs=kw, name=name, daemon=True
+                        target=target, args=args, kwargs=kw, name=name#, daemon=True
                     )
                     ps[idx].start()
 
