@@ -11,6 +11,7 @@ from config import LLM_API_KEY, LLM_BASE_URL, SCORE_PROMPT_TEMPLATE, SCORE_SYSTE
 from core.enums import ActionStatus, ModeratorDeploymentStatus
 from db_models import (
     Guidelines,
+    Messages,
     MessagesEvaluations,
     ModeratorDeployments,
     ModeratorDeploymentLogs,
@@ -109,22 +110,28 @@ class BaseModerator:
         """
         embedding = self._embedding_model.encode([ctx.content])[0]
 
-        records = [
-            {
-                "moderator_id": self._moderator_id,
-                "platform": ctx.platform.value,
-                "content": ctx.content,
-                "embedding": embedding,
-                "topic": teval.topic,
-                "topic_score": teval.topic_score,
-            }
-            for teval in eval.topic_evaluations
-        ]
-
-        if not records:
-            return
 
         async with get_db_sess() as db_sess:
+            message_id = await db_sess.scalar(
+                insert(Messages)
+                .values(
+                    moderator_id=self._moderator_id,
+                    deployment_id=self._deployment_id,
+                    content=ctx.content,
+                    platform=ctx.platform.value,
+                )
+                .returning(Messages.message_id)
+            )
+            
+            records = [
+                {
+                    "message_id": message_id,
+                    "embedding": embedding,
+                    "topic": teval.topic,
+                    "topic_score": teval.topic_score,
+                }
+                for teval in eval.topic_evaluations
+            ]
             await db_sess.execute(insert(MessagesEvaluations), records)
             await db_sess.commit()
 

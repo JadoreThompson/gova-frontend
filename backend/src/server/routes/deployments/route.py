@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config import PAGE_SIZE
 from core.enums import MessagePlatformType, ModeratorDeploymentStatus
 from db_models import (
-    MessagesEvaluations,
+    Messages,
     ModeratorDeployments,
     ModeratorDeploymentLogs,
     Moderators,
@@ -108,8 +108,6 @@ async def get_deployment_stats(
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
 ):
-    """Return aggregated stats for a specific deployment (messages, actions, chart)."""
-
     deployment = await db_sess.scalar(
         select(ModeratorDeployments)
         .join(Moderators, ModeratorDeployments.moderator_id == Moderators.moderator_id)
@@ -125,15 +123,15 @@ async def get_deployment_stats(
         )
 
     total_messages = await db_sess.scalar(
-        select(func.count(MessagesEvaluations.message_id)).where(
-            MessagesEvaluations.moderator_id == deployment.moderator_id,
-            MessagesEvaluations.platform == deployment.platform,
+        select(func.count(Messages.message_id)).where(
+            Messages.deployment_id == deployment.deployment_id,
+            Messages.platform == deployment.platform,
         )
     )
 
     total_actions = await db_sess.scalar(
         select(func.count(ModeratorDeploymentLogs.log_id)).where(
-            ModeratorDeploymentLogs.moderator_id == deployment.moderator_id
+            ModeratorDeploymentLogs.deployment_id == deployment.deployment_id
         )
     )
 
@@ -143,25 +141,30 @@ async def get_deployment_stats(
     weekly_counts = (
         await db_sess.execute(
             select(
-                func.date_trunc("week", MessagesEvaluations.created_at).label("week"),
-                func.count(MessagesEvaluations.message_id).label("count"),
+                func.date_trunc("week", Messages.created_at).label("week"),
+                func.count(Messages.message_id).label("count"),
             )
             .where(
-                MessagesEvaluations.moderator_id == deployment.moderator_id,
-                MessagesEvaluations.platform == deployment.platform,
-                MessagesEvaluations.created_at >= six_weeks_ago,
+                Messages.deployment_id == deployment.deployment_id,
+                Messages.platform == deployment.platform,
+                Messages.created_at >= six_weeks_ago,
             )
-            .group_by(func.date_trunc("week", MessagesEvaluations.created_at))
-            .order_by(func.date_trunc("week", MessagesEvaluations.created_at))
+            .group_by("week")
+            .order_by("week")
         )
     ).all()
 
+    week_count_map = {row.week.date(): row.count for row in weekly_counts}
+
+    all_weeks = [(now - timedelta(weeks=i)).date() for i in range(5, -1, -1)]
+
     message_chart_data = [
         MessageChartData(
-            week=row.week.strftime("%Y-%m-%d"),
-            messages=row.count,
+            date=week.strftime("%Y-%m-%d"),
+            frequency=week_count_map.get(week, 0),
+            platform=deployment.platform,
         )
-        for row in weekly_counts
+        for week in all_weeks
     ]
 
     return DeploymentStats(

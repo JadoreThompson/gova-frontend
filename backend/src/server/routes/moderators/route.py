@@ -10,7 +10,7 @@ from config import KAFKA_DEPLOYMENT_EVENTS_TOPIC, PAGE_SIZE
 from core.enums import MessagePlatformType
 from core.events import DeploymentEvent
 from db_models import (
-    MessagesEvaluations,
+    Messages,
     ModeratorDeployments,
     ModeratorDeploymentLogs,
     Moderators,
@@ -178,39 +178,6 @@ async def get_moderator(
     )
 
 
-# @router.get("/{moderator_id}/deployments")
-# async def get_deployments(
-#     moderator_id: UUID,
-#     jwt: JWTPayload = Depends(depends_jwt),
-#     db_sess: AsyncSession = Depends(depends_db_sess),
-# ):
-#     deps = (
-#         await db_sess.scalars(
-#             select(ModeratorDeployments)
-#             .join(
-#                 Moderators, Moderators.moderator_id == ModeratorDeployments.moderator_id
-#             )
-#             .where(
-#                 Moderators.user_id == jwt.sub,
-#                 ModeratorDeployments.moderator_id == moderator_id,
-#             )
-#         )
-#     ).all()
-
-#     return [
-#         DeploymentResponse(
-#             deployment_id=d.deployment_id,
-#             moderator_id=d.moderator_id,
-#             platform=d.platform,
-#             name=d.name,
-#             conf=d.conf,
-#             status=d.state,
-#             created_at=d.created_at,
-#         )
-#         for d in deps
-#     ]
-
-
 @router.get(
     "/{moderator_id}/deployments", response_model=PaginatedResponse[DeploymentResponse]
 )
@@ -264,7 +231,7 @@ async def get_moderator_stats(
     db_sess: AsyncSession = Depends(depends_db_sess),
 ):
     moderator_exists = await db_sess.scalar(
-        select(func.count(Moderators.moderator_id)).where(
+        select(Moderators.moderator_id).where(
             Moderators.moderator_id == moderator_id,
             Moderators.user_id == jwt.sub,
         )
@@ -279,8 +246,8 @@ async def get_moderator_stats(
     earliest_week = week_starts[0]
 
     total_messages = await db_sess.scalar(
-        select(func.count(MessagesEvaluations.message_id)).where(
-            MessagesEvaluations.moderator_id == moderator_id
+        select(func.count(Messages.message_id)).where(
+            Messages.moderator_id == moderator_id
         )
     )
     total_messages = total_messages or 0
@@ -294,21 +261,21 @@ async def get_moderator_stats(
 
     weekly_result = await db_sess.execute(
         select(
-            MessagesEvaluations.platform.label("platform"),
-            func.date_trunc("week", MessagesEvaluations.created_at).label("week_start"),
-            func.count(MessagesEvaluations.message_id).label("frequency"),
+            Messages.platform.label("platform"),
+            func.date_trunc("week", Messages.created_at).label("week_start"),
+            func.count(Messages.message_id).label("frequency"),
         )
         .where(
-            MessagesEvaluations.moderator_id == moderator_id,
-            MessagesEvaluations.created_at >= earliest_week,
+            Messages.moderator_id == moderator_id,
+            Messages.created_at >= earliest_week,
         )
         .group_by("platform", "week_start")
         .order_by("platform", "week_start")
     )
 
     all_platforms = await db_sess.scalars(
-        select(func.distinct(MessagesEvaluations.platform)).where(
-            MessagesEvaluations.moderator_id == moderator_id
+        select(func.distinct(Messages.platform)).where(
+            Messages.moderator_id == moderator_id
         )
     )
     all_platform_list = list(all_platforms.all())

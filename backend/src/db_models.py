@@ -135,15 +135,30 @@ class ModeratorDeploymentLogs(Base):
     deployment: Mapped["ModeratorDeployments"] = relationship(back_populates="logs")
 
 
-class MessagesEvaluations(Base):
+class Messages(Base):
     __tablename__ = "messages"
 
     message_id: Mapped[UUID] = mapped_column(
         SaUUID(as_uuid=True), primary_key=True, default=get_uuid
     )
     moderator_id: Mapped[UUID] = mapped_column(SaUUID(as_uuid=True), nullable=False)
-    platform: Mapped[str] = mapped_column(String, nullable=False)
+    deployment_id: Mapped[UUID] = mapped_column(SaUUID(as_uuid=True), nullable=False)
     content: Mapped[str] = mapped_column(String, nullable=False)
+    platform: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=get_datetime
+    )
+
+
+class MessagesEvaluations(Base):
+    __tablename__ = "message_evaluations"
+    # NOTE: No foreign keys in this table as we want to retain all data
+    # regardless is a parent is deleted.
+
+    evaluation_id: Mapped[UUID] = mapped_column(
+        SaUUID(as_uuid=True), primary_key=True, default=get_uuid
+    )
+    message_id: Mapped[UUID] = mapped_column(SaUUID(as_uuid=True), nullable=False)
     embedding: Mapped[list[float]] = mapped_column(Vector(1024))
     topic: Mapped[str] = mapped_column(String, nullable=False)
     topic_score: Mapped[float] = mapped_column(Float, nullable=False)
