@@ -1,9 +1,9 @@
 from typing import Literal
 from uuid import UUID
 
-from engine.discord.config import DiscordConfig
 from core.models import CustomBaseModel
 from core.enums import MessagePlatformType
+from engine.discord.config import DiscordConfig
 
 
 DeploymentEventType = Literal["start", "stop"]

@@ -1,9 +1,9 @@
 from dataclasses import asdict
 from datetime import datetime
-from sqlalchemy import select
 
 import jwt
 from fastapi import Response
+from sqlalchemy import select
 
 from config import COOKIE_ALIAS, PRODUCTION, JWT_SECRET, JWT_ALGO, JWT_EXPIRY
 from db_models import Users

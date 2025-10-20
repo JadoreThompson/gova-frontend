@@ -1,4 +1,5 @@
 from json import dumps
+
 from pydantic import BaseModel
 
 from core.models import CustomBaseModel
