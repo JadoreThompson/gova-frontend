@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from core.enums import MessagePlatformType
-from engine.models import MessageContext
+from engine.models import BaseMessageContext
 
 
 class DiscordServer(BaseModel):
@@ -17,6 +17,6 @@ class DiscordContext(BaseModel):
     guild_id: int
 
 
-class DiscordMessageContext(MessageContext):
+class DiscordMessageContext(BaseMessageContext):
     platform: MessagePlatformType = MessagePlatformType.DISCORD
     discord: DiscordContext

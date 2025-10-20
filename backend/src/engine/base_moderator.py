@@ -29,7 +29,7 @@ from db_models import (
     Moderators,
 )
 from engine.base_action import BaseAction
-from engine.models import MessageContext, MessageEvaluation
+from engine.models import BaseMessageContext, MessageEvaluation
 from engine.task_pool import TaskPool
 from utils.db import get_db_sess
 from utils.llm import fetch_response, parse_to_json
@@ -79,10 +79,9 @@ class BaseModerator:
             async for m in self._consumer:
                 try:
                     data = json.loads(m.value.decode())
-                    
-                    if (
-                        data.get("type") == "stop"
-                        and data.get("deployment_id") == str(self._deployment_id)
+
+                    if data.get("type") == "stop" and data.get("deployment_id") == str(
+                        self._deployment_id
                     ):
                         self._moderate_task.cancel()
                         await self._moderate_task
@@ -111,7 +110,7 @@ class BaseModerator:
 
             return res.first()
 
-    async def _log_action(self, action: BaseAction) -> UUID:
+    async def _log_action(self, action: BaseAction, ctx: BaseMessageContext) -> UUID:
         async with get_db_sess() as db_sess:
             res = await db_sess.scalar(
                 insert(ModeratorDeploymentLogs)
@@ -124,6 +123,7 @@ class BaseModerator:
                         else action.type
                     ),
                     action_params=action.to_serialisable_dict(),
+                    context=ctx.to_serialisable_dict(),
                     status=(
                         ActionStatus.AWAITING_APPROVAL.value
                         if action.requires_approval
@@ -147,7 +147,7 @@ class BaseModerator:
             await db_sess.commit()
 
     async def _save_evaluation(
-        self, eval: MessageEvaluation, ctx: MessageContext
+        self, eval: MessageEvaluation, ctx: BaseMessageContext
     ) -> None:
         """
         Stores the eval and generates embeddings for future
@@ -184,7 +184,7 @@ class BaseModerator:
             await db_sess.commit()
 
     async def _fetch_topic_scores(
-        self, ctx: MessageContext, topics: list[str]
+        self, ctx: BaseMessageContext, topics: list[str]
     ) -> dict[str, float]:
         prompt = SCORE_PROMPT_TEMPLATE.format(
             guidelines=self._guidelines,
@@ -215,7 +215,7 @@ class BaseModerator:
             return tuple((r.topic, r.topic_score) for r in res.yield_per(1000))
 
     async def _handle_similars(
-        self, ctx: MessageContext, similars: tuple[tuple[str, float], ...]
+        self, ctx: BaseMessageContext, similars: tuple[tuple[str, float], ...]
     ) -> dict[str, float]:
         topic_scores = {}
 

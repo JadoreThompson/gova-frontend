@@ -17,11 +17,11 @@ from db_models import (
 )
 from server.dependencies import depends_db_sess, depends_jwt, depends_kafka_producer
 from server.models import PaginatedResponse
-from server.shared.models import DeploymentResponse, MessageChartData
+from server.shared.models import DeploymentAction, DeploymentResponse, MessageChartData
 from server.typing import JWTPayload
 from utils.db import get_datetime
 from utils.kafka import dump_model
-from .models import DeploymentAction, DeploymentStats, DeploymentUpdate
+from .models import DeploymentStats, DeploymentUpdate
 
 
 router = APIRouter(prefix="/deployments", tags=["Moderator Deployments"])
@@ -239,43 +239,48 @@ async def stop_deployment(
     deployment_id: UUID,
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
-    kafka_producer: AIOKafkaProducer = Depends(depends_kafka_producer)
-): 
+    kafka_producer: AIOKafkaProducer = Depends(depends_kafka_producer),
+):
     dep = await db_sess.scalar(
         select(ModeratorDeployments)
-        .join(Moderators, Moderators.moderator_id == ModeratorDeployments.moderator_id).where(
-            Moderators.user_id == jwt.sub,ModeratorDeployments.deployment_id == deployment_id
+        .join(Moderators, Moderators.moderator_id == ModeratorDeployments.moderator_id)
+        .where(
+            Moderators.user_id == jwt.sub,
+            ModeratorDeployments.deployment_id == deployment_id,
         )
     )
     if not dep:
         raise HTTPException(status_code=404, detail="Deployment not found.")
     if dep.state != ModeratorDeploymentStatus.ONLINE.value:
         raise HTTPException(status_code=400, detail="Deployment is not online.")
-    
+
     ev = StopDeploymentEvent(
-        type='stop',
+        type="stop",
         deployment_id=dep.deployment_id,
     )
     await kafka_producer.send(KAFKA_DEPLOYMENT_EVENTS_TOPIC, dump_model(ev))
+
 
 @router.post("/{deployment_id}/start")
 async def stop_deployment(
     deployment_id: UUID,
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
-    kafka_producer: AIOKafkaProducer = Depends(depends_kafka_producer)
-): 
+    kafka_producer: AIOKafkaProducer = Depends(depends_kafka_producer),
+):
     dep = await db_sess.scalar(
         select(ModeratorDeployments)
-        .join(Moderators, Moderators.moderator_id == ModeratorDeployments.moderator_id).where(
-            Moderators.user_id == jwt.sub,ModeratorDeployments.deployment_id == deployment_id
+        .join(Moderators, Moderators.moderator_id == ModeratorDeployments.moderator_id)
+        .where(
+            Moderators.user_id == jwt.sub,
+            ModeratorDeployments.deployment_id == deployment_id,
         )
     )
     if not dep:
         raise HTTPException(status_code=404, detail="Deployment not found.")
     if dep.state != ModeratorDeploymentStatus.OFFLINE.value:
         raise HTTPException(status_code=400, detail="Deployment is not offline.")
-    
+
     ev = CreateDeploymentEvent(
         deployment_id=dep.deployment_id,
         moderator_id=dep.moderator_id,

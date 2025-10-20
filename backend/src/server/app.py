@@ -1,7 +1,10 @@
+import asyncio
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from infra.kafka_manager import KafkaManager
+from infra import KafkaManager, DiscordActionManager
+from server.routes.actions.route import router as action_router
 from server.routes.auth.route import router as auth_router
 from server.routes.deployments.route import router as deployments_router
 from server.routes.guidelines.route import router as guidelines_router
@@ -9,9 +12,17 @@ from server.routes.moderators.route import router as moderators_router
 
 
 async def lifespan(app: FastAPI):
-    await KafkaManager.start()
+    await asyncio.gather(
+        DiscordActionManager.start(),
+        KafkaManager.start(),
+    )
+
     yield
-    await KafkaManager.stop()
+
+    await asyncio.gather(
+        DiscordActionManager.stop(),
+        KafkaManager.stop(),
+    )
 
 
 app = FastAPI(lifespan=lifespan)
@@ -24,6 +35,7 @@ app.add_middleware(
     allow_credentials=True,
 )
 
+app.include_router(action_router)
 app.include_router(auth_router)
 app.include_router(deployments_router)
 app.include_router(guidelines_router)

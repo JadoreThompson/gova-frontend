@@ -1,9 +1,15 @@
 from datetime import datetime
 from uuid import UUID
 
-from core.enums import MessagePlatformType, ModeratorDeploymentStatus
+from core.enums import ActionStatus, MessagePlatformType, ModeratorDeploymentStatus
 from core.models import CustomBaseModel
 from engine.discord.config import DiscordConfig
+
+
+class MessageChartData(CustomBaseModel):
+    platform: MessagePlatformType
+    frequency: int
+    date: datetime
 
 
 class DeploymentResponse(CustomBaseModel):
@@ -16,7 +22,10 @@ class DeploymentResponse(CustomBaseModel):
     created_at: datetime
 
 
-class MessageChartData(CustomBaseModel):
-    platform: MessagePlatformType
-    frequency: int
-    date: datetime
+class DeploymentAction(CustomBaseModel):
+    log_id: UUID
+    deployment_id: UUID
+    action_type: str
+    action_params: dict
+    status: ActionStatus
+    created_at: datetime

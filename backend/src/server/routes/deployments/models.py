@@ -1,10 +1,8 @@
-from datetime import datetime
 from typing import Any
-from uuid import UUID
 
 from pydantic import BaseModel
 
-from core.enums import ActionStatus, MessagePlatformType
+from core.enums import MessagePlatformType
 from core.models import CustomBaseModel
 from server.shared.models import MessageChartData
 
@@ -25,11 +23,3 @@ class DeploymentStats(BaseModel):
     total_actions: int
     message_chart: dict[MessagePlatformType, list[MessageChartData]]
 
-
-class DeploymentAction(BaseModel):
-    log_id: UUID
-    deployment_id: UUID
-    action_type: str
-    action_params: dict
-    status: ActionStatus
-    created_at: datetime

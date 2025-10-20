@@ -5,7 +5,7 @@ from core.models import CustomBaseModel
 from engine.discord.actions import DiscordAction
 
 
-class MessageContext(CustomBaseModel):
+class BaseMessageContext(CustomBaseModel):
     platform: MessagePlatformType
     content: str
 

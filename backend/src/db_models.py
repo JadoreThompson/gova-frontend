@@ -122,9 +122,9 @@ class ModeratorDeploymentLogs(Base):
         ForeignKey("moderator_deployments.deployment_id"),
         nullable=False,
     )
-
     action_type: Mapped[str] = mapped_column(String, nullable=False)
     action_params: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    context: Mapped[dict] = mapped_column(JSONB, nullable=False)
     status: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=get_datetime

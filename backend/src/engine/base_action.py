@@ -1,14 +1,17 @@
 from __future__ import annotations
-from enum import Enum
 from typing import Any
 
 from pydantic import Field
 
+from core.enums import MessagePlatformType
 from core.models import CustomBaseModel
 
 
+# TODO: Fix type errors
+
 class BaseAction(CustomBaseModel):
     type: Any # Enum
+    platform: MessagePlatformType
     requires_approval: bool
     reason: str = Field(description="Filled by the system and not the agent.")
 

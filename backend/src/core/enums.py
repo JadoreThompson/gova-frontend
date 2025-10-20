@@ -1,18 +1,20 @@
 from enum import Enum
 
 
-class MessagePlatformType(Enum):
+class MessagePlatformType(str, Enum):
     DISCORD = "discord"
 
 
-class ModeratorDeploymentStatus(Enum):
+class ModeratorDeploymentStatus(str, Enum):
     OFFLINE = "offline"
     PENDING = "pending"
     ONLINE = "online"
 
 
-class ActionStatus(Enum):
+class ActionStatus(str, Enum):
+    FAILED = 'failed'
     PENDING = "pending"
     SUCCESS = "success"
+    DECLINED = 'declined'
     AWAITING_APPROVAL = "awaiting_approval"
     APPROVED = "approved"
