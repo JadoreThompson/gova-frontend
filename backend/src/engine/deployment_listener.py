@@ -40,15 +40,16 @@ class DeploymentEnvironment:
         async with mod:
             task = asyncio.create_task(mod.run())
 
-            while not task.done() and not self.stop_event.is_set():
-                await asyncio.sleep(0.1)
-
-            if not task.done():
-                task.cancel()
-                try:
-                    await task
-                except asyncio.CancelledError:
-                    pass
+            try:
+                while not task.done() and not self.stop_event.is_set():
+                    await asyncio.sleep(0.1)
+            finally:
+                if not task.done():
+                    task.cancel()
+                    try:
+                        await task
+                    except asyncio.CancelledError:
+                        pass
 
         logger.info("Deployment stopped")
 

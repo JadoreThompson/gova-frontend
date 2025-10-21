@@ -9,11 +9,26 @@ export type ActionStatus = (typeof ActionStatus)[keyof typeof ActionStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ActionStatus = {
+  failed: "failed",
   pending: "pending",
   success: "success",
+  declined: "declined",
   awaiting_approval: "awaiting_approval",
   approved: "approved",
 } as const;
+
+export type ActionUpdateStatus =
+  (typeof ActionUpdateStatus)[keyof typeof ActionUpdateStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ActionUpdateStatus = {
+  approved: "approved",
+  declined: "declined",
+} as const;
+
+export interface ActionUpdate {
+  status: ActionUpdateStatus;
+}
 
 /**
  * The client facing model(s) which allow prefilling
@@ -161,14 +176,6 @@ export interface ModeratorResponse {
   deployment_platforms: MessagePlatformType[];
 }
 
-export type ModeratorStatsMessageChart = { [key: string]: MessageChartData[] };
-
-export interface ModeratorStats {
-  total_messages: number;
-  total_actions: number;
-  message_chart: ModeratorStatsMessageChart;
-}
-
 export type ModeratorUpdateName = string | null;
 
 export type ModeratorUpdateGuidelineId = string | null;
@@ -176,6 +183,19 @@ export type ModeratorUpdateGuidelineId = string | null;
 export interface ModeratorUpdate {
   name?: ModeratorUpdateName;
   guideline_id?: ModeratorUpdateGuidelineId;
+}
+
+export type NewMessageChartDataCounts = { [key: string]: number };
+
+export interface NewMessageChartData {
+  date: string;
+  counts: NewMessageChartDataCounts;
+}
+
+export interface NewModeratorStats {
+  total_messages: number;
+  total_actions: number;
+  message_chart: NewMessageChartData[];
 }
 
 export interface PaginatedResponseDeploymentAction {
@@ -264,6 +284,52 @@ export type GetDeploymentsModeratorsModeratorIdDeploymentsGetParams = {
    * @minimum 1
    */
   page?: number;
+};
+
+/**
+ * @summary Update Action Status
+ */
+export type updateActionStatusActionsLogIdPatchResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type updateActionStatusActionsLogIdPatchResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type updateActionStatusActionsLogIdPatchResponseSuccess =
+  updateActionStatusActionsLogIdPatchResponse200 & {
+    headers: Headers;
+  };
+export type updateActionStatusActionsLogIdPatchResponseError =
+  updateActionStatusActionsLogIdPatchResponse422 & {
+    headers: Headers;
+  };
+
+export type updateActionStatusActionsLogIdPatchResponse =
+  | updateActionStatusActionsLogIdPatchResponseSuccess
+  | updateActionStatusActionsLogIdPatchResponseError;
+
+export const getUpdateActionStatusActionsLogIdPatchUrl = (logId: string) => {
+  return `/actions/${logId}`;
+};
+
+export const updateActionStatusActionsLogIdPatch = async (
+  logId: string,
+  actionUpdate: ActionUpdate,
+  options?: RequestInit,
+): Promise<updateActionStatusActionsLogIdPatchResponse> => {
+  return customFetch<updateActionStatusActionsLogIdPatchResponse>(
+    getUpdateActionStatusActionsLogIdPatchUrl(logId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(actionUpdate),
+    },
+  );
 };
 
 /**
@@ -608,7 +674,6 @@ export const deleteDeploymentDeploymentsDeploymentIdDelete = async (
 };
 
 /**
- * Return aggregated stats for a specific deployment (messages, actions, chart).
  * @summary Get Deployment Stats
  */
 export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse200 = {
@@ -713,6 +778,96 @@ export const getDeploymentActionsDeploymentsDeploymentIdActionsGet = async (
     {
       ...options,
       method: "GET",
+    },
+  );
+};
+
+/**
+ * @summary Stop Deployment
+ */
+export type stopDeploymentDeploymentsDeploymentIdStopPostResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type stopDeploymentDeploymentsDeploymentIdStopPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type stopDeploymentDeploymentsDeploymentIdStopPostResponseSuccess =
+  stopDeploymentDeploymentsDeploymentIdStopPostResponse200 & {
+    headers: Headers;
+  };
+export type stopDeploymentDeploymentsDeploymentIdStopPostResponseError =
+  stopDeploymentDeploymentsDeploymentIdStopPostResponse422 & {
+    headers: Headers;
+  };
+
+export type stopDeploymentDeploymentsDeploymentIdStopPostResponse =
+  | stopDeploymentDeploymentsDeploymentIdStopPostResponseSuccess
+  | stopDeploymentDeploymentsDeploymentIdStopPostResponseError;
+
+export const getStopDeploymentDeploymentsDeploymentIdStopPostUrl = (
+  deploymentId: string,
+) => {
+  return `/deployments/${deploymentId}/stop`;
+};
+
+export const stopDeploymentDeploymentsDeploymentIdStopPost = async (
+  deploymentId: string,
+  options?: RequestInit,
+): Promise<stopDeploymentDeploymentsDeploymentIdStopPostResponse> => {
+  return customFetch<stopDeploymentDeploymentsDeploymentIdStopPostResponse>(
+    getStopDeploymentDeploymentsDeploymentIdStopPostUrl(deploymentId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+/**
+ * @summary Stop Deployment
+ */
+export type stopDeploymentDeploymentsDeploymentIdStartPostResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type stopDeploymentDeploymentsDeploymentIdStartPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type stopDeploymentDeploymentsDeploymentIdStartPostResponseSuccess =
+  stopDeploymentDeploymentsDeploymentIdStartPostResponse200 & {
+    headers: Headers;
+  };
+export type stopDeploymentDeploymentsDeploymentIdStartPostResponseError =
+  stopDeploymentDeploymentsDeploymentIdStartPostResponse422 & {
+    headers: Headers;
+  };
+
+export type stopDeploymentDeploymentsDeploymentIdStartPostResponse =
+  | stopDeploymentDeploymentsDeploymentIdStartPostResponseSuccess
+  | stopDeploymentDeploymentsDeploymentIdStartPostResponseError;
+
+export const getStopDeploymentDeploymentsDeploymentIdStartPostUrl = (
+  deploymentId: string,
+) => {
+  return `/deployments/${deploymentId}/start`;
+};
+
+export const stopDeploymentDeploymentsDeploymentIdStartPost = async (
+  deploymentId: string,
+  options?: RequestInit,
+): Promise<stopDeploymentDeploymentsDeploymentIdStartPostResponse> => {
+  return customFetch<stopDeploymentDeploymentsDeploymentIdStartPostResponse>(
+    getStopDeploymentDeploymentsDeploymentIdStartPostUrl(deploymentId),
+    {
+      ...options,
+      method: "POST",
     },
   );
 };
@@ -1311,7 +1466,7 @@ export const getDeploymentsModeratorsModeratorIdDeploymentsGet = async (
  * @summary Get Moderator Stats
  */
 export type getModeratorStatsModeratorsModeratorIdStatsGetResponse200 = {
-  data: ModeratorStats;
+  data: NewModeratorStats;
   status: 200;
 };
 

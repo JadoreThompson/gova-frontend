@@ -260,6 +260,8 @@ async def stop_deployment(
     )
     await kafka_producer.send(KAFKA_DEPLOYMENT_EVENTS_TOPIC, dump_model(ev))
 
+    dep.status = ModeratorDeploymentStatus.PENDING.value
+    await db_sess.commit()
 
 @router.post("/{deployment_id}/start")
 async def stop_deployment(
@@ -288,6 +290,9 @@ async def stop_deployment(
         conf=dep.conf,
     )
     await kafka_producer.send(KAFKA_DEPLOYMENT_EVENTS_TOPIC, dump_model(ev))
+    
+    dep.status = ModeratorDeploymentStatus.PENDING.value
+    await db_sess.commit()
 
 
 @router.put("/{deployment_id}", response_model=DeploymentResponse)

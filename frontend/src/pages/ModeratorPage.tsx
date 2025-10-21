@@ -18,14 +18,15 @@ import {
   useModeratorQuery,
   useModeratorStatsQuery,
 } from "@/hooks/moderators-hooks";
-import { MessagePlatformType } from "@/openapi";
+import { MessagePlatformType, type NewMessageChartData } from "@/openapi";
 import { Bot } from "lucide-react";
-import React, { useState, type FC } from "react";
+import React, { useMemo, useState, type FC } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -60,30 +61,93 @@ const StatsCards: FC<{ totalMessages: number; totalActions: number }> = ({
   </div>
 );
 
-const MessagesChart: FC<{
-  chartData: { week: string; messages: number }[];
-}> = ({ chartData }) => (
-  <Card className="mb-8">
-    <CardHeader>
-      <CardTitle>Messages Processed (Last 6 Weeks)</CardTitle>
-    </CardHeader>
-    <CardContent className="h-64">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="week" />
-          <YAxis />
-          <Tooltip />
-          <Bar
-            dataKey="messages"
-            fill="hsl(var(--primary))"
-            radius={[6, 6, 0, 0]}
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    </CardContent>
-  </Card>
-);
+const MessagesChart: FC<{ chartData: NewMessageChartData[] }> = ({
+  chartData,
+}) => {
+  const flattenedData = useMemo(() => {
+    return chartData.map((entry) => ({
+      date: entry.date,
+      ...entry.counts,
+    }));
+  }, [chartData]);
+
+  const platforms = useMemo(() => {
+    if (flattenedData.length === 0) return [];
+    return Object.keys(flattenedData[0]).filter((k) => k !== "date");
+  }, [flattenedData]);
+
+  return (
+    <Card className="mb-8">
+      <CardHeader>
+        <CardTitle>Messages Processed (Last 6 Weeks)</CardTitle>
+      </CardHeader>
+      <CardContent className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={flattenedData}
+            barGap={4}
+            margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#E5E7EB"
+              vertical={false}
+            />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 12, fill: "#9CA3AF" }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 12, fill: "#9CA3AF" }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "rgba(255,255,255,0.95)",
+                border: "1px solid #E5E7EB",
+                borderRadius: "8px",
+                fontSize: "13px",
+              }}
+              labelStyle={{ color: "#374151", fontWeight: 500 }}
+            />
+            <Legend
+              verticalAlign="top"
+              align="right"
+              wrapperStyle={{ fontSize: "12px", paddingBottom: "8px" }}
+            />
+
+            {platforms.map((platform) => {
+              let color = "#9CA3AF";
+
+              if (platform.toLowerCase().includes("discord")) color = "#5865F2";
+              else if (platform.toLowerCase().includes("telegram"))
+                color = "#229ED9";
+              else if (platform.toLowerCase().includes("slack"))
+                color = "#ECB22E";
+
+              return (
+                <Bar
+                  key={platform}
+                  dataKey={platform}
+                  stackId="a"
+                  fill={color}
+                  radius={
+                    platform === platforms[platforms.length - 1]
+                      ? [6, 6, 0, 0]
+                      : [0, 0, 0, 0]
+                  }
+                />
+              );
+            })}
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+};
 
 const DeploySheet: FC<{
   open: boolean;
@@ -189,15 +253,6 @@ const ModeratorPage: FC = () => {
   });
   const deployMutation = useDeployModeratorMutation();
 
-  const chartData = [
-    { week: "6w ago", messages: 800 },
-    { week: "5w ago", messages: 950 },
-    { week: "4w ago", messages: 1100 },
-    { week: "3w ago", messages: 1020 },
-    { week: "2w ago", messages: 1200 },
-    { week: "Last Week", messages: 1300 },
-  ];
-
   const handleDeploy = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = Object.fromEntries(new FormData(e.currentTarget).entries());
@@ -245,7 +300,9 @@ const ModeratorPage: FC = () => {
         totalMessages={moderatorStatsQuery.data?.total_messages ?? 0}
         totalActions={moderatorStatsQuery.data?.total_actions ?? 0}
       />
-      <MessagesChart chartData={chartData} />
+      <MessagesChart
+        chartData={moderatorStatsQuery.data?.message_chart ?? []}
+      />
       <DeploymentsSection
         deployments={moderatorDeploymentsQuery.data?.data ?? []}
         page={page}

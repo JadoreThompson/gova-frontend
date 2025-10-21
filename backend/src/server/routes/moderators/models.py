@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from core.enums import MessagePlatformType
 from core.models import CustomBaseModel
-from server.shared.models import MessageChartData
+from server.shared.models import MessageChartData, NewMessageChartData
 
 
 class ModeratorBase(CustomBaseModel):
@@ -33,6 +33,11 @@ class ModeratorStats(BaseModel):
     total_messages: int
     total_actions: int
     message_chart: dict[MessagePlatformType, list[MessageChartData]]
+
+class NewModeratorStats(BaseModel):
+    total_messages: int
+    total_actions: int
+    message_chart: list[NewMessageChartData]
 
 
 class DeploymentCreate(CustomBaseModel):

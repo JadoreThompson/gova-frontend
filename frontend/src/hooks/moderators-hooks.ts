@@ -16,8 +16,8 @@ import {
   type ListModeratorsModeratorsGetParams,
   type ModeratorCreate,
   type ModeratorResponse,
-  type ModeratorStats,
   type ModeratorUpdate,
+  type NewModeratorStats,
   type PaginatedResponseModeratorResponse,
 } from "@/openapi";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -50,7 +50,7 @@ export function useCreateModeratorMutation() {
 }
 
 export function useModeratorStatsQuery(moderatorId?: string) {
-  return useQuery<ModeratorStats>({
+  return useQuery<NewModeratorStats>({
     queryKey: queryKeys.moderatorStats(moderatorId!),
     queryFn: async () =>
       handleApi(

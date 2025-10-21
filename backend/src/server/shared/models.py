@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from uuid import UUID
 
 from core.enums import ActionStatus, MessagePlatformType, ModeratorDeploymentStatus
@@ -10,6 +10,11 @@ class MessageChartData(CustomBaseModel):
     platform: MessagePlatformType
     frequency: int
     date: datetime
+
+
+class NewMessageChartData(CustomBaseModel):
+    date: date
+    counts: dict[MessagePlatformType, int]
 
 
 class DeploymentResponse(CustomBaseModel):

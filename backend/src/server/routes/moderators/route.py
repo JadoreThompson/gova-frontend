@@ -18,7 +18,7 @@ from db_models import (
 from engine.discord.config import DiscordConfig
 from server.dependencies import depends_db_sess, depends_jwt, depends_kafka_producer
 from server.models import PaginatedResponse
-from server.shared.models import DeploymentResponse, MessageChartData
+from server.shared.models import DeploymentResponse, MessageChartData, NewMessageChartData
 from server.typing import JWTPayload
 from utils.db import get_datetime
 from utils.kafka import dump_model
@@ -28,6 +28,7 @@ from .models import (
     ModeratorResponse,
     ModeratorStats,
     ModeratorUpdate,
+    NewModeratorStats,
     DeploymentCreate,
 )
 
@@ -224,7 +225,8 @@ async def get_deployments(
     )
 
 
-@router.get("/{moderator_id}/stats", response_model=ModeratorStats)
+# @router.get("/{moderator_id}/stats", response_model=ModeratorStats)
+@router.get("/{moderator_id}/stats", response_model=NewModeratorStats)
 async def get_moderator_stats(
     moderator_id: UUID,
     jwt: JWTPayload = Depends(depends_jwt),
@@ -288,24 +290,34 @@ async def get_moderator_stats(
             data_map[platform] = {}
         data_map[platform][week_start] = row.frequency
 
-    message_chart: dict[MessagePlatformType, list[MessageChartData]] = {}
+    # message_chart: dict[MessagePlatformType, list[MessageChartData]] = {}
 
-    for platform in all_platform_list:
-        platform_data = []
-        week_data = data_map.get(platform, {})
+    # for platform in all_platform_list:
+    #     platform_data = []
+    #     week_data = data_map.get(platform, {})
 
-        for week_start in week_starts:
-            platform_data.append(
-                MessageChartData(
-                    platform=platform,
-                    date=datetime.combine(week_start, datetime.min.time()),
-                    frequency=week_data.get(week_start, 0),
-                )
-            )
+    #     for week_start in week_starts:
+    #         platform_data.append(
+    #             MessageChartData(
+    #                 platform=platform,
+    #                 date=datetime.combine(week_start, datetime.min.time()),
+    #                 frequency=week_data.get(week_start, 0),
+    #             )
+    #         )
 
-        message_chart[platform] = platform_data
+    #     message_chart[platform] = platform_data
 
-    return ModeratorStats(
+    message_chart: list[NewMessageChartData] = []
+
+    for week_start in week_starts:
+        counts = {
+            platform: data_map.get(platform, {}).get(week_start, 0)
+            for platform in all_platform_list
+        }
+        message_chart.append(NewMessageChartData(date=week_start, counts=counts))
+
+
+    return NewModeratorStats(
         total_messages=total_messages,
         total_actions=total_actions,
         message_chart=message_chart,
