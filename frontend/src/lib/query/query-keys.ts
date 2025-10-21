@@ -7,6 +7,7 @@ import type {
 export const queryKeys = {
   // Auth
   auth: () => ["auth"] as const,
+  me: () => ["me"] as const,
 
   // Guidelines
   guidelines: (params?: ListGuidelinesGuidelinesGetParams) =>

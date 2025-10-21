@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router";
+import ConnectionsPage from "./pages/ConnectionsPage";
 import DeploymentPage from "./pages/DeploymentPage";
 import DeploymentsPage from "./pages/DeploymentsPage";
 import GuidelinesPage from "./pages/GuidelinesPage";
@@ -20,6 +21,7 @@ function App() {
           <Route path="/guidelines" element={<GuidelinesPage />} />
           <Route path="/moderators" element={<ModeratorsPage />} />
           <Route path="/moderators/:moderatorId" element={<ModeratorPage />} />
+          <Route path="/connections" element={<ConnectionsPage />}/>
         </Routes>
       </BrowserRouter>
     </>

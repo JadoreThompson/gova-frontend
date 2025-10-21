@@ -53,6 +53,14 @@ export interface BodyListDeploymentsDeploymentsGet {
   platform?: BodyListDeploymentsDeploymentsGetPlatform;
 }
 
+export type ConnectionType =
+  (typeof ConnectionType)[keyof typeof ConnectionType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ConnectionType = {
+  discord: "discord",
+} as const;
+
 export type DeploymentActionActionParams = { [key: string]: unknown };
 
 export interface DeploymentAction {
@@ -111,6 +119,10 @@ export interface DiscordConfig {
   guild_id: number;
   allowed_channels: DiscordConfigAllowedChannelsItem[];
   allowed_actions: DiscordConfigAllowedActionsItem[];
+}
+
+export interface DiscordConnection {
+  user_id: number;
 }
 
 export interface GuidelineCreate {
@@ -236,6 +248,15 @@ export interface UserLogin {
   password: string;
 }
 
+export type UserMeConnectionsAnyOf = { [key: string]: DiscordConnection };
+
+export type UserMeConnections = UserMeConnectionsAnyOf | null;
+
+export interface UserMe {
+  username: string;
+  connections?: UserMeConnections;
+}
+
 export type ValidationErrorLocItem = string | number;
 
 export interface ValidationError {
@@ -333,6 +354,40 @@ export const updateActionStatusActionsLogIdPatch = async (
 };
 
 /**
+ * @summary Get Definitions Openapi
+ */
+export type getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponse200 =
+  {
+    data: unknown;
+    status: 200;
+  };
+
+export type getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponseSuccess =
+  getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponse200 & {
+    headers: Headers;
+  };
+export type getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponse =
+  getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponseSuccess;
+
+export const getGetDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetUrl =
+  () => {
+    return `/actions/action-definitions.openapi.json`;
+  };
+
+export const getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGet =
+  async (
+    options?: RequestInit,
+  ): Promise<getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponse> => {
+    return customFetch<getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponse>(
+      getGetDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetUrl(),
+      {
+        ...options,
+        method: "GET",
+      },
+    );
+  };
+
+/**
  * @summary Register
  */
 export type registerAuthRegisterPostResponse200 = {
@@ -415,6 +470,32 @@ export const loginAuthLoginPost = async (
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(userLogin),
+  });
+};
+
+/**
+ * @summary Get Me
+ */
+export type getMeAuthMeGetResponse200 = {
+  data: UserMe;
+  status: 200;
+};
+
+export type getMeAuthMeGetResponseSuccess = getMeAuthMeGetResponse200 & {
+  headers: Headers;
+};
+export type getMeAuthMeGetResponse = getMeAuthMeGetResponseSuccess;
+
+export const getGetMeAuthMeGetUrl = () => {
+  return `/auth/me`;
+};
+
+export const getMeAuthMeGet = async (
+  options?: RequestInit,
+): Promise<getMeAuthMeGetResponse> => {
+  return customFetch<getMeAuthMeGetResponse>(getGetMeAuthMeGetUrl(), {
+    ...options,
+    method: "GET",
   });
 };
 
