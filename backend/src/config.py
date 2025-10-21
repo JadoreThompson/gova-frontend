@@ -78,6 +78,11 @@ DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 DISCORD_USER_BOT_TOKEN = os.getenv("DISCORD_USER_BOT_TOKEN") # Mimicks a user
 
 
+# Server
+PAGE_SIZE = 10
+ACTION_DEFINITIONS_PATH = os.path.join(RESOURCES_PATH, "action-definitions.openapi.json")
+
+
 # Logging
 logging.basicConfig(
     filename="app.log",
@@ -98,4 +103,3 @@ kafka_logger.setLevel(logging.CRITICAL)
 
 del kafka_logger
 
-PAGE_SIZE = 10

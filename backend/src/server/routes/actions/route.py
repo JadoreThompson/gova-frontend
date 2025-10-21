@@ -1,9 +1,12 @@
+import os
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import ACTION_DEFINITIONS_PATH
 from core.enums import ActionStatus, MessagePlatformType
 from db_models import ModeratorDeploymentLogs, Moderators
 from infra import DiscordActionManager
@@ -59,3 +62,11 @@ async def update_action_status(
     await session.commit()
 
     return rsp_body
+
+
+@router.get("/action-definitions.openapi.json")
+async def get_definitions_openapi():
+    if not os.path.exists(ACTION_DEFINITIONS_PATH):
+        raise HTTPException(status_code=404, detail="File not found.")
+    
+    return FileResponse(ACTION_DEFINITIONS_PATH)

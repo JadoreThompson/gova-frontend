@@ -1,5 +1,11 @@
 import DeploymentsTable from "@/components/deployments-table";
 import DashboardLayout from "@/components/layouts/dashboard-layout";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +24,11 @@ import {
   useModeratorQuery,
   useModeratorStatsQuery,
 } from "@/hooks/moderators-hooks";
-import { MessagePlatformType, type NewMessageChartData } from "@/openapi";
+import {
+  MessagePlatformType,
+  type BaseActionDefinition,
+  type NewMessageChartData,
+} from "@/openapi";
 import { Bot } from "lucide-react";
 import React, { useMemo, useState, type FC } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -149,13 +159,172 @@ const MessagesChart: FC<{ chartData: NewMessageChartData[] }> = ({
   );
 };
 
+// Define the type for the final allowed_actions array item
+type AllowedAction = BaseActionDefinition | "*";
+
+// Define the structure for action configuration passed to the submit handler
+type DeploymentConfigData = {
+  name: string;
+  platform: MessagePlatformType;
+  allowed_actions: AllowedAction[];
+};
+
+// Define a type for action definitions to be used in the frontend
+type ActionField = {
+  name: string;
+  type: "number" | "text"; // Simplified for form input types
+};
+
+type ActionConfig = {
+  type: string;
+  fields: ActionField[];
+  defaultRequiresApproval: boolean;
+};
+
+// Mock list of available actions for configuration
+const AVAILABLE_ACTIONS: ActionConfig[] = [
+  {
+    type: "Mute",
+    fields: [{ name: "duration_minutes", type: "number" }],
+    defaultRequiresApproval: false,
+  },
+  {
+    type: "Ban",
+    fields: [{ name: "reason", type: "text" }],
+    defaultRequiresApproval: true,
+  },
+  {
+    type: "Kick",
+    fields: [],
+    defaultRequiresApproval: false,
+  },
+];
+
 const DeploySheet: FC<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: (data: DeploymentConfigData) => void;
 }> = ({ open, onOpenChange, onSubmit }) => {
   const [name, setName] = useState("");
   const [platform, setPlatform] = useState<MessagePlatformType | "">("");
+
+  // New state for action configuration
+  const [allowAll, setAllowAll] = useState(false);
+  const [allowedActions, setAllowedActions] = useState<{
+    [key: string]: {
+      requires_approval: boolean;
+      params: { [key: string]: string | number };
+      enabled: boolean;
+    };
+  }>(
+    AVAILABLE_ACTIONS.reduce((acc, action) => {
+      acc[action.type] = {
+        requires_approval: action.defaultRequiresApproval,
+        params: {},
+        enabled: false,
+      };
+      return acc;
+    }, {} as any)
+  );
+
+  const handleToggleAction = (actionType: string, checked: boolean) => {
+    setAllowAll(false); // Uncheck "Allow All" on fine-tune change
+    setAllowedActions((prev) => ({
+      ...prev,
+      [actionType]: {
+        ...prev[actionType],
+        enabled: checked,
+      },
+    }));
+  };
+
+  const handleToggleRequiresApproval = (
+    actionType: string,
+    checked: boolean,
+  ) => {
+    setAllowedActions((prev) => ({
+      ...prev,
+      [actionType]: {
+        ...prev[actionType],
+        requires_approval: checked,
+      },
+    }));
+  };
+
+  const handleParamChange = (
+    actionType: string,
+    paramName: string,
+    value: string,
+  ) => {
+    setAllowedActions((prev) => ({
+      ...prev,
+      [actionType]: {
+        ...prev[actionType],
+        params: {
+          ...prev[actionType].params,
+          [paramName]: value,
+        },
+      },
+    }));
+  };
+
+  const handleAllowAllClick = () => {
+    setAllowAll((prev) => !prev);
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const fd = Object.fromEntries(new FormData(e.currentTarget).entries());
+
+    let finalActions: AllowedAction[];
+
+    if (allowAll) {
+      finalActions = ["*"];
+    } else {
+      finalActions = AVAILABLE_ACTIONS.filter(
+        (action) => allowedActions[action.type].enabled,
+      ).map((action) => {
+        const config = allowedActions[action.type];
+
+        // Collect parameters only if they have a non-empty string value
+        const collectedParams = Object.entries(config.params).reduce(
+          (acc, [key, value]) => {
+            if (typeof value === "string" && value.trim() !== "") {
+              // Attempt to convert to number if type is 'number'
+              const fieldDef = action.fields.find((f) => f.name === key);
+              if (fieldDef?.type === "number") {
+                const numVal = parseFloat(value);
+                if (!isNaN(numVal)) {
+                  acc[key] = numVal;
+                  return acc;
+                }
+              }
+              acc[key] = value;
+            } else if (typeof value === "number") {
+              acc[key] = value;
+            }
+            return acc;
+          },
+          {} as Record<string, unknown>,
+        );
+
+        const baseAction: BaseActionDefinition = {
+          type: action.type,
+          requires_approval: config.requires_approval,
+          ...collectedParams,
+        } as BaseActionDefinition;
+
+        return baseAction;
+      });
+    }
+
+    onSubmit({
+      name: fd["name"] as string,
+      platform: fd["platform"] as MessagePlatformType,
+      allowed_actions: finalActions,
+    });
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -164,7 +333,7 @@ const DeploySheet: FC<{
           x
         </SheetClose>
 
-        <form onSubmit={onSubmit}>
+        <form onSubmit={handleSubmit}>
           <h4 className="mb-4 font-semibold underline">Deploy Moderator</h4>
 
           <div className="space-y-4">
@@ -179,7 +348,7 @@ const DeploySheet: FC<{
               />
             </div>
 
-            <div>
+            <div className="mb-6">
               <label className="text-sm font-medium">Platform</label>
               <Select
                 name="platform"
@@ -199,20 +368,132 @@ const DeploySheet: FC<{
               </Select>
             </div>
 
-            <div className="">
-              <label className="text-sm font-medium">Configuration</label>
-              <div className="">
-                <Input type="checkbox" name="mute" />
-                Mute
+            <div className="flex flex-col">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">
+                  Action Configuration
+                </label>
+                <Button
+                  variant={allowAll ? "default" : "outline"}
+                  size="sm"
+                  className="w-fit text-xs"
+                  type="button"
+                  onClick={handleAllowAllClick}
+                >
+                  {allowAll ? "Allow All (Enabled)" : "Allow All"}
+                </Button>
               </div>
-              <div className="">
-                <Input type="checkbox" name="ban" />
-                Ban
-              </div>
+              <Accordion
+                type="multiple"
+                
+                className="mt-3 w-full border"
+                disabled={allowAll}
+              >
+                {AVAILABLE_ACTIONS.map((action, idx) => (
+                  <AccordionItem
+                    value={`item-${idx + 1}`}
+                    key={action.type}
+                    className="transition-colors"
+                  >
+                    <AccordionTrigger className="focus:!outline-none flex justify-between items-center px-4">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="checkbox"
+                          className="w-fit h-4"
+                          checked={allowedActions[action.type].enabled}
+                          onClick={(e) => e.stopPropagation()} // Prevent accordion toggle
+                          onChange={(e) =>
+                            handleToggleAction(action.type, e.target.checked)
+                          }
+                          disabled={allowAll}
+                        />
+                        <span>{action.type}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="p-4 border-t bg-secondary">
+                      <div className="space-y-3">
+                        {/* Action-specific fields */}
+                        {action.fields.map((field) => (
+                          <div key={field.name}>
+                            <label
+                              htmlFor={`${action.type}-${field.name}`}
+                              className="font-medium text-sm"
+                            >
+                              {field.name.charAt(0).toUpperCase() +
+                                field.name.slice(1).replace(/_/g, " ")}{" "}
+                              (Optional)
+                            </label>
+                            <Input
+                              id={`${action.type}-${field.name}`}
+                              type={field.type === "number" ? "number" : "text"}
+                              min={field.type === "number" ? 1 : undefined}
+                              placeholder="Optional default value"
+                              value={
+                                allowedActions[action.type].params[
+                                  field.name
+                                ] || ""
+                              }
+                              onChange={(e) =>
+                                handleParamChange(
+                                  action.type,
+                                  field.name,
+                                  e.target.value,
+                                )
+                              }
+                              className="mt-1"
+                              disabled={
+                                !allowedActions[action.type].enabled ||
+                                allowAll
+                              }
+                            />
+                          </div>
+                        ))}
+
+                        {/* Requires Approval checkbox */}
+                        <div className="flex w-full items-center justify-start gap-2 pt-2">
+                          <Input
+                            type="checkbox"
+                            id={`${action.type}-requires_approval`}
+                            className="w-fit h-4"
+                            checked={
+                              allowedActions[action.type].requires_approval
+                            }
+                            onChange={(e) =>
+                              handleToggleRequiresApproval(
+                                action.type,
+                                e.target.checked,
+                              )
+                            }
+                            disabled={
+                              !allowedActions[action.type].enabled || allowAll
+                            }
+                          />
+                          <label
+                            htmlFor={`${action.type}-requires_approval`}
+                            className="font-medium text-sm cursor-pointer"
+                          >
+                            Requires Approval
+                          </label>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+              {allowAll && (
+                <p className="text-sm text-gray-500 mt-2">
+                  All actions will be allowed with default settings. Disable
+                  "Allow All" to fine configure.
+                </p>
+              )}
             </div>
 
             <div className="flex justify-end pt-4">
-              <Button type="submit" className="w-full border-1">
+              <Button
+                type="submit"
+                className="w-full border-1"
+                disabled={!name || !platform}
+              >
                 Deploy
               </Button>
             </div>
@@ -253,33 +534,9 @@ const ModeratorPage: FC = () => {
   });
   const deployMutation = useDeployModeratorMutation();
 
-  const handleDeploy = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const fd = Object.fromEntries(new FormData(e.currentTarget).entries());
-    const actions = [];
-
-    if (fd["mute"]) {
-      actions.push({ type: "mute" });
-    }
-
-    if (fd["ban"]) {
-      actions.push({ type: "ban" });
-    }
-
-    deployMutation
-      .mutateAsync({
-        moderatorId: moderatorId!,
-        data: {
-          name: fd["name"] as string,
-          platform: fd["platform"] as MessagePlatformType,
-          conf: {
-            guild_id: 101010101010,
-            allowed_channels: ["*"],
-            allowed_actions: ["*"],
-          },
-        },
-      })
-      .then(() => moderatorDeploymentsQuery.refetch());
+  const handleDeploy = (data: DeploymentConfigData) => {
+    console.log(data);
+    return;
   };
 
   return (

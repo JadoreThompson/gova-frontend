@@ -2,7 +2,11 @@ import asyncio
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from openapi_pydantic import Components, Info, OpenAPI, Schema
 
+import engine.discord.actions as discord_actions
+from core.enums import MessagePlatformType
+from config import ACTION_DEFINITIONS_PATH
 from infra import KafkaManager, DiscordActionManager
 from server.routes.actions.route import router as action_router
 from server.routes.auth.route import router as auth_router
@@ -11,7 +15,36 @@ from server.routes.guidelines.route import router as guidelines_router
 from server.routes.moderators.route import router as moderators_router
 
 
+def build_definitions():
+    mods = ((MessagePlatformType.DISCORD, discord_actions.__dict__),)
+    schemas: dict[str, Schema] = {}
+
+    for plat, mod in mods:
+        for name, model in mod.items():
+            if name.endswith("Definition"):
+                model_schema = model.model_json_schema()
+                schema_name = model_schema.get("title") or f"{plat.name}_{name}"
+                schemas[schema_name] = Schema(**model_schema)
+
+    openapi = OpenAPI(
+        openapi="3.1.1",
+        info=Info(
+            title="Action Definitions API",
+            version="0.0.0",
+            description="Automatically generated from Pydantic models for action definitions.",
+        ),
+        paths={},
+        components=Components(schemas=schemas),
+    )
+
+    with open(ACTION_DEFINITIONS_PATH, "w") as f:
+        f.write(openapi.model_dump_json(indent=2, exclude_none=True))
+
+    print(f"OpenAPI schema written to {ACTION_DEFINITIONS_PATH}")
+
+
 async def lifespan(app: FastAPI):
+    build_definitions()
     await asyncio.gather(
         DiscordActionManager.start(),
         KafkaManager.start(),
