@@ -104,7 +104,7 @@ async def deploy_moderator(
         platform=dep.platform,
         name=dep.name,
         conf=conf,
-        status=dep.state,
+        status=dep.status,
         created_at=dep.created_at,
     )
 
@@ -216,7 +216,7 @@ async def get_deployments(
                 platform=d.platform,
                 name=d.name,
                 conf=d.conf,
-                status=d.state,
+                status=d.status,
                 created_at=d.created_at,
             )
             for d in deps

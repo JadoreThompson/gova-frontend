@@ -245,7 +245,7 @@ class BaseModerator:
         async with get_db_sess() as db_sess:
             await db_sess.execute(
                 update(ModeratorDeployments)
-                .values(state=status.value)
+                .values(status=status.value)
                 .where(ModeratorDeployments.deployment_id == self._deployment_id)
             )
             await db_sess.commit()

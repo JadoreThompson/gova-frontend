@@ -47,7 +47,7 @@ async def list_deployments(
     if name:
         query = query.where(ModeratorDeployments.name.like(f"%{name}%"))
     if status is not None:
-        query = query.where(ModeratorDeployments.state.in_([s.value for s in status]))
+        query = query.where(ModeratorDeployments.status.in_([s.value for s in status]))
     if platform is not None:
         query = query.where(
             ModeratorDeployments.platform.in_([p.value for p in platform])
@@ -69,7 +69,7 @@ async def list_deployments(
                 platform=d.platform,
                 name=d.name,
                 conf=d.conf,
-                status=d.state,
+                status=d.status,
                 created_at=d.created_at,
             )
             for d in deployments[:PAGE_SIZE]
@@ -100,7 +100,7 @@ async def get_deployment(
         platform=dep.platform,
         name=dep.name,
         conf=dep.conf,
-        status=dep.state,
+        status=dep.status,
         created_at=dep.created_at,
     )
 
@@ -251,7 +251,7 @@ async def stop_deployment(
     )
     if not dep:
         raise HTTPException(status_code=404, detail="Deployment not found.")
-    if dep.state != ModeratorDeploymentStatus.ONLINE.value:
+    if dep.status != ModeratorDeploymentStatus.ONLINE.value:
         raise HTTPException(status_code=400, detail="Deployment is not online.")
 
     ev = StopDeploymentEvent(
@@ -278,7 +278,7 @@ async def stop_deployment(
     )
     if not dep:
         raise HTTPException(status_code=404, detail="Deployment not found.")
-    if dep.state != ModeratorDeploymentStatus.OFFLINE.value:
+    if dep.status != ModeratorDeploymentStatus.OFFLINE.value:
         raise HTTPException(status_code=400, detail="Deployment is not offline.")
 
     ev = CreateDeploymentEvent(
@@ -327,7 +327,7 @@ async def update_deployment(
         platform=dep.platform,
         name=dep.name,
         conf=dep.conf,
-        status=dep.state,
+        status=dep.status,
         created_at=dep.created_at,
     )
 

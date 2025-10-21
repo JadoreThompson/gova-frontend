@@ -94,7 +94,7 @@ class ModeratorDeployments(Base):
     platform: Mapped[str] = mapped_column(String, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     conf: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    state: Mapped[str] = mapped_column(
+    status: Mapped[str] = mapped_column(
         String, nullable=False, default=ModeratorDeploymentStatus.OFFLINE.value
     )
     created_at: Mapped[datetime] = mapped_column(
