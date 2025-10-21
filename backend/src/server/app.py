@@ -7,7 +7,7 @@ from openapi_pydantic import Components, Info, OpenAPI, Schema
 import engine.discord.actions as discord_actions
 from core.enums import MessagePlatformType
 from config import ACTION_DEFINITIONS_PATH
-from infra import KafkaManager, DiscordActionManager
+from infra import KafkaManager, DiscordClientManager
 from server.routes.actions.route import router as action_router
 from server.routes.auth.route import router as auth_router
 from server.routes.deployments.route import router as deployments_router
@@ -46,14 +46,14 @@ def build_definitions():
 async def lifespan(app: FastAPI):
     build_definitions()
     await asyncio.gather(
-        DiscordActionManager.start(),
+        DiscordClientManager.start(),
         KafkaManager.start(),
     )
 
     yield
 
     await asyncio.gather(
-        DiscordActionManager.stop(),
+        DiscordClientManager.stop(),
         KafkaManager.stop(),
     )
 

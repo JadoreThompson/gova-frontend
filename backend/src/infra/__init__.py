@@ -1,2 +1,2 @@
-from .discord_action_manager import DiscordActionManager
+from .discord_client_manager import DiscordClientManager
 from .kafka_manager import KafkaManager

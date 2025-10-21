@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import ACTION_DEFINITIONS_PATH
 from core.enums import ActionStatus, MessagePlatformType
+from engine.discord.action_handler import DiscordActionHandler
 from db_models import ModeratorDeploymentLogs, Moderators
-from infra import DiscordActionManager
-from server.dependencies import depends_db_sess, depends_jwt
+from server.dependencies import depends_db_sess, depends_jwt, depends_discord_action_handler
 from server.shared.models import DeploymentAction
 from server.typing import JWTPayload
 from .models import ActionUpdate
@@ -25,6 +25,7 @@ async def update_action_status(
     body: ActionUpdate,
     jwt: JWTPayload = Depends(depends_jwt),
     session: AsyncSession = Depends(depends_db_sess),
+    action_handler: DiscordActionHandler = Depends(depends_discord_action_handler),
 ):
     log = await session.scalar(
         select(ModeratorDeploymentLogs)
@@ -41,7 +42,7 @@ async def update_action_status(
         # Fulfilling action
         platform = log.action_params.get("platform")
         if platform == MessagePlatformType.DISCORD:
-            success = await DiscordActionManager.handle(log.action_params, log.context)
+            success = await action_handler.handle(log.action_params, log.context)
         else:
             raise HTTPException(
                 status_code=400, detail=f"Unknown platform '{platform}'."

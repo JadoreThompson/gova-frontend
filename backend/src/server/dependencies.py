@@ -1,9 +1,15 @@
-from typing import AsyncGenerator
+import logging
+from typing import AsyncGenerator, Type
 
 from aiokafka import AIOKafkaProducer
 from fastapi import Request
 
 from config import COOKIE_ALIAS
+from core.enums import MessagePlatformType
+from engine.base_action_handler import BaseActionHandler
+from engine.discord.action_handler import DiscordActionHandler
+from infra import DiscordClientManager, KafkaManager
+from infra.discord_client_manager import DiscordClientManager
 from infra.kafka_manager import KafkaManager
 from utils.db import smaker
 from server.exc import JWTError
@@ -43,3 +49,24 @@ async def depends_jwt(req: Request) -> JWTPayload:
 
 async def depends_kafka_producer() -> AsyncGenerator[AIOKafkaProducer, None]:
     return KafkaManager.get_producer()
+
+
+def depends_action_handler(platform: MessagePlatformType):
+    handler_cls: dict[MessagePlatformType, Type[BaseActionHandler]] = {
+        MessagePlatformType.DISCORD: DiscordActionHandler
+    }
+    handlers: dict[MessagePlatformType, BaseActionHandler] = {}
+
+    def wrapper() -> BaseActionHandler:
+        nonlocal handlers, platform
+        if platform not in handlers:
+            handlers[platform] = handler_cls[platform](
+                DiscordClientManager.client,
+                logging.getLogger(f"global-{platform.value.lower()}-handler"),
+            )
+        return handlers[platform]
+
+    return wrapper
+
+
+depends_discord_action_handler = depends_action_handler(MessagePlatformType.DISCORD)
