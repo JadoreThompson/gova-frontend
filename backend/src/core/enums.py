@@ -18,3 +18,7 @@ class ActionStatus(str, Enum):
     DECLINED = 'declined'
     AWAITING_APPROVAL = "awaiting_approval"
     APPROVED = "approved"
+
+
+class ConnectionType(str, Enum):
+    DISCORD = 'discord'

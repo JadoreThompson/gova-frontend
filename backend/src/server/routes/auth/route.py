@@ -1,15 +1,16 @@
 import json
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db_models import Users
-from server.dependencies import depends_db_sess
+from server.dependencies import depends_db_sess, depends_jwt
 from server.services import JWTService
+from server.typing import JWTPayload
 from .controllers import fetch_discord_access_token
-from .models import UserCreate, UserLogin
+from .models import UserCreate, UserLogin, UserMe
 
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -56,8 +57,20 @@ async def login(body: UserLogin, db_sess: AsyncSession = Depends(depends_db_sess
     return JWTService.set_cookie(user)
 
 
+@router.get("/me", response_model=UserMe)
+async def get_me(
+    jwt: JWTPayload = Depends(depends_jwt),
+    db_sess: AsyncSession = Depends(depends_db_sess),
+):
+    user = await db_sess.scalar(select(Users).where(Users.user_id == jwt.sub))
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    return UserMe(username=user.username, connections=user.connections)
+
+
 @router.get("/discord/oauth")
 async def discord_callback(code: str):
     data = await fetch_discord_access_token(code)
-    with open("discord-token.json", "w") as f: # TODO: Remove
+    with open("discord-token.json", "w") as f:  # TODO: Remove
         json.dump(data, f)
