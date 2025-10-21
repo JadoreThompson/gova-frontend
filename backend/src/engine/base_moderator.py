@@ -28,7 +28,9 @@ from db_models import (
     ModeratorDeploymentLogs,
     Moderators,
 )
+from engine.background_executor import BackgroundExecutor
 from engine.base_action import BaseAction
+from engine.base_action_handler import BaseActionHandler
 from engine.models import BaseMessageContext, MessageEvaluation
 from engine.task_pool import TaskPool
 from utils.db import get_db_sess
@@ -42,19 +44,19 @@ class BaseModerator:
         self,
         deployment_id: UUID,
         moderator_id: UUID,
+        action_handler: BaseActionHandler | None = None,
         logger: logging.Logger | None = None,
     ) -> None:
         self._deployment_id = deployment_id
         self._moderator_id = moderator_id
+        self._action_handler = action_handler
         self._logger = logger
         self._http_sess: ClientSession | None = None
         self._topics: list[str] | None = None
         self._guidelines: str | None = None
         self._task_pool = TaskPool()
         self._moderate_task: asyncio.Task | None = None
-
-    @abstractmethod
-    async def moderate(self) -> None: ...
+        self._background_executor = BackgroundExecutor(self)
 
     async def run(self) -> None:
         if self._moderate_task:
@@ -66,20 +68,83 @@ class BaseModerator:
         except asyncio.CancelledError:
             pass
 
+    async def __aenter__(self):
+        self._http_sess = ClientSession(
+            base_url=LLM_BASE_URL, headers={"Authorization": f"Bearer {LLM_API_KEY}"}
+        )
+        self._load_embedding_model()
+        await self._update_status(ModeratorDeploymentStatus.ONLINE)
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, tcb) -> None:
+        await self._http_sess.close()
+        self._http_sess = None
+        await self._update_status(ModeratorDeploymentStatus.OFFLINE)
+
+    @abstractmethod
+    async def moderate(self) -> None:
+        """
+        Main execution loop to listen to stream and evaluate
+        the messages.
+
+        Returns:
+            None
+        """        
+
+    @abstractmethod
+    async def _evaluate(
+        self, ctx: BaseMessageContext, max_attempts: int = 3
+    ) -> MessageEvaluation | None:
+        """
+        Evaluates the given context 
+
+        Args:
+            ctx (BaseMessageContext): _description_
+            max_attempts (int, optional): _description_. Defaults to 3.
+
+        Returns:
+            MessageEvaluation | None: _description_
+        """        
+
+    async def _handle_context(self, ctx: BaseMessageContext) -> None:
+        evaluation = await self._evaluate(ctx)
+        if not evaluation:
+            await self._background_executor.submit(ctx)
+            return
+
+        await self._handle_evaluation(evaluation, ctx)
+        return
+
+
+    async def _handle_evaluation(
+        self, evaluation: MessageEvaluation, ctx: BaseMessageContext
+    ) -> None:
+        await self._save_evaluation(evaluation, ctx)
+
+        if evaluation.action:
+            action = evaluation.action
+            self._logger.info(f"Performing action '{action.type}'")
+            log_id = await self._log_action(action, ctx)
+
+            if action.requires_approval:
+                await self._update_action_status(log_id, ActionStatus.AWAITING_APPROVAL)
+            else:
+                success = await self._action_handler.handle(action, ctx)
+                if success:
+                    await self._update_action_status(log_id, ActionStatus.SUCCESS)
+
     async def _listen_to_events(self) -> None:
         self._consumer = AIOKafkaConsumer(
             KAFKA_DEPLOYMENT_EVENTS_TOPIC,
             bootstrap_servers=KAFKA_BOOTSTRAP_SERVER,
             auto_offset_reset="latest",
         )
-
         await self._consumer.start()
 
         try:
             async for m in self._consumer:
                 try:
-                    data = json.loads(m.value.decode())
-
+                    data: dict = json.loads(m.value.decode())
                     if data.get("type") == "stop" and data.get("deployment_id") == str(
                         self._deployment_id
                     ):
@@ -97,18 +162,14 @@ class BaseModerator:
             return
         self._embedding_model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B")
 
-    async def _fetch_guidelines(self) -> tuple[str, list[str]]:
+    async def _update_status(self, status: ModeratorDeploymentStatus) -> None:
         async with get_db_sess() as db_sess:
-            res = await db_sess.execute(
-                select(Guidelines.text, Guidelines.topics).where(
-                    Guidelines.guideline_id
-                    == select(Moderators.guideline_id).where(
-                        Moderators.moderator_id == self._moderator_id
-                    )
-                )
+            await db_sess.execute(
+                update(ModeratorDeployments)
+                .values(status=status.value)
+                .where(ModeratorDeployments.deployment_id == self._deployment_id)
             )
-
-            return res.first()
+            await db_sess.commit()
 
     async def _log_action(self, action: BaseAction, ctx: BaseMessageContext) -> UUID:
         async with get_db_sess() as db_sess:
@@ -132,9 +193,7 @@ class BaseModerator:
                 )
                 .returning(ModeratorDeploymentLogs.log_id)
             )
-
             await db_sess.commit()
-
         return res
 
     async def _update_action_status(self, log_id: UUID, status: ActionStatus) -> None:
@@ -149,16 +208,8 @@ class BaseModerator:
     async def _save_evaluation(
         self, eval: MessageEvaluation, ctx: BaseMessageContext
     ) -> None:
-        """
-        Stores the eval and generates embeddings for future
-        similar retrieval.
-
-        Args:
-            eval (MessageEvaluation): Evaluation of the message.
-            ctx (MessageContext): Context for the evaluation.
-        """
+        """Stores the eval and generates embeddings for future retrieval."""
         embedding = self._embedding_model.encode([ctx.content])[0]
-
         async with get_db_sess() as db_sess:
             message_id = await db_sess.scalar(
                 insert(Messages)
@@ -182,6 +233,18 @@ class BaseModerator:
             ]
             await db_sess.execute(insert(MessagesEvaluations), records)
             await db_sess.commit()
+
+    async def _fetch_guidelines(self) -> tuple[str, list[str]]:
+        async with get_db_sess() as db_sess:
+            res = await db_sess.execute(
+                select(Guidelines.text, Guidelines.topics).where(
+                    Guidelines.guideline_id
+                    == select(Moderators.guideline_id).where(
+                        Moderators.moderator_id == self._moderator_id
+                    )
+                )
+            )
+            return res.first()
 
     async def _fetch_topic_scores(
         self, ctx: BaseMessageContext, topics: list[str]
@@ -211,7 +274,6 @@ class BaseModerator:
                     MessagesEvaluations.topic.in_(self._topics),
                 )
             )
-
             return tuple((r.topic, r.topic_score) for r in res.yield_per(1000))
 
     async def _handle_similars(
@@ -219,46 +281,22 @@ class BaseModerator:
     ) -> dict[str, float]:
         topic_scores = {}
 
-        # TODO: Optimise
         for topic, score in similars:
             if topic in topic_scores:
-                score, count = topic_scores[topic]
-                score += score
+                score_sum, count = topic_scores[topic]
+                score_sum += score
                 count += 1
-                topic_scores[topic] = (round(score / count, 2), count)
+                topic_scores[topic] = (round(score_sum / count, 2), count)
             else:
                 topic_scores[topic] = (score, 1)
 
-        items = topic_scores.items()
-        for k, (score, _) in items:
+        for k, (score, _) in topic_scores.items():
             topic_scores[k] = score
 
         remaining = set(self._topics).difference(set(topic_scores.keys()))
         if remaining:
             rem_scores = await self._fetch_topic_scores(ctx, list(remaining))
-            for k, v in rem_scores:
+            for k, v in rem_scores.items():
                 topic_scores[k] = v
 
         return topic_scores
-
-    async def _update_status(self, status: ModeratorDeploymentStatus) -> None:
-        async with get_db_sess() as db_sess:
-            await db_sess.execute(
-                update(ModeratorDeployments)
-                .values(status=status.value)
-                .where(ModeratorDeployments.deployment_id == self._deployment_id)
-            )
-            await db_sess.commit()
-
-    async def __aenter__(self):
-        self._http_sess = ClientSession(
-            base_url=LLM_BASE_URL, headers={"Authorization": f"Bearer {LLM_API_KEY}"}
-        )
-        self._load_embedding_model()
-        await self._update_status(ModeratorDeploymentStatus.ONLINE)
-        return self
-
-    async def __aexit__(self, exc_type, exc_value, tcb) -> None:
-        await self._http_sess.close()
-        self._http_sess = None
-        await self._update_status(ModeratorDeploymentStatus.OFFLINE)

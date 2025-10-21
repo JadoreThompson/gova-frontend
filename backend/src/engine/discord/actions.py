@@ -2,6 +2,7 @@ from enum import Enum
 
 from pydantic import Field
 
+from core.enums import MessagePlatformType
 from engine.base_action import BaseAction, BaseActionDefinition
 
 
@@ -11,7 +12,7 @@ class DiscordActionType(str, Enum):
 
 
 class DiscordAction(BaseAction):
-    pass
+    platform: MessagePlatformType = MessagePlatformType.DISCORD
 
 
 class BanAction(DiscordAction):

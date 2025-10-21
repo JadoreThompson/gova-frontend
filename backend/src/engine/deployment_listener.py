@@ -32,8 +32,9 @@ class DeploymentEnvironment:
         mod = DiscordModerator(
             self._event.deployment_id,
             self._event.moderator_id,
-            DISCORD_BOT_TOKEN,
-            self._event.conf,
+            logger=logging.getLogger(f"discord-moderator-{self._event.moderator_id}"),
+            token=DISCORD_BOT_TOKEN,
+            config=self._event.conf,
         )
 
         async with mod:
