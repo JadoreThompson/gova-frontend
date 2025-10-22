@@ -1,5 +1,6 @@
 from core.enums import ConnectionType
 from core.models import CustomBaseModel
+from server.shared.models import PlatformConnection
 
 
 class UserCreate(CustomBaseModel):
@@ -10,11 +11,6 @@ class UserCreate(CustomBaseModel):
 class UserLogin(CustomBaseModel):
     username: str
     password: str
-
-
-class PlatformConnection(CustomBaseModel):
-    username: str
-    avatar: str
 
 
 class UserMe(CustomBaseModel):

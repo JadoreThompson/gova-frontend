@@ -14,3 +14,8 @@ class Identity(NamedTuple):
     username: str | None
     avatar: str | None
     success: bool
+
+class Guild(NamedTuple):
+    id: int
+    name: str
+    icon: str

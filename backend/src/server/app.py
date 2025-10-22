@@ -10,6 +10,7 @@ from core.enums import MessagePlatformType
 from infra import KafkaManager, DiscordClientManager
 from server.routes.actions.route import router as action_router
 from server.routes.auth.route import router as auth_router
+from server.routes.connections.route import router as connections_router
 from server.routes.deployments.route import router as deployments_router
 from server.routes.guidelines.route import router as guidelines_router
 from server.routes.moderators.route import router as moderators_router
@@ -73,6 +74,7 @@ app.add_middleware(
 
 app.include_router(action_router)
 app.include_router(auth_router)
+app.include_router(connections_router)
 app.include_router(deployments_router)
 app.include_router(guidelines_router)
 app.include_router(moderators_router)

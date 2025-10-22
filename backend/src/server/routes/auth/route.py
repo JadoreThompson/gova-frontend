@@ -110,28 +110,3 @@ async def discord_callback(
     await db_sess.commit()
 
     return RedirectResponse(url="http://localhost:5173/connections")
-
-
-@router.delete("/connections/{platform}")
-async def delete_connection(
-    platform: MessagePlatformType,
-    jwt: JWTPayload = Depends(depends_jwt),
-    db_sess: AsyncSession = Depends(depends_db_sess),
-):
-    user = await db_sess.scalar(select(Users).where(Users.user_id == jwt.sub))
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-
-    conns = user.connections or {}
-
-    if platform not in conns:
-        raise HTTPException(status_code=404, detail=f"No {platform.value} connection found.")
-
-    conns.pop(platform)
-
-    await db_sess.execute(
-        update(Users)
-        .values(connections=conns)
-        .where(Users.user_id == jwt.sub)
-    )
-    await db_sess.commit()

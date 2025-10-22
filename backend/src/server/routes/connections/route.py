@@ -1,0 +1,60 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.enums import MessagePlatformType
+from db_models import Users
+from server.dependencies import depends_db_sess, depends_jwt
+from server.services import DiscordService
+from server.typing import JWTPayload
+from .models import Guild
+
+
+router = APIRouter(prefix="/connections", tags=["Connections"])
+
+
+@router.delete("/{platform}")
+async def delete_connection(
+    platform: MessagePlatformType,
+    jwt: JWTPayload = Depends(depends_jwt),
+    db_sess: AsyncSession = Depends(depends_db_sess),
+):
+    user = await db_sess.scalar(select(Users).where(Users.user_id == jwt.sub))
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    conns = user.connections or {}
+
+    if platform not in conns:
+        raise HTTPException(
+            status_code=404, detail=f"No {platform.value} connection found."
+        )
+
+    conns.pop(platform)
+
+    await db_sess.execute(
+        update(Users).values(connections=conns).where(Users.user_id == jwt.sub)
+    )
+    await db_sess.commit()
+
+
+@router.get("/discord/guilds", response_model=list[Guild])
+async def get_owned_discord_guilds(
+    jwt: JWTPayload = Depends(depends_jwt),
+    db_sess: AsyncSession = Depends(depends_db_sess),
+):
+    user = await db_sess.scalar(select(Users).where(Users.user_id == jwt.sub))
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    discord_conn = (user.connections or {}).get(MessagePlatformType.DISCORD)
+    if not discord_conn:
+        return []
+
+    access_token = discord_conn.get("access_token")
+    if not access_token:
+        return []
+
+    # Fetch guilds the user owns
+    owned_guilds = await DiscordService.fetch_owned_guilds(access_token)
+    return [Guild(id=g.id, name=g.name, icon=g.icon) for g in owned_guilds]

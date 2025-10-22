@@ -34,3 +34,8 @@ class DeploymentAction(CustomBaseModel):
     action_params: dict
     status: ActionStatus
     created_at: datetime
+
+
+class PlatformConnection(CustomBaseModel):
+    username: str
+    avatar: str
