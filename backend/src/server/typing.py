@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import NamedTuple
 from uuid import UUID
 
 
@@ -7,3 +8,9 @@ from uuid import UUID
 class JWTPayload:
     sub: UUID
     exp: datetime
+
+
+class Identity(NamedTuple):
+    username: str | None
+    avatar: str | None
+    success: bool

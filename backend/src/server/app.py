@@ -5,14 +5,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from openapi_pydantic import Components, Info, OpenAPI, Schema
 
 import engine.discord.actions as discord_actions
-from core.enums import MessagePlatformType
 from config import ACTION_DEFINITIONS_PATH
+from core.enums import MessagePlatformType
 from infra import KafkaManager, DiscordClientManager
 from server.routes.actions.route import router as action_router
 from server.routes.auth.route import router as auth_router
 from server.routes.deployments.route import router as deployments_router
 from server.routes.guidelines.route import router as guidelines_router
 from server.routes.moderators.route import router as moderators_router
+from server.services import DiscordService
 
 
 def build_definitions():
@@ -45,6 +46,7 @@ def build_definitions():
 
 async def lifespan(app: FastAPI):
     build_definitions()
+    DiscordService.start()
     await asyncio.gather(
         DiscordClientManager.start(),
         KafkaManager.start(),
@@ -55,6 +57,7 @@ async def lifespan(app: FastAPI):
     await asyncio.gather(
         DiscordClientManager.stop(),
         KafkaManager.stop(),
+        DiscordService.stop()
     )
 
 
