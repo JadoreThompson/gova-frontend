@@ -1,6 +1,13 @@
+from typing import Any
+
 from aiohttp import BasicAuth, ClientError, ClientSession
 
-from config import DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI
+from config import (
+    DISCORD_BOT_TOKEN,
+    DISCORD_CLIENT_ID,
+    DISCORD_CLIENT_SECRET,
+    DISCORD_REDIRECT_URI,
+)
 from server.typing import Guild, Identity
 
 
@@ -52,9 +59,6 @@ class DiscordService:
 
     @classmethod
     async def fetch_owned_guilds(cls, access_token: str) -> list[Guild]:
-        """
-        Fetches all Discord guilds the user owns.
-        """
         try:
             rsp = await cls._http_sess.get(
                 "https://discord.com/api/users/@me/guilds",
@@ -73,5 +77,21 @@ class DiscordService:
                 if g.get("owner") is True
             ]
             return owned_guilds
+        except ClientError:
+            return []
+
+    @classmethod
+    async def fetch_guild_channels(cls, guild_id: str) -> list[dict[str, Any]]:
+        if cls._http_sess is None:
+            raise RuntimeError("HTTP session not started")
+
+        try:
+            rsp = await cls._http_sess.get(
+                f"https://discord.com/api/v10/guilds/{guild_id}/channels",
+                headers={"Authorization": f"Bot {DISCORD_BOT_TOKEN}"},
+            )
+            rsp.raise_for_status()
+            channels = await rsp.json()
+            return channels
         except ClientError:
             return []
