@@ -3,9 +3,11 @@ import { queryKeys } from "@/lib/query/query-keys";
 import { handleApi } from "@/lib/utils/base";
 import {
   deleteConnectionConnectionsPlatformDelete,
+  getDiscordChannelsConnectionsDiscordGuildIdChannelsGet,
   getOwnedDiscordGuildsConnectionsDiscordGuildsGet,
   MessagePlatformType,
   type Guild,
+  type GuildChannel,
 } from "@/openapi";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -14,6 +16,16 @@ export function useOwnedDiscordGuildsQuery() {
     queryKey: queryKeys.discordGuilds(),
     queryFn: async () =>
       handleApi(await getOwnedDiscordGuildsConnectionsDiscordGuildsGet()),
+  });
+}
+
+export function useDiscordChannelsQuery(guildId: string) {
+  return useQuery<GuildChannel[]>({
+    queryKey: queryKeys.discordGuildChannels(),
+    queryFn: async () =>
+      handleApi(
+        await getDiscordChannelsConnectionsDiscordGuildIdChannelsGet(guildId),
+      ),
   });
 }
 

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Sheet, SheetClose, SheetContent } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useOwnedDiscordGuildsQuery } from "@/hooks/connections-hooks";
 import {
   useDeployModeratorMutation,
   useModeratorDeploymentsQuery,
@@ -224,7 +225,7 @@ const DeploySheet: FC<{
         enabled: false,
       };
       return acc;
-    }, {} as any)
+    }, {} as any),
   );
 
   const handleToggleAction = (actionType: string, checked: boolean) => {
@@ -385,7 +386,6 @@ const DeploySheet: FC<{
               </div>
               <Accordion
                 type="multiple"
-                
                 className="mt-3 w-full border"
                 disabled={allowAll}
               >
@@ -395,11 +395,11 @@ const DeploySheet: FC<{
                     key={action.type}
                     className="transition-colors"
                   >
-                    <AccordionTrigger className="focus:!outline-none flex justify-between items-center px-4">
+                    <AccordionTrigger className="flex items-center justify-between px-4 focus:!outline-none">
                       <div className="flex items-center gap-2">
                         <Input
                           type="checkbox"
-                          className="w-fit h-4"
+                          className="h-4 w-fit"
                           checked={allowedActions[action.type].enabled}
                           onClick={(e) => e.stopPropagation()} // Prevent accordion toggle
                           onChange={(e) =>
@@ -410,14 +410,14 @@ const DeploySheet: FC<{
                         <span>{action.type}</span>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="p-4 border-t bg-secondary">
+                    <AccordionContent className="bg-secondary border-t p-4">
                       <div className="space-y-3">
                         {/* Action-specific fields */}
                         {action.fields.map((field) => (
                           <div key={field.name}>
                             <label
                               htmlFor={`${action.type}-${field.name}`}
-                              className="font-medium text-sm"
+                              className="text-sm font-medium"
                             >
                               {field.name.charAt(0).toUpperCase() +
                                 field.name.slice(1).replace(/_/g, " ")}{" "}
@@ -442,8 +442,7 @@ const DeploySheet: FC<{
                               }
                               className="mt-1"
                               disabled={
-                                !allowedActions[action.type].enabled ||
-                                allowAll
+                                !allowedActions[action.type].enabled || allowAll
                               }
                             />
                           </div>
@@ -454,7 +453,7 @@ const DeploySheet: FC<{
                           <Input
                             type="checkbox"
                             id={`${action.type}-requires_approval`}
-                            className="w-fit h-4"
+                            className="h-4 w-fit"
                             checked={
                               allowedActions[action.type].requires_approval
                             }
@@ -470,7 +469,7 @@ const DeploySheet: FC<{
                           />
                           <label
                             htmlFor={`${action.type}-requires_approval`}
-                            className="font-medium text-sm cursor-pointer"
+                            className="cursor-pointer text-sm font-medium"
                           >
                             Requires Approval
                           </label>
@@ -481,7 +480,7 @@ const DeploySheet: FC<{
                 ))}
               </Accordion>
               {allowAll && (
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="mt-2 text-sm text-gray-500">
                   All actions will be allowed with default settings. Disable
                   "Allow All" to fine configure.
                 </p>
@@ -533,6 +532,7 @@ const ModeratorPage: FC = () => {
     page,
   });
   const deployMutation = useDeployModeratorMutation();
+  const ownedDiscordGuildsQuery = useOwnedDiscordGuildsQuery();
 
   const handleDeploy = (data: DeploymentConfigData) => {
     console.log(data);

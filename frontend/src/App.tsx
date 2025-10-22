@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router";
+import DeployModeratorFlow from "./components/deploy-moderator-flow";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import DeploymentPage from "./pages/DeploymentPage";
 import DeploymentsPage from "./pages/DeploymentsPage";
@@ -21,7 +22,11 @@ function App() {
           <Route path="/guidelines" element={<GuidelinesPage />} />
           <Route path="/moderators" element={<ModeratorsPage />} />
           <Route path="/moderators/:moderatorId" element={<ModeratorPage />} />
-          <Route path="/connections" element={<ConnectionsPage />}/>
+          <Route
+            path="/moderators/:moderatorId/deploy"
+            element={<DeployModeratorFlow />}
+          />
+          <Route path="/connections" element={<ConnectionsPage />} />
         </Routes>
       </BrowserRouter>
     </>

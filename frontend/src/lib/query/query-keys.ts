@@ -11,6 +11,8 @@ export const queryKeys = {
 
   // Connections
   discordGuilds: () => ["connections", "guilds"] as const,
+  discordGuildChannels: () =>
+    [...queryKeys.discordGuilds(), "channels"] as const,
 
   // Guidelines
   guidelines: (params?: ListGuidelinesGuidelinesGetParams) =>
