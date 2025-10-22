@@ -5,3 +5,8 @@ class Guild(BaseModel):
     id: int
     name: str
     icon: str | None
+
+
+class GuildChannel(BaseModel):
+    id: int
+    name: str

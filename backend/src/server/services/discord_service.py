@@ -1,5 +1,3 @@
-from typing import Any
-
 from aiohttp import BasicAuth, ClientError, ClientSession
 
 from config import (
@@ -8,7 +6,7 @@ from config import (
     DISCORD_CLIENT_SECRET,
     DISCORD_REDIRECT_URI,
 )
-from server.typing import Guild, Identity
+from server.typing import Guild, GuildChannel, Identity
 
 
 class DiscordService:
@@ -81,7 +79,7 @@ class DiscordService:
             return []
 
     @classmethod
-    async def fetch_guild_channels(cls, guild_id: str) -> list[dict[str, Any]]:
+    async def fetch_guild_channels(cls, guild_id: str) -> list[GuildChannel]:
         if cls._http_sess is None:
             raise RuntimeError("HTTP session not started")
 
@@ -92,6 +90,6 @@ class DiscordService:
             )
             rsp.raise_for_status()
             channels = await rsp.json()
-            return channels
+            return [GuildChannel(id=ch["id"], name=ch["name"]) for ch in channels if ch.get("type") == 0]
         except ClientError:
             return []
