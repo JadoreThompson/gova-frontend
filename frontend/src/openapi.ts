@@ -143,10 +143,12 @@ export interface GuidelineUpdate {
   text?: GuidelineUpdateText;
 }
 
+export type GuildIcon = string | null;
+
 export interface Guild {
   id: number;
   name: string;
-  icon: string;
+  icon: GuildIcon;
 }
 
 export interface HTTPValidationError {
@@ -559,51 +561,6 @@ export const discordCallbackAuthDiscordOauthGet = async (
     {
       ...options,
       method: "GET",
-    },
-  );
-};
-
-/**
- * @summary Delete Connection
- */
-export type deleteConnectionAuthConnectionsPlatformDeleteResponse200 = {
-  data: unknown;
-  status: 200;
-};
-
-export type deleteConnectionAuthConnectionsPlatformDeleteResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type deleteConnectionAuthConnectionsPlatformDeleteResponseSuccess =
-  deleteConnectionAuthConnectionsPlatformDeleteResponse200 & {
-    headers: Headers;
-  };
-export type deleteConnectionAuthConnectionsPlatformDeleteResponseError =
-  deleteConnectionAuthConnectionsPlatformDeleteResponse422 & {
-    headers: Headers;
-  };
-
-export type deleteConnectionAuthConnectionsPlatformDeleteResponse =
-  | deleteConnectionAuthConnectionsPlatformDeleteResponseSuccess
-  | deleteConnectionAuthConnectionsPlatformDeleteResponseError;
-
-export const getDeleteConnectionAuthConnectionsPlatformDeleteUrl = (
-  platform: MessagePlatformType,
-) => {
-  return `/auth/connections/${platform}`;
-};
-
-export const deleteConnectionAuthConnectionsPlatformDelete = async (
-  platform: MessagePlatformType,
-  options?: RequestInit,
-): Promise<deleteConnectionAuthConnectionsPlatformDeleteResponse> => {
-  return customFetch<deleteConnectionAuthConnectionsPlatformDeleteResponse>(
-    getDeleteConnectionAuthConnectionsPlatformDeleteUrl(platform),
-    {
-      ...options,
-      method: "DELETE",
     },
   );
 };
