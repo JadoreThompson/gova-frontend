@@ -1,13 +1,15 @@
+import { queryClient } from "@/lib/query/query-client";
 import { queryKeys } from "@/lib/query/query-keys";
 import { handleApi } from "@/lib/utils/base";
 import {
   discordCallbackAuthDiscordOauthGet,
   getMeAuthMeGet,
   loginAuthLoginPost,
+  logoutAuthLogoutPost,
   registerAuthRegisterPost,
   type DiscordCallbackAuthDiscordOauthGetParams,
   type UserCreate,
-  type UserLogin
+  type UserLogin,
 } from "@/openapi";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -22,6 +24,13 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: async (data: UserLogin) =>
       handleApi(await loginAuthLoginPost(data)),
+  });
+}
+
+export function useLogoutMutation() {
+  return useMutation({
+    mutationFn: async () => handleApi(await logoutAuthLogoutPost()),
+    onSuccess: () => queryClient.invalidateQueries(),
   });
 }
 

@@ -87,7 +87,7 @@ export interface DeploymentResponse {
   moderator_id: string;
   platform: MessagePlatformType;
   name: string;
-  conf: DiscordConfig;
+  conf: DiscordConfigResponse;
   status: ModeratorDeploymentStatus;
   created_at: string;
 }
@@ -111,14 +111,16 @@ export interface DeploymentUpdate {
   conf?: DeploymentUpdateConf;
 }
 
-export type DiscordConfigAllowedChannelsItem = ["*"] | number[];
+export type DiscordConfigResponseAllowedChannels = ["*"] | number[];
 
-export type DiscordConfigAllowedActionsItem = ["*"] | BaseActionDefinition[];
+export type DiscordConfigResponseAllowedActions =
+  | ["*"]
+  | BaseActionDefinition[];
 
-export interface DiscordConfig {
+export interface DiscordConfigResponse {
   guild_id: string;
-  allowed_channels: ["*"] | number[];
-  allowed_actions: ["*"] | BaseActionDefinition[];
+  allowed_channels: DiscordConfigResponseAllowedChannels;
+  allowed_actions: DiscordConfigResponseAllowedActions;
 }
 
 export interface GuidelineCreate {
@@ -485,6 +487,36 @@ export const loginAuthLoginPost = async (
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(userLogin),
   });
+};
+
+/**
+ * @summary Logout
+ */
+export type logoutAuthLogoutPostResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type logoutAuthLogoutPostResponseSuccess =
+  logoutAuthLogoutPostResponse200 & {
+    headers: Headers;
+  };
+export type logoutAuthLogoutPostResponse = logoutAuthLogoutPostResponseSuccess;
+
+export const getLogoutAuthLogoutPostUrl = () => {
+  return `/auth/logout`;
+};
+
+export const logoutAuthLogoutPost = async (
+  options?: RequestInit,
+): Promise<logoutAuthLogoutPostResponse> => {
+  return customFetch<logoutAuthLogoutPostResponse>(
+    getLogoutAuthLogoutPostUrl(),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
 };
 
 /**
