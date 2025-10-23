@@ -1,6 +1,7 @@
-import { useLogoutMutation } from "@/hooks/auth-hooks";
+import { useLogoutMutation, useMeQuery } from "@/hooks/auth-hooks";
+import { useMeStore } from "@/stores/me-store";
 import { Bell, Bot, Box, FileText, LogOut, SendToBack } from "lucide-react";
-import type { FC, ReactNode } from "react";
+import { useEffect, type FC, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import AuthGuard from "../auth-guard";
 import SiteLogo from "../site-logo";
@@ -12,6 +13,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -38,6 +40,16 @@ const DashboardSidebar: FC = () => {
   const navigate = useNavigate();
   const logoutMutation = useLogoutMutation();
 
+  const me = useMeStore((state) => state.data);
+  const setMe = useMeStore((state) => state.setData);
+  const meQuery = useMeQuery();
+
+  useEffect(() => {
+    if (!me && meQuery.data) {
+      setMe(meQuery.data);
+    }
+  }, [me, meQuery.data, setMe]);
+
   const handleLogout = async () => {
     try {
       await logoutMutation.mutateAsync();
@@ -55,7 +67,21 @@ const DashboardSidebar: FC = () => {
   ] as const;
 
   return (
-    <Sidebar className="border-transparent pt-12">
+    <Sidebar className="border-transparent pt-12 pb-3">
+      <SidebarHeader className="bg-background px-3">
+        <Link
+          to={"/profile"}
+          className="hover:bg-secondary flex h-full w-full flex-row items-center gap-2 rounded-md p-1"
+        >
+          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-md bg-red-500">
+            <img
+              src={`https://ui-avatars.com/api/?name=${me?.username ?? "User"}`}
+              alt="Profile"
+            />
+          </div>
+          <span className="text-sm font-semibold">{me?.username ?? ""}</span>
+        </Link>
+      </SidebarHeader>
       <SidebarContent className="bg-background">
         <SidebarGroup>
           <SidebarGroupContent>
@@ -89,11 +115,11 @@ const DashboardSidebar: FC = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="bg-background">
         <Button
           onClick={handleLogout}
           variant="ghost"
-          className="flex w-full items-center justify-start gap-2 hover:bg-red-100 dark:hover:bg-red-900/30"
+          className="bg-secondary flex w-full items-center justify-start gap-2 hover:bg-red-100 dark:hover:bg-red-900/30"
           disabled={logoutMutation.isPending}
         >
           <LogOut size={16} />

@@ -2,12 +2,16 @@ import { queryClient } from "@/lib/query/query-client";
 import { queryKeys } from "@/lib/query/query-keys";
 import { handleApi } from "@/lib/utils/base";
 import {
+  changePasswordAuthChangePasswordPatch,
+  changeUsernameAuthChangeUsernamePatch,
   discordCallbackAuthDiscordOauthGet,
   getMeAuthMeGet,
   loginAuthLoginPost,
   logoutAuthLogoutPost,
   registerAuthRegisterPost,
   type DiscordCallbackAuthDiscordOauthGetParams,
+  type UpdatePassword,
+  type UpdateUsername,
   type UserCreate,
   type UserLogin,
 } from "@/openapi";
@@ -41,12 +45,11 @@ export function useMeQuery() {
   });
 }
 
-
 export function useMeQueryAuthGuard() {
   return useQuery({
     queryKey: queryKeys.me(),
     queryFn: async () => handleApi(await getMeAuthMeGet()),
-    retry: 1
+    retry: 1,
   });
 }
 
@@ -61,5 +64,23 @@ export function useDiscordCallbackQuery(
     enabled: enabled && !!params.code,
     staleTime: 0,
     gcTime: 0,
+  });
+}
+
+export function useUpdateUsernameMutation() {
+  return useMutation({
+    mutationFn: async (params: UpdateUsername) =>
+      handleApi(await changeUsernameAuthChangeUsernamePatch(params)),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.me() }),
+  });
+}
+
+export function useUpdatePasswordMutation() {
+  return useMutation({
+    mutationFn: async (params: UpdatePassword) =>
+      handleApi(await changePasswordAuthChangePasswordPatch(params)),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.me() }),
   });
 }

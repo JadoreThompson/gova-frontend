@@ -20,7 +20,7 @@ const RegisterPage: FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await registerMutation.mutateAsync(formData).then(() => navigate("/moderators"));
+      await registerMutation.mutateAsync(formData).then(() => setTimeout(() => navigate("/moderators"), 200));
     } catch (err) {
       console.error(err);
     }
@@ -39,7 +39,7 @@ const RegisterPage: FC = () => {
             <Input
               id="username"
               name="username"
-              placeholder="Your username"
+              placeholder="username"
               value={formData.username}
               onChange={handleChange}
               required

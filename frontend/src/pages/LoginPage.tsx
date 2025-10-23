@@ -35,13 +35,13 @@ const LoginPage: FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-sm font-medium" htmlFor="username">
-              Email
+              Username
             </label>
             <Input
               id="username"
               name="username"
               type="text"
-              placeholder="usernmae"
+              placeholder="username"
               value={formData.username}
               onChange={handleChange}
               required

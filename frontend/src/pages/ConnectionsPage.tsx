@@ -4,15 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useMeQuery } from "@/hooks/auth-hooks";
 import { useDeleteConnectionMutation } from "@/hooks/connections-hooks";
+import { OAUTH2_URLS } from "@/lib/utils/utils";
 import { MessagePlatformType, type PlatformConnection } from "@/openapi";
 import { Trash } from "lucide-react";
 import { type FC } from "react";
 import { Link } from "react-router";
-
-const OAUTH2_URLS = {
-  [MessagePlatformType.discord]:
-    "https://discord.com/oauth2/authorize?client_id=1427581240772657152&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauth%2Fdiscord%2Foauth&scope=identify",
-} as const;
 
 const UnconnectedCard: FC<{ platform: MessagePlatformType }> = (props) => {
   return (

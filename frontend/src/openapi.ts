@@ -254,6 +254,14 @@ export interface PlatformConnection {
   avatar: string;
 }
 
+export interface UpdatePassword {
+  password: string;
+}
+
+export interface UpdateUsername {
+  username: string;
+}
+
 export interface UserCreate {
   username: string;
   password: string;
@@ -598,6 +606,96 @@ export const discordCallbackAuthDiscordOauthGet = async (
     {
       ...options,
       method: "GET",
+    },
+  );
+};
+
+/**
+ * @summary Change Username
+ */
+export type changeUsernameAuthChangeUsernamePatchResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type changeUsernameAuthChangeUsernamePatchResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type changeUsernameAuthChangeUsernamePatchResponseSuccess =
+  changeUsernameAuthChangeUsernamePatchResponse200 & {
+    headers: Headers;
+  };
+export type changeUsernameAuthChangeUsernamePatchResponseError =
+  changeUsernameAuthChangeUsernamePatchResponse422 & {
+    headers: Headers;
+  };
+
+export type changeUsernameAuthChangeUsernamePatchResponse =
+  | changeUsernameAuthChangeUsernamePatchResponseSuccess
+  | changeUsernameAuthChangeUsernamePatchResponseError;
+
+export const getChangeUsernameAuthChangeUsernamePatchUrl = () => {
+  return `/auth/change-username`;
+};
+
+export const changeUsernameAuthChangeUsernamePatch = async (
+  updateUsername: UpdateUsername,
+  options?: RequestInit,
+): Promise<changeUsernameAuthChangeUsernamePatchResponse> => {
+  return customFetch<changeUsernameAuthChangeUsernamePatchResponse>(
+    getChangeUsernameAuthChangeUsernamePatchUrl(),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updateUsername),
+    },
+  );
+};
+
+/**
+ * @summary Change Password
+ */
+export type changePasswordAuthChangePasswordPatchResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type changePasswordAuthChangePasswordPatchResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type changePasswordAuthChangePasswordPatchResponseSuccess =
+  changePasswordAuthChangePasswordPatchResponse200 & {
+    headers: Headers;
+  };
+export type changePasswordAuthChangePasswordPatchResponseError =
+  changePasswordAuthChangePasswordPatchResponse422 & {
+    headers: Headers;
+  };
+
+export type changePasswordAuthChangePasswordPatchResponse =
+  | changePasswordAuthChangePasswordPatchResponseSuccess
+  | changePasswordAuthChangePasswordPatchResponseError;
+
+export const getChangePasswordAuthChangePasswordPatchUrl = () => {
+  return `/auth/change-password`;
+};
+
+export const changePasswordAuthChangePasswordPatch = async (
+  updatePassword: UpdatePassword,
+  options?: RequestInit,
+): Promise<changePasswordAuthChangePasswordPatchResponse> => {
+  return customFetch<changePasswordAuthChangePasswordPatchResponse>(
+    getChangePasswordAuthChangePasswordPatchUrl(),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(updatePassword),
     },
   );
 };
