@@ -5,8 +5,10 @@ import DeploymentPage from "./pages/DeploymentPage";
 import DeploymentsPage from "./pages/DeploymentsPage";
 import GuidelinesPage from "./pages/GuidelinesPage";
 import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
 import ModeratorPage from "./pages/ModeratorPage";
 import ModeratorsPage from "./pages/ModeratorsPage";
+import RegisterPage from "./pages/RegisterPage";
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage/>}/>
+          <Route path="/register" element={<RegisterPage/>}/>
           <Route path="/deployments" element={<DeploymentsPage />} />
           <Route
             path="/deployments/:deploymentId"
