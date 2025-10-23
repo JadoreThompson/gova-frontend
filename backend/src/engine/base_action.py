@@ -2,7 +2,6 @@ from typing import Any
 
 from pydantic import Field
 
-from core.enums import MessagePlatformType
 from core.models import CustomBaseModel
 
 
@@ -10,7 +9,6 @@ from core.models import CustomBaseModel
 
 class BaseAction(CustomBaseModel):
     type: Any # Enum
-    platform: MessagePlatformType
     requires_approval: bool
     reason: str = Field(description="Filled by the system and not the agent.")
 

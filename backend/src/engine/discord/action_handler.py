@@ -5,19 +5,20 @@ import discord
 
 from engine.base_action import BaseAction
 from engine.base_action_handler import BaseActionHandler
-from engine.discord.actions import BanAction, DiscordActionType, MuteAction
+from engine.discord.actions import BanAction, DiscordActionType, KickAction, MuteAction
 from engine.discord.context import DiscordMessageContext
 from engine.exc import UnkownActionExc
 
 
 class DiscordActionHandler(BaseActionHandler):
-    def __init__(self, client: discord.Client, logger: Logger):
+    def __init__(self, client: discord.Client, logger: Logger) -> None:
         super().__init__()
         self._client = client
         self.logger = logger
         self._handlers = {
             DiscordActionType.BAN: self._handle_ban,
             DiscordActionType.MUTE: self._handle_mute,
+            DiscordActionType.KICK: self._handle_kick,
         }
 
     async def handle(self, action: BaseAction, ctx: DiscordMessageContext) -> bool:
@@ -80,6 +81,22 @@ class DiscordActionHandler(BaseActionHandler):
         except Exception as e:
             self.logger.exception(f"Unexpected error muting user {action.user_id}: {e}")
         return False
+    
+    async def _handle_kick(self, action: KickAction, ctx: DiscordMessageContext) -> bool:
+        try:
+            guild = await self._fetch_guild(ctx.discord.guild_id)
+            member = await self._fetch_member(action.user_id, guild)
+            await member.kick(reason=action.reason)
+            return True
+        
+        except discord.Forbidden:
+            self.logger.error("Insufficient permissions to kick this user.")
+        except discord.HTTPException as e:
+            self.logger.error(f"Muting failed due to HTTP exception: {e}")
+        except Exception as e:
+            self.logger.exception(f"Unexpected error kicking user {action.user_id}: {e}")
+        return False
+    
 
     async def _fetch_guild(self, guild_id: int) -> discord.Guild | None:
         guild = self._client.get_guild(guild_id)
@@ -87,10 +104,9 @@ class DiscordActionHandler(BaseActionHandler):
             return guild
 
         try:
-            guild = await self._client.fetch_guild(guild_id)
+            return await self._client.fetch_guild(guild_id)
         except discord.NotFound:
             self.logger.error(f"Failed to find sever {guild_id}.")
-            return
 
     async def _fetch_member(
         self, user_id: int, guild: discord.Guild
@@ -105,4 +121,3 @@ class DiscordActionHandler(BaseActionHandler):
             self.logger.error(
                 f"Failed to find user {user_id}. User not found on Discord."
             )
-            return

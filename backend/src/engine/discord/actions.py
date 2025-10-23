@@ -2,17 +2,17 @@ from enum import Enum
 
 from pydantic import Field
 
-from core.enums import MessagePlatformType
 from engine.base_action import BaseAction, BaseActionDefinition
 
 
 class DiscordActionType(str, Enum):
     BAN = "ban"
     MUTE = "mute"
+    KICK = "kick"
 
 
 class DiscordAction(BaseAction):
-    platform: MessagePlatformType = MessagePlatformType.DISCORD
+    pass
 
 
 class BanAction(DiscordAction):
@@ -37,3 +37,12 @@ class MuteActionDefinition(BaseActionDefinition):
     duration: int | None = Field(
         None, ge=0, description="Duration in milliseconds to mute the user."
     )
+
+
+class KickAction(DiscordAction):
+    type: DiscordActionType = DiscordActionType.KICK
+    user_id: int
+
+
+class KickActionDefinition(BaseActionDefinition):
+    type: DiscordActionType = DiscordActionType.KICK

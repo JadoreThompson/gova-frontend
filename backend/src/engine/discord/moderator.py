@@ -10,13 +10,13 @@ import engine.discord.actions as actions_module
 from config import FINAL_PROMPT_TEMPLATE, FINAL_SYSTEM_PROMPT
 from core.models import CustomBaseModel
 from engine.base_moderator import BaseModerator
+from engine.base_action import BaseActionDefinition
 from engine.discord.actions import (
     BanAction,
     DiscordAction,
     DiscordActionType,
     MuteAction,
 )
-from engine.base_action import BaseActionDefinition
 from engine.discord.action_handler import DiscordActionHandler
 from engine.discord.context import DiscordMessageContext
 from engine.enums import MaliciousState
