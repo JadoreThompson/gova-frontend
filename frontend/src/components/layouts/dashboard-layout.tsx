@@ -61,8 +61,8 @@ const DashboardSidebar: FC = () => {
 
   const menuItems = [
     ["Guidelines", "/guidelines", FileText],
-    ["Deployments", "/deployments", Box],
     ["Moderators", "/moderators", Bot],
+    ["Deployments", "/deployments", Box],
     ["Connections", "/connections", SendToBack],
   ] as const;
 

@@ -1,38 +1,36 @@
 import DeploymentStatusCircle from "@/components/deployment-status-circle";
 import MessagePlatformImg from "@/components/message-platform-image";
 import PaginationControls, {
-    type PaginationControlsProps,
+  type PaginationControlsProps,
 } from "@/components/pagination-controls";
 import { Input } from "@/components/ui/input";
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import {
-    MessagePlatformType,
-    ModeratorDeploymentStatus,
-    type DeploymentResponse,
+  MessagePlatformType,
+  ModeratorDeploymentStatus,
+  type DeploymentResponse,
 } from "@/openapi";
 import dayjs from "dayjs";
 import { ArrowDown, ArrowUp, CirclePlus, Minus, Search } from "lucide-react";
 import { useState, type FC } from "react";
 
-export interface DeploymentsTableProps {
-  deployments: DeploymentResponse[];
-  onRowClick?: (id: DeploymentResponse) => void;
-}
-
 const DeploymentsTable: FC<
-  DeploymentsTableProps & PaginationControlsProps
+  {
+    deployments: DeploymentResponse[];
+    onRowClick?: (id: DeploymentResponse) => void;
+  } & PaginationControlsProps
 > = ({
   deployments,
   page,
@@ -44,10 +42,10 @@ const DeploymentsTable: FC<
   const [search, setSearch] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<
     ModeratorDeploymentStatus[]
-  >([]);
+  >(Object.values(ModeratorDeploymentStatus));
   const [selectedPlatforms, setSelectedPlatforms] = useState<
     MessagePlatformType[]
-  >([]);
+  >(Object.values(MessagePlatformType));
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
 
   const toggleStatus = (status: ModeratorDeploymentStatus) =>
@@ -223,7 +221,5 @@ const DeploymentsTable: FC<
     </>
   );
 };
-
-
 
 export default DeploymentsTable;
