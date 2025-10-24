@@ -92,12 +92,10 @@ export interface DeploymentResponse {
   created_at: string;
 }
 
-export type DeploymentStatsMessageChart = { [key: string]: MessageChartData[] };
-
 export interface DeploymentStats {
   total_messages: number;
   total_actions: number;
-  message_chart: DeploymentStatsMessageChart;
+  message_chart: MessageChartData[];
 }
 
 export type DeploymentUpdateName = string | null;
@@ -162,10 +160,11 @@ export interface HTTPValidationError {
   detail?: ValidationError[];
 }
 
+export type MessageChartDataCounts = { [key: string]: number };
+
 export interface MessageChartData {
-  platform: MessagePlatformType;
-  frequency: number;
   date: string;
+  counts: MessageChartDataCounts;
 }
 
 export type MessagePlatformType =
@@ -199,6 +198,12 @@ export interface ModeratorResponse {
   deployment_platforms: MessagePlatformType[];
 }
 
+export interface ModeratorStats {
+  total_messages: number;
+  total_actions: number;
+  message_chart: MessageChartData[];
+}
+
 export type ModeratorUpdateName = string | null;
 
 export type ModeratorUpdateGuidelineId = string | null;
@@ -206,19 +211,6 @@ export type ModeratorUpdateGuidelineId = string | null;
 export interface ModeratorUpdate {
   name?: ModeratorUpdateName;
   guideline_id?: ModeratorUpdateGuidelineId;
-}
-
-export type NewMessageChartDataCounts = { [key: string]: number };
-
-export interface NewMessageChartData {
-  date: string;
-  counts: NewMessageChartDataCounts;
-}
-
-export interface NewModeratorStats {
-  total_messages: number;
-  total_actions: number;
-  message_chart: NewMessageChartData[];
 }
 
 export interface PaginatedResponseDeploymentAction {
@@ -1814,7 +1806,7 @@ export const getDeploymentsModeratorsModeratorIdDeploymentsGet = async (
  * @summary Get Moderator Stats
  */
 export type getModeratorStatsModeratorsModeratorIdStatsGetResponse200 = {
-  data: NewModeratorStats;
+  data: ModeratorStats;
   status: 200;
 };
 

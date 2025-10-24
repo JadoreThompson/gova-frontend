@@ -1,6 +1,7 @@
 import DashboardLayout from "@/components/layouts/dashboard-layout";
+import MessagesChart from "@/components/messages-chart";
 import { Button } from "@/components/ui/button";
-import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -12,44 +13,8 @@ import {
 import { useDeploymentStatsQuery } from "@/hooks/deployments-hooks";
 import dayjs from "dayjs";
 import { Loader2 } from "lucide-react";
-import { useState, type FC } from "react";
+import { type FC, useState } from "react";
 import { useParams } from "react-router";
-
-import { Bar, BarChart } from "recharts";
-
-interface MessagesProcessedChartProps {
-  data?: { week: string; count: number }[];
-}
-
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-];
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "#2563eb",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "#60a5fa",
-  },
-} satisfies ChartConfig;
-
-const MessagesProcessedChart: FC<MessagesProcessedChartProps> = () => {
-  return (
-    <ChartContainer config={chartConfig} className="max-h-[100px] w-full">
-      <BarChart accessibilityLayer data={chartData}>
-        <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-        <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
-      </BarChart>
-    </ChartContainer>
-  );
-};
 
 // Mock data
 const MOCK_DEPLOYMENT = {
@@ -83,11 +48,10 @@ const DeploymentPage: FC = () => {
   const [isStopping, setIsStopping] = useState(false);
 
   const deploymentStatsQuery = useDeploymentStatsQuery(deploymentId!);
-  console.log(deploymentStatsQuery.data);
 
   const handleStopDeployment = async () => {
     setIsStopping(true);
-    await new Promise((r) => setTimeout(r, 1500)); // simulate API delay
+    await new Promise((r) => setTimeout(r, 1500));
     setIsStopping(false);
     alert("Deployment stopped successfully.");
   };
@@ -116,25 +80,36 @@ const DeploymentPage: FC = () => {
         </Button>
       </section>
 
-      <section className="mb-6 grid grid-cols-3 gap-4">
-        <div className="rounded-md border p-4 shadow-sm">
-          <p className="text-muted-foreground text-sm">Messages Processed</p>
-          <p className="text-2xl font-bold">
-            {deployment.messages_processed.toLocaleString()}
-          </p>
-        </div>
-        <div className="rounded-md border p-4 shadow-sm">
-          <p className="text-muted-foreground text-sm">Actions Performed</p>
-          <p className="text-2xl font-bold">{deployment.actions_performed}</p>
-        </div>
-        <div className="rounded-md border p-4 shadow-sm">
-          <p className="text-muted-foreground text-sm">Actions Pending</p>
-          <p className="text-2xl font-bold">{deployment.actions_pending}</p>
-        </div>
+      <section className="mb-6 grid h-20 grid-cols-3 gap-4">
+        {deploymentStatsQuery.isFetching ? (
+          <>
+            <Skeleton />
+            <Skeleton />
+          </>
+        ) : (
+          <>
+            <div className="rounded-md border p-4 shadow-sm">
+              <p className="text-muted-foreground text-sm">
+                Messages Processed
+              </p>
+              <p className="text-2xl font-bold">
+                {deploymentStatsQuery.data?.total_messages.toLocaleString()}
+              </p>
+            </div>
+            <div className="rounded-md border p-4 shadow-sm">
+              <p className="text-muted-foreground text-sm">Actions Performed</p>
+              <p className="text-2xl font-bold">
+                {deploymentStatsQuery.data?.total_actions}
+              </p>
+            </div>
+          </>
+        )}
       </section>
 
       <section className="mb-6">
-        <MessagesProcessedChart />
+        <MessagesChart
+          chartData={deploymentStatsQuery.data?.message_chart ?? []}
+        />
       </section>
 
       {/* Third Row - Actions Table */}
