@@ -250,7 +250,10 @@ const GuidelinesPage: FC = () => {
 
   const debouncedInput = useDebouncedInput({
     delay: 2000,
-    callback: (e) => setSearchValue(e.target.value),
+    callback: (e) => {
+      setPage(1);
+      setSearchValue(e.target.value);
+    },
   });
   const guidelinesQuery = useGuidelinesQuery({
     page,
@@ -298,7 +301,7 @@ const GuidelinesPage: FC = () => {
           <Input
             type="text"
             placeholder="Search..."
-onChange={debouncedInput.handleChange}
+            onChange={debouncedInput.handleChange}
             className="border-none !bg-transparent focus:!ring-0"
           />
         </div>
