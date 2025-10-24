@@ -41,22 +41,6 @@ const StatsCards: FC<{ totalMessages: number; totalActions: number }> = ({
   </div>
 );
 
-const DeploymentsSection: FC<{
-  deployments: any[];
-  page: number;
-  setPage: (p: number) => void;
-  navigate: ReturnType<typeof useNavigate>;
-}> = ({ deployments, page, setPage, navigate }) => (
-  <DeploymentsTable
-    deployments={deployments}
-    page={page}
-    hasNextPage={false}
-    onPrevPage={() => setPage((p) => p - 1)}
-    onNextPage={() => setPage((p) => p + 1)}
-    onRowClick={(d) => navigate(`/deployments/${d.deployment_id}`)}
-  />
-);
-
 const ModeratorPage: FC = () => {
   const { moderatorId } = useParams();
   const navigate = useNavigate();
@@ -92,11 +76,13 @@ const ModeratorPage: FC = () => {
       <MessagesChart
         chartData={moderatorStatsQuery.data?.message_chart ?? []}
       />
-      <DeploymentsSection
+      <DeploymentsTable
         deployments={moderatorDeploymentsQuery.data?.data ?? []}
         page={page}
-        setPage={setPage}
-        navigate={navigate}
+        hasNextPage={false}
+        onPrevPage={() => setPage((p) => p - 1)}
+        onNextPage={() => setPage((p) => p + 1)}
+        onRowClick={(d) => navigate(`/deployments/${d.deployment_id}`)}
       />
     </DashboardLayout>
   );

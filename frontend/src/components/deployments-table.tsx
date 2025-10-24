@@ -23,23 +23,16 @@ import {
   type DeploymentResponse,
 } from "@/openapi";
 import dayjs from "dayjs";
-import { ArrowDown, ArrowUp, CirclePlus, Minus, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, CirclePlus, Minus } from "lucide-react";
 import { useState, type FC } from "react";
 
 const DeploymentsTable: FC<
   {
     deployments: DeploymentResponse[];
+    onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onRowClick?: (id: DeploymentResponse) => void;
   } & PaginationControlsProps
-> = ({
-  deployments,
-  page,
-  hasNextPage,
-  onNextPage,
-  onPrevPage,
-  onRowClick,
-}) => {
-  const [search, setSearch] = useState("");
+> = (props) => {
   const [selectedStatuses, setSelectedStatuses] = useState<
     ModeratorDeploymentStatus[]
   >(Object.values(ModeratorDeploymentStatus));
@@ -77,10 +70,7 @@ const DeploymentsTable: FC<
       prev === null ? "asc" : prev === "asc" ? "desc" : null,
     );
 
-  const filtered = deployments
-    .filter((d) =>
-      search ? d.name.toLowerCase().includes(search.toLowerCase()) : true,
-    )
+  const filtered = props.deployments
     .filter((d) =>
       selectedStatuses.length > 0 ? selectedStatuses.includes(d.status) : true,
     )
@@ -103,16 +93,6 @@ const DeploymentsTable: FC<
     <>
       {/* Filters */}
       <div className="mb-6 flex h-8 w-full gap-1">
-        <div className="bg-secondary flex h-full w-fit items-center rounded-sm border p-1">
-          <Search size={15} />
-          <Input
-            type="text"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="!focus:ring-0 h-full w-60 border-none !bg-transparent !shadow-none"
-          />
-        </div>
 
         {/* Status Filter */}
         <Popover>
@@ -200,7 +180,7 @@ const DeploymentsTable: FC<
             {sorted.map((deployment) => (
               <TableRow
                 key={deployment.deployment_id}
-                onClick={() => onRowClick?.(deployment)}
+                onClick={() => props.onRowClick?.(deployment)}
                 className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40"
               >
                 <TableCell className="font-medium">{deployment.name}</TableCell>
@@ -223,10 +203,10 @@ const DeploymentsTable: FC<
       </div>
 
       <PaginationControls
-        page={page}
-        hasNextPage={hasNextPage}
-        onPrevPage={onPrevPage}
-        onNextPage={onNextPage}
+        page={props.page}
+        hasNextPage={props.hasNextPage}
+        onPrevPage={props.onPrevPage}
+        onNextPage={props.onNextPage}
       />
     </>
   );
