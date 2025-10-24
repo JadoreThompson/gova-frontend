@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { useDebouncedInput } from "@/hooks/debounced-input";
 import {
   useCreateGuidelineMutation,
   useGuidelinesQuery,
@@ -247,6 +248,10 @@ const GuidelinesPage: FC = () => {
   const [searchValue, setSearchValue] = useState<string>("");
   const [page, setPage] = useState<number>(1);
 
+  const debouncedInput = useDebouncedInput({
+    delay: 2000,
+    callback: (e) => setSearchValue(e.target.value),
+  });
   const guidelinesQuery = useGuidelinesQuery({
     page,
     search: searchValue.trim(),
@@ -293,7 +298,7 @@ const GuidelinesPage: FC = () => {
           <Input
             type="text"
             placeholder="Search..."
-            onChange={(e) => setSearchValue(e.target.value)}
+onChange={debouncedInput.handleChange}
             className="border-none !bg-transparent focus:!ring-0"
           />
         </div>
