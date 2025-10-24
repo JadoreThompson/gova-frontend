@@ -21,7 +21,7 @@ import {
 import { formatDate } from "@/lib/utils/utils";
 import dayjs from "dayjs";
 import { ArrowDown, ArrowUp, Minus, PlusCircle, Search, X } from "lucide-react";
-import { useState, type FC } from "react";
+import { useEffect, useState, type FC } from "react";
 
 interface GuidelineResponse {
   guideline_id: string;
@@ -187,6 +187,13 @@ const AddGuidelineSheet: FC<{
 }> = (props) => {
   const [newName, setNewName] = useState("");
   const [newText, setNewText] = useState("");
+
+  useEffect(() => {
+    if (!props.open) {
+      setNewName("");
+      setNewText("");
+    }
+  }, [props.open]);
 
   return (
     <Sheet open={props.open} onOpenChange={props.onClose}>
