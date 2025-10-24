@@ -75,18 +75,19 @@ def main() -> None:
 
 async def test():
     from config import DISCORD_BOT_TOKEN
-    from engine.discord.actions import BanActionDefinition, MuteActionDefinition
+    from engine.discord.actions import BanActionDefinition, MuteActionDefinition, KickActionDefinition
     from engine.discord.config import DiscordConfig
     from engine.discord.moderator import DiscordModerator
 
     mod = DiscordModerator(
-        "61897ee1-c58d-48e8-98a4-51e67dab2cc0",
-        "51387d42-f73a-4fbf-b9bf-c633afc3345d",
-        DISCORD_BOT_TOKEN,
-        DiscordConfig(
+        "f22de979-2ca4-4163-b974-b018359ba4b4",
+        "0e55d78b-ec79-400a-8df9-1d077ebfafc2",
+        logger=logging.getLogger("test-discord-moderator"),
+        token=DISCORD_BOT_TOKEN,
+        config=DiscordConfig(
             guild_id=1334317047995432980,
             allowed_channels=[1334317050629460114],
-            allowed_actions=[MuteActionDefinition(requires_approval=False)],
+            allowed_actions=[MuteActionDefinition(requires_approval=False), KickActionDefinition(requires_approval=True)],
         ),
     )
     async with mod:

@@ -21,7 +21,7 @@ from server.models import PaginatedResponse
 from server.shared.models import (
     DeploymentResponse,
     DiscordConfigResponse,
-    NewMessageChartData,
+    MessageChartData,
 )
 from server.typing import JWTPayload
 from utils.db import get_datetime
@@ -31,7 +31,7 @@ from .models import (
     ModeratorCreate,
     ModeratorResponse,
     ModeratorUpdate,
-    NewModeratorStats,
+    ModeratorStats,
     DeploymentCreate,
 )
 
@@ -232,7 +232,7 @@ async def get_deployments(
     )
 
 
-@router.get("/{moderator_id}/stats", response_model=NewModeratorStats)
+@router.get("/{moderator_id}/stats", response_model=ModeratorStats)
 async def get_moderator_stats(
     moderator_id: UUID,
     jwt: JWTPayload = Depends(depends_jwt),
@@ -296,16 +296,16 @@ async def get_moderator_stats(
             data_map[platform] = {}
         data_map[platform][week_start] = row.frequency
 
-    message_chart: list[NewMessageChartData] = []
+    message_chart: list[MessageChartData] = []
 
     for week_start in week_starts:
         counts = {
             platform: data_map.get(platform, {}).get(week_start, 0)
             for platform in all_platform_list
         }
-        message_chart.append(NewMessageChartData(date=week_start, counts=counts))
+        message_chart.append(MessageChartData(date=week_start, counts=counts))
 
-    return NewModeratorStats(
+    return ModeratorStats(
         total_messages=total_messages,
         total_actions=total_actions,
         message_chart=message_chart,

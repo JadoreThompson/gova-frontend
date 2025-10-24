@@ -81,5 +81,6 @@ Output:
 ```
 
 
-
 Your output must only be the json containing the eval score and the nullable action.
+Above serves as a framework. The action oyou choose must be proportionate to how strong
+it opposes the guidelines.

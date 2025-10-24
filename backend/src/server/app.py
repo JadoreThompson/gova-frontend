@@ -48,7 +48,6 @@ def build_definitions():
 
 
 async def lifespan(app: FastAPI):
-    build_definitions()
     DiscordService.start()
     await asyncio.gather(
         DiscordClientManager.start(),

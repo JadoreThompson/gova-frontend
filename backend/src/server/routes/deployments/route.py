@@ -17,11 +17,16 @@ from db_models import (
 )
 from server.dependencies import depends_db_sess, depends_jwt, depends_kafka_producer
 from server.models import PaginatedResponse
-from server.shared.models import DeploymentAction, DeploymentResponse, MessageChartData
+from server.shared.models import (
+    DeploymentAction,
+    DeploymentResponse,
+    MessageChartData,
+    MessageChartData,
+)
 from server.typing import JWTPayload
 from utils.db import get_datetime
 from utils.kafka import dump_model
-from .models import DeploymentStats, DeploymentUpdate
+from .models import DeploymentStats, DeploymentUpdate, DeploymentStats
 
 
 router = APIRouter(prefix="/deployments", tags=["Moderator Deployments"])
@@ -125,55 +130,56 @@ async def get_deployment_stats(
             status_code=404, detail="Deployment not found or unauthorized"
         )
 
-    total_messages = await db_sess.scalar(
-        select(func.count(Messages.message_id)).where(
-            Messages.deployment_id == deployment.deployment_id,
-            Messages.platform == deployment.platform,
-        )
-    )
-
-    total_actions = await db_sess.scalar(
-        select(func.count(ModeratorDeploymentLogs.log_id)).where(
-            ModeratorDeploymentLogs.deployment_id == deployment.deployment_id
-        )
-    )
-
-    now = get_datetime()
-    six_weeks_ago = now - timedelta(weeks=6)
-
-    weekly_counts = (
-        await db_sess.execute(
-            select(
-                func.date_trunc("week", Messages.created_at).label("week"),
-                func.count(Messages.message_id).label("count"),
-            )
-            .where(
+    total_messages = (
+        await db_sess.scalar(
+            select(func.count(Messages.message_id)).where(
                 Messages.deployment_id == deployment.deployment_id,
                 Messages.platform == deployment.platform,
-                Messages.created_at >= six_weeks_ago,
             )
-            .group_by("week")
-            .order_by("week")
         )
-    ).all()
+        or 0
+    )
 
-    week_count_map = {row.week.date(): row.count for row in weekly_counts}
-
-    all_weeks = [(now - timedelta(weeks=i)).date() for i in range(5, -1, -1)]
-
-    message_chart_data = [
-        MessageChartData(
-            date=week.strftime("%Y-%m-%d"),
-            frequency=week_count_map.get(week, 0),
-            platform=deployment.platform,
+    total_actions = (
+        await db_sess.scalar(
+            select(func.count(ModeratorDeploymentLogs.log_id)).where(
+                ModeratorDeploymentLogs.deployment_id == deployment.deployment_id
+            )
         )
-        for week in all_weeks
+        or 0
+    )
+
+    today = get_datetime().date()
+    week_starts = [
+        today - timedelta(weeks=i, days=today.weekday()) for i in reversed(range(6))
     ]
+    earliest_week = week_starts[0]
+
+    weekly_result = await db_sess.execute(
+        select(
+            func.date_trunc("week", Messages.created_at).label("week_start"),
+            func.count(Messages.message_id).label("frequency"),
+        )
+        .where(
+            Messages.deployment_id == deployment.deployment_id,
+            Messages.platform == deployment.platform,
+            Messages.created_at >= earliest_week,
+        )
+        .group_by("week_start")
+        .order_by("week_start")
+    )
+
+    week_map = {row.week_start.date(): row.frequency for row in weekly_result.all()}
+
+    message_chart: list[MessageChartData] = []
+    for week_start in week_starts:
+        counts = {deployment.platform: week_map.get(week_start, 0)}
+        message_chart.append(MessageChartData(date=week_start, counts=counts))
 
     return DeploymentStats(
-        total_messages=total_messages or 0,
-        total_actions=total_actions or 0,
-        message_chart={deployment.platform: message_chart_data},
+        total_messages=total_messages,
+        total_actions=total_actions,
+        message_chart=message_chart,
     )
 
 

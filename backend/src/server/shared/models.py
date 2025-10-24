@@ -9,12 +9,6 @@ from engine.discord.config import DiscordConfig
 
 
 class MessageChartData(CustomBaseModel):
-    platform: MessagePlatformType
-    frequency: int
-    date: datetime
-
-
-class NewMessageChartData(CustomBaseModel):
     date: date
     counts: dict[MessagePlatformType, int]
 
@@ -28,7 +22,7 @@ class DiscordConfigResponse(DiscordConfig):
             return v
         if isinstance(v, int):
             return str(v)
-        raise ValidationError("Invalid type '{type(v)}' for guild_id")
+        raise ValidationError(f"Invalid type '{type(v)}' for guild_id")
 
 
 class DeploymentResponse(CustomBaseModel):

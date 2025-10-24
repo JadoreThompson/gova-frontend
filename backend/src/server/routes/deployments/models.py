@@ -21,4 +21,4 @@ class DeploymentUpdate(CustomBaseModel):
 class DeploymentStats(BaseModel):
     total_messages: int
     total_actions: int
-    message_chart: dict[MessagePlatformType, list[MessageChartData]]
+    message_chart: list[MessageChartData]

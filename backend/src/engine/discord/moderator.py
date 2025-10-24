@@ -109,7 +109,8 @@ class DiscordModerator(BaseModerator):
                     [
                         {"role": "system", "content": FINAL_SYSTEM_PROMPT},
                         {"role": "user", "content": prompt},
-                    ]
+                    ],
+                    temperature=1
                 )
                 data = parse_to_json(content["choices"][0]["message"]["content"])
 
