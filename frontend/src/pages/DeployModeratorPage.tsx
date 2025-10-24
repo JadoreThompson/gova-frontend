@@ -413,32 +413,33 @@ const SelectGuildCard: FC<DeploymentStageProps<string>> = (props) => {
       <div className="flex w-full flex-wrap items-start justify-start gap-3">
         {ownedDiscordGuildsQuery.isLoading ? (
           <>
-            <Skeleton className="h-25 w-25" />
-            <Skeleton className="h-25 w-25" />
-            <Skeleton className="h-25 w-25" />
+            <Skeleton className="h-30 w-30" />
+            <Skeleton className="h-30 w-30" />
+            <Skeleton className="h-30 w-30" />
           </>
         ) : (
           ownedDiscordGuildsQuery.data?.map((g, idx) => (
             <Card
               key={idx}
-              onClick={() => {
-                props.onNext(g.id);
-              }}
-              className="flex-shrink-0 cursor-pointer"
+              onClick={() => props.onNext(g.id)}
+              className="flex h-30 w-30 cursor-pointer flex-col items-center justify-between gap-0 py-3 duration-100 ease-in hover:-translate-y-1 hover:scale-101 hover:border-white"
             >
-              <CardContent>
-                <div className="flex h-25 w-25 flex-col gap-2">
-                  <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full">
-                    {g.icon ? (
-                      <img src={g.icon} alt="" />
-                    ) : (
-                      <div className="bg-secondary h-full w-full"></div>
-                    )}
-                  </div>
+              <CardContent className="flex w-full items-center justify-center">
+                <div className="bg-secondary/20 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full">
+                  {g.icon ? (
+                    <img
+                      src={g.icon}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="bg-secondary h-full w-full"></div>
+                  )}
                 </div>
               </CardContent>
-              <CardFooter>
-                <span className="text-center text-xs font-semibold">
+
+              <CardFooter className="flex w-full justify-center">
+                <span className="max-w-[6rem] truncate text-center text-xs font-semibold">
                   {g.name}
                 </span>
               </CardFooter>
@@ -464,7 +465,7 @@ const SelectPlatformCard: FC<DeploymentStageProps<MessagePlatformType>> = (
           key={v}
           onClick={() => props.onNext(v)}
           className={cn(
-            "relative h-25 w-25 cursor-pointer border duration-200 ease-in-out hover:-translate-y-0.5 hover:scale-101",
+            "relative h-30 w-30 cursor-pointer border duration-200 ease-in-out hover:-translate-y-0.5 hover:scale-101",
             borderCols[v],
           )}
         >
