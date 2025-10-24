@@ -1,4 +1,5 @@
 import type {
+  GetDeploymentActionsDeploymentsDeploymentIdActionsGetParams,
   GetDeploymentsModeratorsModeratorIdDeploymentsGetParams,
   ListGuidelinesGuidelinesGetParams,
   ListModeratorsModeratorsGetParams,
@@ -38,4 +39,8 @@ export const queryKeys = {
     [...queryKeys.deployments(), deploymentId] as const,
   deploymentStats: (deploymentId: string) =>
     [...queryKeys.deployments(), "stats", deploymentId] as const,
+  deploymentActions: (
+    deploymentId: string,
+    params?: GetDeploymentActionsDeploymentsDeploymentIdActionsGetParams,
+  ) => ["deployments", deploymentId, "actions", params] as const,
 };

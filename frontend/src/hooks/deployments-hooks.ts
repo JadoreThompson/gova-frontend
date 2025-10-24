@@ -6,6 +6,8 @@ import {
   getDeploymentDeploymentsDeploymentIdGet,
   getDeploymentStatsDeploymentsDeploymentIdStatsGet,
   listDeploymentsDeploymentsGet,
+  stopDeploymentDeploymentsDeploymentIdStartPost,
+  stopDeploymentDeploymentsDeploymentIdStopPost,
   updateDeploymentDeploymentsDeploymentIdPut,
   type BodyListDeploymentsDeploymentsGet,
   type DeploymentResponse,
@@ -81,5 +83,38 @@ export function useDeploymentStatsQuery(deploymentId: string) {
       handleApi(
         await getDeploymentStatsDeploymentsDeploymentIdStatsGet(deploymentId!),
       ),
+    enabled: !!deploymentId,
+  });
+}
+
+export function useStartDeploymentMutation() {
+  return useMutation({
+    mutationFn: async (deploymentId: string) => {
+      return handleApi(
+        await stopDeploymentDeploymentsDeploymentIdStartPost(deploymentId),
+      );
+    },
+    onSuccess: (_, deploymentId) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.deployments() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.deployment(deploymentId),
+      });
+    },
+  });
+}
+
+export function useStopDeploymentMutation() {
+  return useMutation({
+    mutationFn: async (deploymentId: string) => {
+      return handleApi(
+        await stopDeploymentDeploymentsDeploymentIdStopPost(deploymentId),
+      );
+    },
+    onSuccess: (_, deploymentId) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.deployments() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.deployment(deploymentId),
+      });
+    },
   });
 }
