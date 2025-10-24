@@ -136,7 +136,10 @@ const ModeratorsPage: FC = () => {
 
   const debouncedInput = useDebouncedInput({
     delay: 2000,
-    callback: (e) => setName(e.target.value),
+    callback: (e) => {
+      setPage(1);
+      setName(e.target.value);
+    },
   });
   const moderatorsQuery = useModeratorsQuery({ page, name });
   const createModeratorMutation = useCreateModeratorMutation();
@@ -188,7 +191,6 @@ const ModeratorsPage: FC = () => {
           <Input
             type="text"
             placeholder="Search..."
-            // onChange={(e) => setName(e.currentTarget.value.trim())}
             onChange={debouncedInput.handleChange}
             className="h-7 w-50 border-none !bg-transparent focus:!ring-0"
           />
