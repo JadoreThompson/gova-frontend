@@ -477,7 +477,7 @@ const SelectPlatformCard: FC<DeploymentStageProps<MessagePlatformType>> = (
   );
 };
 
-const DeployModeratorFlow: FC = () => {
+const DeployModeratorPage: FC = () => {
   const { moderatorId } = useParams<{ moderatorId: string }>();
   const navigate = useNavigate();
 
@@ -497,10 +497,12 @@ const DeployModeratorFlow: FC = () => {
   const handleDeploy = async (data: DeploymentCreate) => {
     setShowLoading(true);
 
-    deployMutation.mutateAsync({
-      moderatorId: moderatorId!,
-      data,
-    }).then(() => navigate(`/moderators/${moderatorId}`));
+    deployMutation
+      .mutateAsync({
+        moderatorId: moderatorId!,
+        data,
+      })
+      .then(() => navigate(`/moderators/${moderatorId}`));
     setShowLoading(false);
   };
 
@@ -508,8 +510,26 @@ const DeployModeratorFlow: FC = () => {
     <DashboardLayout>
       {showLoading && <LoadingPage />}
       <div className="mb-3">
-        <h4 className="font-semibold">Deploy</h4>
-        <p className="text-muted-foreground"></p>
+        <h4 className="mb-3 font-semibold">Deploy</h4>
+        <div className="flex h-1 w-full gap-3">
+          {(() => {
+            const els = [];
+            for (let i = 0; i < maxStages; i++) {
+              els.push(
+                <div
+                  className={cn(
+                    "h-full rounded-md",
+                    curStage >= i + 1
+                      ? "bg-blue-500 shadow-xs shadow-blue-700"
+                      : "bg-neutral-500 shadow-xs shadow-neutral-700",
+                  )}
+                  style={{ width: `calc(100% / ${maxStages})` }}
+                ></div>,
+              );
+            }
+            return els;
+          })()}
+        </div>
       </div>
 
       <main className="mb-3">
@@ -598,4 +618,4 @@ const DeployModeratorFlow: FC = () => {
     </DashboardLayout>
   );
 };
-export default DeployModeratorFlow;
+export default DeployModeratorPage;
