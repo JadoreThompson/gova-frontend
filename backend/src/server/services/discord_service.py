@@ -65,11 +65,12 @@ class DiscordService:
             rsp.raise_for_status()
             guilds_data = await rsp.json()
 
+            print(guilds_data)
             owned_guilds = [
                 Guild(
                     id=g["id"],
                     name=g["name"],
-                    icon=f"{cls._cdn_base_url}/icons/{g['id']}/{g['icon']}.png",
+                    icon=f"{cls._cdn_base_url}/icons/{g['id']}/{g['icon']}.png" if g.get("icon") else None,
                 )
                 for g in guilds_data
                 if g.get("owner") is True
