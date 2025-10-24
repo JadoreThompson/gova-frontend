@@ -46,17 +46,17 @@ type ActionConfig = {
 
 const AVAILABLE_ACTIONS: ActionConfig[] = [
   {
-    type: "Mute",
+    type: "mute",
     fields: [{ name: "duration_minutes", type: "number" }],
     defaultRequiresApproval: false,
   },
   {
-    type: "Ban",
+    type: "ban",
     fields: [{ name: "reason", type: "text" }],
     defaultRequiresApproval: true,
   },
   {
-    type: "Kick",
+    type: "kick",
     fields: [],
     defaultRequiresApproval: false,
   },
@@ -70,13 +70,10 @@ const SelectNameCard: FC<DeploymentStageProps<string>> = (props) => {
   const [name, setName] = useState("");
 
   return (
-    <div className="flex w-full flex-col">
-      <h4 className="mb-4 text-xl font-semibold">Name your Deployment</h4>
-      <div className="flex w-full flex-col gap-4">
-        <div>
-          <label htmlFor="deployment-name" className="text-sm font-medium">
-            Deployment Name
-          </label>
+    <>
+      <h4 className="mb-3 font-semibold">Name your Deployment</h4>
+      <div className="flex w-full flex-col">
+        <div className="flex w-full flex-col gap-4">
           <Input
             id="deployment-name"
             placeholder="e.g. My-Discord-Moderator"
@@ -84,17 +81,18 @@ const SelectNameCard: FC<DeploymentStageProps<string>> = (props) => {
             onChange={(e) => setName(e.target.value)}
             className="mt-1 max-w-sm"
           />
+
+          <Button
+            type="button"
+            onClick={() => props.onNext(name)}
+            disabled={name.trim().length === 0}
+            className="w-fit"
+          >
+            Next
+          </Button>
         </div>
-        <Button
-          type="button"
-          onClick={() => props.onNext(name)}
-          disabled={name.trim().length === 0}
-          className="w-fit"
-        >
-          Next
-        </Button>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -178,16 +176,16 @@ const SelectActionsCard: FC<
         const collectedParams = Object.entries(config.params).reduce(
           (acc, [key, value]) => {
             if (typeof value === "string" && value.trim() !== "") {
-              // Attempt to convert to number if type is 'number'
-              const fieldDef = action.fields.find((f) => f.name === key);
-              if (fieldDef?.type === "number") {
-                const numVal = parseFloat(value);
-                if (!isNaN(numVal)) {
-                  acc[key] = numVal;
-                  return acc;
-                }
-              }
-              acc[key] = value;
+              // // Attempt to convert to number if type is 'number'
+              // const fieldDef = action.fields.find((f) => f.name === key);
+              // if (fieldDef?.type === "number") {
+              //   const numVal = parseFloat(value);
+              //   if (!isNaN(numVal)) {
+              //     acc[key] = numVal;
+              //     return acc;
+              //   }
+              // }
+              // acc[key] = value;
             } else if (typeof value === "number") {
               acc[key] = value;
             }
@@ -213,11 +211,11 @@ const SelectActionsCard: FC<
     <div className="flex w-full flex-col">
       <div className="flex flex-col">
         <div className="mb-4 flex items-center justify-between">
-          <label className="text-lg font-semibold">Action Configuration</label>
+          <h4 className="font-semibold">Action Configuration</h4>
           <Button
-            variant={allowAll ? "default" : "outline"}
+            variant="outline"
             size="sm"
-            className="w-fit text-xs"
+            className=""
             type="button"
             onClick={handleAllowAllClick}
           >
@@ -226,7 +224,7 @@ const SelectActionsCard: FC<
         </div>
         <Accordion
           type="multiple"
-          className="w-full border"
+          className="w-full overflow-hidden rounded-md border"
           disabled={allowAll}
         >
           {AVAILABLE_ACTIONS.map((action, idx) => (
@@ -315,12 +313,6 @@ const SelectActionsCard: FC<
             </AccordionItem>
           ))}
         </Accordion>
-        {allowAll && (
-          <p className="mt-2 text-sm text-gray-500">
-            All actions will be allowed with default settings. Disable "Allow
-            All" to fine configure.
-          </p>
-        )}
       </div>
       <div className="mt-6 flex w-full items-center justify-start">
         <Button
@@ -355,11 +347,9 @@ const SelectChannelsCard: FC<
         ) : (
           <div className="w-full">
             <div className="mb-4 flex w-full items-center justify-between">
-              <h4 className="text-lg font-semibold text-gray-200">
-                Select Channels
-              </h4>
+              <h4 className="font-semibold">Select Channels</h4>
               <Button
-                variant="secondary"
+                variant="outline"
                 onClick={() => props.onNext(["*"])}
                 className="hover:bg-secondary/80 rounded-md px-4 py-2 transition"
               >
@@ -404,7 +394,7 @@ const SelectChannelsCard: FC<
               })}
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex justify-start">
               <Button
                 type="button"
                 onClick={() =>
@@ -414,7 +404,6 @@ const SelectChannelsCard: FC<
                     ) as DiscordConfigResponseAllowedChannels,
                   )
                 }
-                className="rounded-md bg-green-600 px-5 py-2 text-white transition hover:bg-green-700"
               >
                 Confirm
               </Button>
@@ -430,45 +419,48 @@ const SelectGuildCard: FC<DeploymentStageProps<string>> = (props) => {
   const ownedDiscordGuildsQuery = useOwnedDiscordGuildsQuery();
 
   return (
-    <div className="flex w-full flex-col">
-      <div className="flex w-full flex-wrap items-start justify-start gap-3">
-        {ownedDiscordGuildsQuery.isLoading ? (
-          <>
-            <Skeleton className="h-30 w-30" />
-            <Skeleton className="h-30 w-30" />
-            <Skeleton className="h-30 w-30" />
-          </>
-        ) : (
-          ownedDiscordGuildsQuery.data?.map((g, idx) => (
-            <Card
-              key={idx}
-              onClick={() => props.onNext(g.id)}
-              className="flex h-30 w-30 cursor-pointer flex-col items-center justify-between gap-0 py-3 duration-100 ease-in hover:-translate-y-1 hover:scale-101 hover:border-white"
-            >
-              <CardContent className="flex w-full items-center justify-center">
-                <div className="bg-secondary/20 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full">
-                  {g.icon ? (
-                    <img
-                      src={g.icon}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="bg-secondary h-full w-full"></div>
-                  )}
-                </div>
-              </CardContent>
+    <>
+      <h4 className="mb-3 font-semibold">Select Server</h4>
+      <div className="flex w-full flex-col">
+        <div className="flex w-full flex-wrap items-start justify-start gap-3">
+          {ownedDiscordGuildsQuery.isLoading ? (
+            <>
+              <Skeleton className="h-30 w-30" />
+              <Skeleton className="h-30 w-30" />
+              <Skeleton className="h-30 w-30" />
+            </>
+          ) : (
+            ownedDiscordGuildsQuery.data?.map((g, idx) => (
+              <Card
+                key={idx}
+                onClick={() => props.onNext(g.id)}
+                className="flex h-30 w-30 cursor-pointer flex-col items-center justify-between gap-0 py-3 duration-100 ease-in hover:-translate-y-1 hover:scale-101 hover:border-white"
+              >
+                <CardContent className="flex w-full items-center justify-center">
+                  <div className="bg-secondary/20 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full">
+                    {g.icon ? (
+                      <img
+                        src={g.icon}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="bg-secondary h-full w-full"></div>
+                    )}
+                  </div>
+                </CardContent>
 
-              <CardFooter className="flex w-full justify-center">
-                <span className="max-w-[6rem] truncate text-center text-xs font-semibold">
-                  {g.name}
-                </span>
-              </CardFooter>
-            </Card>
-          ))
-        )}
+                <CardFooter className="flex w-full justify-center">
+                  <span className="max-w-[6rem] truncate text-center text-xs font-semibold">
+                    {g.name}
+                  </span>
+                </CardFooter>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -481,6 +473,7 @@ const SelectPlatformCard: FC<DeploymentStageProps<MessagePlatformType>> = (
 
   return (
     <>
+      <h4 className="mb-3 font-semibold">Select Platform</h4>
       {Object.values(MessagePlatformType).map((v) => (
         <Card
           key={v}
@@ -546,7 +539,7 @@ const DeployModeratorPage: FC = () => {
           </div>
           <h4 className="font-semibold">Deploy</h4>
         </div>
-        
+
         <div className="flex h-1 w-full gap-3">
           {(() => {
             const els = [];
