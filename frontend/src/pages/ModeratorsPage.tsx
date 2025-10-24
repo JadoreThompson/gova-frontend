@@ -222,27 +222,37 @@ const ModeratorsPage: FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedModerators.map((mod) => (
-              <TableRow
-                key={mod.moderator_id}
-                onClick={() => navigate(`/moderators/${mod.moderator_id}`)}
-                className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40"
-              >
-                <TableCell className="font-medium">{mod.name}</TableCell>
-                <TableCell className="text-muted-foreground text-sm">
-                  {formatDate(mod.created_at)}
-                </TableCell>
-                <TableCell className="flex flex-wrap gap-1 py-3">
-                  {mod.deployment_platforms.map((pl) => (
-                    <MessagePlatformImg
-                      key={pl}
-                      platform={pl}
-                      className="h-5 w-5"
-                    />
-                  ))}
+            {!sortedModerators.length ? (
+              <TableRow>
+                <TableCell colSpan={3}>
+                  <div className="text-muted-foreground flex h-20 w-full items-center justify-center">
+                    No moderators found
+                  </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              sortedModerators.map((mod) => (
+                <TableRow
+                  key={mod.moderator_id}
+                  onClick={() => navigate(`/moderators/${mod.moderator_id}`)}
+                  className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40"
+                >
+                  <TableCell className="font-medium">{mod.name}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {formatDate(mod.created_at)}
+                  </TableCell>
+                  <TableCell className="flex flex-wrap gap-1 py-3">
+                    {mod.deployment_platforms.map((pl) => (
+                      <MessagePlatformImg
+                        key={pl}
+                        platform={pl}
+                        className="h-5 w-5"
+                      />
+                    ))}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

@@ -99,33 +99,43 @@ const GuidelinesTable: FC<
         </TableHeader>
 
         <TableBody>
-          {sortedGuidelines.map((g) => (
-            <TableRow
-              key={g.guideline_id}
-              onClick={() => props.onRowClick(g)}
-              className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40"
-            >
-              <TableCell className="font-medium">{g.name}</TableCell>
-              <TableCell className="text-muted-foreground text-sm">
-                {formatDate(g.created_at)}{" "}
-              </TableCell>
-              <TableCell className="flex flex-wrap gap-1 py-3">
-                {g.topics.slice(0, 3).map((topic) => (
-                  <span
-                    key={topic}
-                    className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${randomBadgeClass()}`}
-                  >
-                    {topic}
-                  </span>
-                ))}
-                {g.topics.length > 3 && (
-                  <span className="text-muted-foreground text-xs">
-                    +{g.topics.length - 3} more
-                  </span>
-                )}
+          {!sortedGuidelines.length ? (
+            <TableRow>
+              <TableCell colSpan={3}>
+                <div className="text-muted-foreground flex h-20 w-full items-center justify-center">
+                  No guidelines found
+                </div>
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            sortedGuidelines.map((g) => (
+              <TableRow
+                key={g.guideline_id}
+                onClick={() => props.onRowClick(g)}
+                className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40"
+              >
+                <TableCell className="font-medium">{g.name}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {formatDate(g.created_at)}{" "}
+                </TableCell>
+                <TableCell className="flex flex-wrap gap-1 py-3">
+                  {g.topics.slice(0, 3).map((topic) => (
+                    <span
+                      key={topic}
+                      className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${randomBadgeClass()}`}
+                    >
+                      {topic}
+                    </span>
+                  ))}
+                  {g.topics.length > 3 && (
+                    <span className="text-muted-foreground text-xs">
+                      +{g.topics.length - 3} more
+                    </span>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 

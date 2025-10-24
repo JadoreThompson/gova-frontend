@@ -177,7 +177,16 @@ const DeploymentsTable: FC<
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sorted.map((deployment) => (
+            {!sorted.length ? 
+            (
+              <TableRow>
+              <TableCell colSpan={4}>
+                <div className="text-muted-foreground flex h-20 w-full items-center justify-center">
+                  No deployments found
+                </div>
+              </TableCell>
+            </TableRow>
+            ): sorted.map((deployment) => (
               <TableRow
                 key={deployment.deployment_id}
                 onClick={() => props.onRowClick?.(deployment)}
