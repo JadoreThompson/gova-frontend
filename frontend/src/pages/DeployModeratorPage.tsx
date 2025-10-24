@@ -25,6 +25,7 @@ import {
   type DiscordConfigResponseAllowedActions,
   type DiscordConfigResponseAllowedChannels,
 } from "@/openapi";
+import { ArrowLeft } from "lucide-react";
 import { useState, type FC } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -348,56 +349,76 @@ const SelectChannelsCard: FC<
 
   return (
     <div className="flex w-full flex-col">
-      <div className="flex w-full items-center justify-start">
+      <div className="flex w-full flex-col items-start gap-4">
         {discordChannelsQuery.isFetching ? (
-          <Skeleton />
+          <Skeleton className="h-32 w-full rounded-lg" />
         ) : (
-          <div>
-            <div className="flex w-full items-center">
-              <Button variant="secondary" onClick={() => props.onNext(["*"])}>
+          <div className="w-full">
+            <div className="mb-4 flex w-full items-center justify-between">
+              <h4 className="text-lg font-semibold text-gray-200">
+                Select Channels
+              </h4>
+              <Button
+                variant="secondary"
+                onClick={() => props.onNext(["*"])}
+                className="hover:bg-secondary/80 rounded-md px-4 py-2 transition"
+              >
                 Select All
               </Button>
             </div>
-            {discordChannelsQuery.data!.map((ch) => (
-              <>
-                <div
-                  onClick={() =>
-                    setSelectedChannels((prev) => {
-                      let newChs = { ...(prev ?? {}) };
 
-                      if (ch.id in newChs) {
-                        delete newChs[ch.id];
-                      } else {
-                        newChs[ch.id] = true;
-                      }
+            <div className="flex flex-col gap-2">
+              {discordChannelsQuery.data!.map((ch) => {
+                const isSelected = ch.id in selectedChannels;
 
-                      return newChs;
-                    })
-                  }
-                  className="bg-secondary flex w-50 items-center gap-3 border p-1"
-                >
-                  <span
+                return (
+                  <div
+                    key={ch.id}
+                    onClick={() =>
+                      setSelectedChannels((prev) => {
+                        const updated = { ...prev };
+                        if (isSelected) delete updated[ch.id];
+                        else updated[ch.id] = true;
+                        return updated;
+                      })
+                    }
                     className={cn(
-                      "h-5 w-5 rounded-full bg-gray-500",
-                      ch.id in selectedChannels && "bg-green-500",
+                      "bg-secondary/40 hover:bg-secondary/60 flex h-10 w-full cursor-pointer items-center justify-between rounded-lg border border-gray-700 p-3 transition-all duration-200 hover:shadow-md",
+                      isSelected &&
+                        "border-green-400 bg-green-500/20 hover:bg-green-500/30",
                     )}
-                  ></span>
-                  <span>{ch.name}</span>
-                </div>
-              </>
-            ))}
-            <Button
-              type="button"
-              onClick={() =>
-                props.onNext(
-                  Object.keys(
-                    selectedChannels,
-                  ) as DiscordConfigResponseAllowedChannels,
-                )
-              }
-            >
-              Confirm
-            </Button>
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={cn(
+                          "h-4 w-4 rounded-full border border-gray-500 transition-colors",
+                          isSelected && "border-green-500 bg-green-500",
+                        )}
+                      ></span>
+                      <span className="truncate font-medium text-gray-100">
+                        {ch.name}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <Button
+                type="button"
+                onClick={() =>
+                  props.onNext(
+                    Object.keys(
+                      selectedChannels,
+                    ) as DiscordConfigResponseAllowedChannels,
+                  )
+                }
+                className="rounded-md bg-green-600 px-5 py-2 text-white transition hover:bg-green-700"
+              >
+                Confirm
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -511,7 +532,21 @@ const DeployModeratorPage: FC = () => {
     <DashboardLayout>
       {showLoading && <LoadingPage />}
       <div className="mb-3">
-        <h4 className="mb-3 font-semibold">Deploy</h4>
+        <div className="mb-3 flex w-full items-center justify-start gap-2">
+          <div className="flex items-center justify-start">
+            <ArrowLeft
+              size={25}
+              onClick={
+                curStage > 1
+                  ? () => setCurStage((prev) => prev - 1)
+                  : () => navigate(`/moderators/${moderatorId}`)
+              }
+              className="text-muted-foreground cursor-pointer"
+            />
+          </div>
+          <h4 className="font-semibold">Deploy</h4>
+        </div>
+        
         <div className="flex h-1 w-full gap-3">
           {(() => {
             const els = [];
@@ -533,89 +568,76 @@ const DeployModeratorPage: FC = () => {
         </div>
       </div>
 
-      <main className="mb-3">
-        {curStage === 1 && (
-          <SelectPlatformCard
-            onNext={(arg: MessagePlatformType) => {
-              setDeploymentPlatform(arg);
-              setCurStage((prev) => prev + 1);
-            }}
-          />
-        )}
+      <div className="mb-3">
+        <div className="">
+          {curStage === 1 && (
+            <SelectPlatformCard
+              onNext={(arg: MessagePlatformType) => {
+                setDeploymentPlatform(arg);
+                setCurStage((prev) => prev + 1);
+              }}
+            />
+          )}
 
-        {curStage === 2 && (
-          <SelectGuildCard
-            onNext={(arg: string) => {
-              setDiscordConfigResponse(
-                (prev) =>
-                  ({ ...(prev ?? {}), guild_id: arg }) as DiscordConfigResponse,
-              );
-              setCurStage((prev) => prev + 1);
-            }}
-          />
-        )}
+          {curStage === 2 && (
+            <SelectGuildCard
+              onNext={(arg: string) => {
+                setDiscordConfigResponse(
+                  (prev) =>
+                    ({
+                      ...(prev ?? {}),
+                      guild_id: arg,
+                    }) as DiscordConfigResponse,
+                );
+                setCurStage((prev) => prev + 1);
+              }}
+            />
+          )}
 
-        {curStage === 3 && (discordConfigResponse ?? {}).guild_id && (
-          <SelectChannelsCard
-            onNext={(arg: DiscordConfigResponseAllowedChannels) => {
-              setDiscordConfigResponse(
-                (prev) =>
-                  ({ ...prev, allowed_channels: arg }) as DiscordConfigResponse,
-              );
-              setCurStage((prev) => prev + 1);
-            }}
-            guildId={discordConfigResponse!.guild_id}
-          />
-        )}
+          {curStage === 3 && (discordConfigResponse ?? {}).guild_id && (
+            <SelectChannelsCard
+              onNext={(arg: DiscordConfigResponseAllowedChannels) => {
+                setDiscordConfigResponse(
+                  (prev) =>
+                    ({
+                      ...prev,
+                      allowed_channels: arg,
+                    }) as DiscordConfigResponse,
+                );
+                setCurStage((prev) => prev + 1);
+              }}
+              guildId={discordConfigResponse!.guild_id}
+            />
+          )}
 
-        {curStage === 4 && (
-          <SelectActionsCard
-            onNext={(arg: DiscordConfigResponseAllowedActions) => {
-              setDiscordConfigResponse(
-                (prev) =>
-                  ({ ...prev, allowed_actions: arg }) as DiscordConfigResponse,
-              );
-              setCurStage((prev) => prev + 1);
-            }}
-          />
-        )}
+          {curStage === 4 && (
+            <SelectActionsCard
+              onNext={(arg: DiscordConfigResponseAllowedActions) => {
+                setDiscordConfigResponse(
+                  (prev) =>
+                    ({
+                      ...prev,
+                      allowed_actions: arg,
+                    }) as DiscordConfigResponse,
+                );
+                setCurStage((prev) => prev + 1);
+              }}
+            />
+          )}
 
-        {curStage === 5 && (
-          <SelectNameCard
-            onNext={(arg: string) => {
-              handleDeploy({
-                name: arg,
-                platform: deploymentPlatform!,
-                conf: discordConfigResponse as unknown as DeploymentCreateConf,
-              });
-            }}
-          />
-        )}
-      </main>
-
-      {curStage === 1 && (
-        <div className="flex w-full items-center justify-start gap-2">
-          <Button
-            variant={"secondary"}
-            type="button"
-            onClick={() => navigate(`/moderators/${moderatorId}`)}
-          >
-            Back
-          </Button>
+          {curStage === 5 && (
+            <SelectNameCard
+              onNext={(arg: string) => {
+                handleDeploy({
+                  name: arg,
+                  platform: deploymentPlatform!,
+                  conf: discordConfigResponse as unknown as DeploymentCreateConf,
+                });
+              }}
+            />
+          )}
         </div>
-      )}
-
-      {curStage > 1 && (
-        <div className="flex w-full items-center justify-start gap-2">
-          <Button
-            variant={"secondary"}
-            type="button"
-            onClick={() => setCurStage((prev) => prev - 1)}
-          >
-            Back
-          </Button>
-        </div>
-      )}
+      </div>
     </DashboardLayout>
   );
 };
