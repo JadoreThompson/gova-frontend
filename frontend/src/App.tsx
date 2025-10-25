@@ -3,10 +3,10 @@ import ConnectionsPage from "./pages/ConnectionsPage";
 import DeployModeratorPage from "./pages/DeployModeratorPage";
 import DeploymentPage from "./pages/DeploymentPage";
 import GuidelinesPage from "./pages/GuidelinesPage";
-import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ModeratorPage from "./pages/ModeratorPage";
 import ModeratorsPage from "./pages/ModeratorsPage";
+import PricingPage from "./pages/PricingPage";
 import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
 
@@ -15,7 +15,7 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/pricing" element={<PricingPage/>}/>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />

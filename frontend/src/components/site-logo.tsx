@@ -1,14 +1,10 @@
 import { useThemeStore } from "@/stores/theme-store";
 import type { FC } from "react";
 
-const SiteLogo: FC = () => {
+const SiteLogo: FC<{className?: string}> = (props) => {
   const theme = useThemeStore((state) => state.theme);
-
-  if (theme === "dark") {
-    return <img src="/src/assets/logo_white.png" alt="logo" />;
-  }
-
-  return <img src="/src/assets/logo_black.png" alt="logo" />;
+  const src = theme === "dark" ? "/src/assets/logo_white.png" : "/src/assets/logo_black.png";
+  return <img src={src} alt="Site Logo" className={props.className} />;
 };
 
 
