@@ -16,6 +16,7 @@ from server.routes.connections.route import router as connections_router
 from server.routes.deployments.route import router as deployments_router
 from server.routes.guidelines.route import router as guidelines_router
 from server.routes.moderators.route import router as moderators_router
+from server.routes.payments.route import router as payments_router
 from server.services import DiscordService
 
 
@@ -77,10 +78,12 @@ app.include_router(connections_router)
 app.include_router(deployments_router)
 app.include_router(guidelines_router)
 app.include_router(moderators_router)
+app.include_router(payments_router)
 
 
 @app.exception_handler(HTTPException)
 async def handle_http_exception(req: Request, exc: HTTPException):
+    print(f"HTTPException: {exc.detail}")
     return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
 
 

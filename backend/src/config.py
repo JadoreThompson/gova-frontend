@@ -4,7 +4,9 @@ import sys
 from datetime import timedelta
 from urllib.parse import quote
 
+import stripe
 from dotenv import load_dotenv
+from redis.asyncio import Redis as AsyncRedis
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -41,6 +43,20 @@ KAFKA_BOOTSTRAP_SERVER = f"{KAFKA_HOST}:{KAFKA_PORT}"
 KAFKA_DEPLOYMENT_EVENTS_TOPIC = os.getenv("KAFKA_DEPLOYMENT_EVENTS_TOPIC")
 
 
+# Redis
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_DB = int(os.getenv("REDIS_DB", "0"))
+REDIS_CLIENT = AsyncRedis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    db=REDIS_DB,
+    encoding="utf-8",
+    decode_responses=True,
+)
+REDIS_STRIPE_INVOICE_METADATA_KEY = os.getenv("REDIS_STRIPE_INVOICE_METADATA_KEY")
+
+
 # Auth
 COOKIE_ALIAS = "app-cookie"
 JWT_ALGO = os.getenv("JWT_ALGO", "HS256")
@@ -75,12 +91,20 @@ DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
 DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
 DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI")
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-DISCORD_USER_BOT_TOKEN = os.getenv("DISCORD_USER_BOT_TOKEN") # Mimicks a user
 
 
 # Server
 PAGE_SIZE = 10
-ACTION_DEFINITIONS_PATH = os.path.join(RESOURCES_PATH, "action-definitions.openapi.json")
+ACTION_DEFINITIONS_PATH = os.path.join(
+    RESOURCES_PATH, "action-definitions.openapi.json"
+)
+
+
+# Stripe
+STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
+STRIPE_PRICING_PRO_WEBHOOOK_SECRET = os.getenv("STRIPE_PRICING_PRO_WEBHOOOK_SECRET")
+STRIPE_PRICING_PRO_PRICE_ID = os.getenv("STRIPE_PRICING_PRO_PRICE_ID")
+stripe.api_key = STRIPE_API_KEY
 
 
 # Logging
@@ -102,4 +126,3 @@ kafka_logger = logging.getLogger("kafka")
 kafka_logger.setLevel(logging.CRITICAL)
 
 del kafka_logger
-

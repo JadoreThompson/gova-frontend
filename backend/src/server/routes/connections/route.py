@@ -56,7 +56,7 @@ async def get_discord_channels(
         parsed_id = int(guild_id)
     except TypeError:
         raise HTTPException(status_code=400, detail="Invalid guild id.")
-    
+
     channels = await DiscordService.fetch_guild_channels(parsed_id)
     return [GuildChannel(id=str(ch.id), name=ch.name) for ch in channels]
 
