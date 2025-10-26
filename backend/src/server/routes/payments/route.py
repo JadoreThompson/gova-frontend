@@ -73,7 +73,7 @@ async def get_payment_link(
             status_code=500, detail=f"Failed to create checkout session: {e}"
         )
 
-    return RedirectResponse(url=checkout_session.url)
+    return {'url': checkout_session.url}
 
 
 @router.post("/stripe/webhook")
