@@ -3,11 +3,7 @@ import asyncio
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from openapi_pydantic import Components, Info, OpenAPI, Schema
 
-import engine.discord.actions as discord_actions
-from config import ACTION_DEFINITIONS_PATH
-from core.enums import MessagePlatformType
 from infra import KafkaManager, DiscordClientManager
 from server.exc import JWTError
 from server.routes.actions.route import router as action_router

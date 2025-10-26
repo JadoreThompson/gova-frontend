@@ -11,16 +11,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine
 
 
+PRODUCTION = False
+
 BASE_PATH = os.path.dirname(__file__)
 RESOURCES_PATH = os.path.join(BASE_PATH, "resources")
 PROMPTS_PATH = os.path.join(RESOURCES_PATH, "prompts")
 
-
 load_dotenv(os.path.join(BASE_PATH, ".env"))
-
-
-PRODUCTION = False
-
 
 # DB
 DB_HOST_CREDS = f"{os.getenv("DB_HOST", "localhost")}:{os.getenv("DB_PORT", 5132)}"
@@ -35,13 +32,11 @@ DB_ENGINE_SYNC = create_engine(
     f"postgresql+psycopg2://{DB_USER_CREDS}@{DB_HOST_CREDS}/{DB_NAME}"
 )
 
-
 # Kafka
 KAFKA_HOST = os.getenv("KAFKA_HOST")
 KAFKA_PORT = int(os.getenv("KAFKA_PORT"))
 KAFKA_BOOTSTRAP_SERVER = f"{KAFKA_HOST}:{KAFKA_PORT}"
 KAFKA_DEPLOYMENT_EVENTS_TOPIC = os.getenv("KAFKA_DEPLOYMENT_EVENTS_TOPIC")
-
 
 # Redis
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
@@ -58,22 +53,14 @@ REDIS_EMAIL_VERIFICATION_KEY = os.getenv("REDIS_EMAIL_VERIFICATION_KEY")
 REDIS_ACTION_VERIFICATION_PREFIX = "action-verification"
 REDIS_STRIPE_INVOICE_METADATA_KEY = os.getenv("REDIS_STRIPE_INVOICE_METADATA_KEY")
 REDIS_EMAIL_VERIFICATION_KEY_PREFIX = os.getenv("REDIS_EMAIL_VERIFICATION_KEY_PREFIX")
+REDIS_STRIPE_INVOICE_METADATA_KEY_PREFIX = os.getenv("REDIS_STRIPE_INVOICE_METADATA_KEY_PREFIX")
 REDIS_EXPIRY = 900
-
-
-# Auth
-COOKIE_ALIAS = "app-cookie"
-JWT_ALGO = os.getenv("JWT_ALGO", "HS256")
-JWT_SECRET = os.getenv("JWT_SECRET", "secret")
-JWT_EXPIRY = timedelta(days=1000)
-
 
 # LLM
 LLM_API_KEY = os.getenv("LLM_API_KEY")
 LLM_AGENT_ID = os.getenv("LLM_AGENT_ID")
 LLM_BASE_URL = "https://api.mistral.ai/v1/"
 LLM_MODEL_NAME = "open-mixtral-8x22b"
-
 
 # Prompts
 with open(os.path.join(PROMPTS_PATH, "security-system-prompt.txt")) as f:
@@ -89,20 +76,20 @@ with open(os.path.join(PROMPTS_PATH, "final-system-prompt.txt")) as f:
 with open(os.path.join(PROMPTS_PATH, "final-prompt-template.txt")) as f:
     FINAL_PROMPT_TEMPLATE = f.read()
 
-
 # Discord
 DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
 DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
 DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI")
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 
-
 # Server
 PAGE_SIZE = 10
-ACTION_DEFINITIONS_PATH = os.path.join(
-    RESOURCES_PATH, "action-definitions.openapi.json"
-)
 
+# Auth
+COOKIE_ALIAS = "app-cookie"
+JWT_ALGO = os.getenv("JWT_ALGO", "HS256")
+JWT_SECRET = os.getenv("JWT_SECRET", "secret")
+JWT_EXPIRY = timedelta(days=1000)
 
 # Stripe
 STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
@@ -110,17 +97,14 @@ STRIPE_PRICING_PRO_WEBHOOOK_SECRET = os.getenv("STRIPE_PRICING_PRO_WEBHOOOK_SECR
 STRIPE_PRICING_PRO_PRICE_ID = os.getenv("STRIPE_PRICING_PRO_PRICE_ID")
 stripe.api_key = STRIPE_API_KEY
 
-
 # SMTP
 SMTP_SERVER = os.getenv("SMTP_SERVER")
 SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
 SMTP_LOGIN = os.getenv("SMTP_LOGIN")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
-
 # Brevo
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-
 
 # Logging
 logging.basicConfig(
@@ -139,5 +123,8 @@ logger.addHandler(handler)
 
 kafka_logger = logging.getLogger("kafka")
 kafka_logger.setLevel(logging.CRITICAL)
-
 del kafka_logger
+
+stripe_logger = logging.getLogger("stripe")
+stripe_logger.setLevel(logging.CRITICAL)
+del stripe_logger

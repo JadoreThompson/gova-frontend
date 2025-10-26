@@ -1,4 +1,3 @@
-import json
 import logging
 from datetime import datetime
 
@@ -7,17 +6,13 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config import (
-    REDIS_CLIENT,
-    REDIS_STRIPE_INVOICE_METADATA_KEY,
-    STRIPE_PRICING_PRO_PRICE_ID,
-    STRIPE_PRICING_PRO_WEBHOOOK_SECRET
-)
+from config import STRIPE_PRICING_PRO_PRICE_ID
 from core.enums import PricingTierType
 from db_models import Users
 from server.dependencies import depends_db_sess, depends_jwt
+from server.services.payment_service import PaymentService, VerificationError
 from server.typing import JWTPayload
-from sqlalchemy import select, update
+from sqlalchemy import select
 
 
 logger = logging.getLogger("paymnents_router")
@@ -85,48 +80,11 @@ async def get_payment_link(
 
 
 @router.post("/stripe/webhook")
-async def stripe_webhook(
-    req: Request, db_sess: AsyncSession = Depends(depends_db_sess)
-):
+async def stripe_webhook(req: Request):
     """Stripe webhook endpoint for handling subscription events."""
-    payload = await req.body()
     sig_header = req.headers.get("stripe-signature")
-
     try:
-        event = stripe.Webhook.construct_event(
-            payload=payload,
-            sig_header=sig_header,
-            secret=STRIPE_PRICING_PRO_WEBHOOOK_SECRET,
-        )
-    except stripe.SignatureVerificationError:
-        raise HTTPException(status_code=400, detail="Invalid signature.")
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid payload.")
-
-    event_type = event.get("type")
-
-    if event_type == "invoice.payment_succeeded":
-        invoice_id = event["data"]["object"]["id"]
-        metadata: dict | None = await REDIS_CLIENT.hget(
-            REDIS_STRIPE_INVOICE_METADATA_KEY, invoice_id
-        )
-        if metadata:
-            await REDIS_CLIENT.hdel(REDIS_STRIPE_INVOICE_METADATA_KEY, invoice_id)
-            user_id = json.loads(metadata).get("user_id")
-            if user_id:
-                await db_sess.execute(
-                    update(Users)
-                    .values(pricing_tier=PricingTierType.PRO.value)
-                    .where(Users.user_id == user_id)
-                )
-                await db_sess.commit()
-    elif event_type == "checkout.session.completed":
-        await REDIS_CLIENT.hset(
-            REDIS_STRIPE_INVOICE_METADATA_KEY,
-            event["data"]["object"]["invoice"],
-            str(event["data"]["object"]["metadata"]),
-        )
-    else:
-        logger.warning(f"Unhandled event type: {event_type}")
-
-    return {"received": True}
+        success = await PaymentService.handle_event(await req.body(), sig_header=sig_header)
+        return {"success": success}
+    except VerificationError as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -12,7 +12,6 @@ dependencies = [
     "discord-py>=2.6.4",
     "fastapi>=0.119.0",
     "kafka-python>=2.2.15",
-    "openapi-pydantic>=0.5.1",
     "pgvector>=0.4.1",
     "psycopg2>=2.9.11",
     "pydantic[email]>=2.12.0",
