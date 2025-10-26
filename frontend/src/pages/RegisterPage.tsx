@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRegisterMutation } from "@/hooks/auth-hooks";
+import { useRedirectAuthenticated } from "@/hooks/redirect-authenticated";
 import { useState, type FC } from "react";
 import { Link, useNavigate } from "react-router";
 
 const RegisterPage: FC = () => {
   const navigate = useNavigate();
   const registerMutation = useRegisterMutation();
+  const redirectAuthenticated = useRedirectAuthenticated({ to: "/moderators" });
 
   const [formData, setFormData] = useState({
     username: "",
@@ -20,7 +22,9 @@ const RegisterPage: FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await registerMutation.mutateAsync(formData).then(() => setTimeout(() => navigate("/moderators"), 200));
+      await registerMutation
+        .mutateAsync(formData)
+        .then(() => setTimeout(() => navigate("/moderators"), 200));
     } catch (err) {
       console.error(err);
     }
@@ -29,7 +33,9 @@ const RegisterPage: FC = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-neutral-900">
       <div className="w-full max-w-md rounded-lg border bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-800">
-        <h2 className="mb-6 text-center text-2xl font-semibold">Create Account</h2>
+        <h2 className="mb-6 text-center text-2xl font-semibold">
+          Create Account
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -63,12 +69,18 @@ const RegisterPage: FC = () => {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={registerMutation.isPending}
+          >
             {registerMutation.isPending ? "Registering..." : "Register"}
           </Button>
 
           {registerMutation.isError && (
-            <p className="text-sm text-red-500">Registration failed. Please try again.</p>
+            <p className="text-sm text-red-500">
+              Registration failed. Please try again.
+            </p>
           )}
         </form>
 

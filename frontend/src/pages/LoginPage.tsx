@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLoginMutation } from "@/hooks/auth-hooks";
+import { useRedirectAuthenticated } from "@/hooks/redirect-authenticated";
 import { useState, type FC } from "react";
 import { Link, useNavigate } from "react-router";
 
 const LoginPage: FC = () => {
   const navigate = useNavigate();
   const loginMutation = useLoginMutation();
+  const redirectAuthenticated = useRedirectAuthenticated({to: "/moderators"});
 
   const [formData, setFormData] = useState({
     username: "",
@@ -30,7 +32,9 @@ const LoginPage: FC = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-neutral-900">
       <div className="w-full max-w-md rounded-lg border bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-800">
-        <h2 className="mb-6 text-center text-2xl font-semibold">Welcome Back</h2>
+        <h2 className="mb-6 text-center text-2xl font-semibold">
+          Welcome Back
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -65,12 +69,18 @@ const LoginPage: FC = () => {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loginMutation.isPending}
+          >
             {loginMutation.isPending ? "Logging in..." : "Login"}
           </Button>
 
           {loginMutation.isError && (
-            <p className="text-sm text-red-500">Login failed. Please check your credentials.</p>
+            <p className="text-sm text-red-500">
+              Login failed. Please check your credentials.
+            </p>
           )}
         </form>
 
