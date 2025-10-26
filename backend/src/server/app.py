@@ -20,34 +20,6 @@ from server.routes.payments.route import router as payments_router
 from server.services import DiscordService
 
 
-def build_definitions():
-    mods = ((MessagePlatformType.DISCORD, discord_actions.__dict__),)
-    schemas: dict[str, Schema] = {}
-
-    for plat, mod in mods:
-        for name, model in mod.items():
-            if name.endswith("Definition"):
-                model_schema = model.model_json_schema()
-                schema_name = model_schema.get("title") or f"{plat.name}_{name}"
-                schemas[schema_name] = Schema(**model_schema)
-
-    openapi = OpenAPI(
-        openapi="3.1.1",
-        info=Info(
-            title="Action Definitions API",
-            version="0.0.0",
-            description="Automatically generated from Pydantic models for action definitions.",
-        ),
-        paths={},
-        components=Components(schemas=schemas),
-    )
-
-    with open(ACTION_DEFINITIONS_PATH, "w") as f:
-        f.write(openapi.model_dump_json(indent=2, exclude_none=True))
-
-    print(f"OpenAPI schema written to {ACTION_DEFINITIONS_PATH}")
-
-
 async def lifespan(app: FastAPI):
     DiscordService.start()
     await asyncio.gather(
