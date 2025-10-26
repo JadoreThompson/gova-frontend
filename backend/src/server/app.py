@@ -13,6 +13,7 @@ from server.routes.deployments.route import router as deployments_router
 from server.routes.guidelines.route import router as guidelines_router
 from server.routes.moderators.route import router as moderators_router
 from server.routes.payments.route import router as payments_router
+from server.routes.public.route import router as public_router
 from server.services import DiscordService
 
 
@@ -47,6 +48,7 @@ app.include_router(deployments_router)
 app.include_router(guidelines_router)
 app.include_router(moderators_router)
 app.include_router(payments_router)
+app.include_router(public_router)
 
 
 @app.exception_handler(HTTPException)

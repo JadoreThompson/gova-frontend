@@ -8,12 +8,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config import (
-    REDIS_CLIENT,
-    REDIS_EMAIL_VERIFICATION_KEY,
-    REDIS_ACTION_VERIFICATION_PREFIX,
-    REDIS_EXPIRY,
-)
+from config import REDIS_CLIENT, REDIS_EXPIRY
 from core.enums import MessagePlatformType
 from utils.db import get_datetime
 from db_models import Users
