@@ -160,7 +160,7 @@ async def get_me(
                 username=identity.username, avatar=identity.avatar
             )
 
-    return UserMe(username=user.username, connections=plat_conns)
+    return UserMe(username=user.username, connections=plat_conns, pricing_tier=user.pricing_tier)
 
 
 @router.get("/discord/oauth")
