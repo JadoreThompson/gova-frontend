@@ -12,12 +12,13 @@ import { Label } from "@/components/ui/label";
 import { useRegisterMutation } from "@/hooks/auth-hooks";
 import { useRedirectAuthenticated } from "@/hooks/redirect-authenticated";
 import { Loader2 } from "lucide-react";
-import { useState, type FC, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
+import { useRef, useState, type FC, type FormEvent } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 
 const RegisterPage: FC = () => {
   useRedirectAuthenticated({ to: "/moderators" });
 
+  const location = useLocation();
   const navigate = useNavigate();
   const registerMutation = useRegisterMutation();
 
@@ -27,6 +28,8 @@ const RegisterPage: FC = () => {
     password: "",
   });
   const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const queryParamsRef = useRef(new URLSearchParams(location.search));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -38,7 +41,13 @@ const RegisterPage: FC = () => {
 
     registerMutation
       .mutateAsync(formData)
-      .then(() => navigate("/confirm-email"))
+      .then(() =>
+        navigate(
+          queryParamsRef.current.size
+            ? `/confirm-email?${queryParamsRef.current.toString()}`
+            : "/confirm-email",
+        ),
+      )
       .catch((err: any) => {
         const message = err?.error || "Registration failed. Please try again.";
         setErrorMessage(message);

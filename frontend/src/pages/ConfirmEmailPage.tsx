@@ -61,13 +61,15 @@ const ConfirmEmailPage: FC = () => {
 
     verifyEmailMutation
       .mutateAsync({ code: tokenInput })
-      .then(() =>
-        navigate("/login", {
-          state: {
-            message: "Email verified successfully! You can now log in.",
-          },
-        }),
-      )
+      .then(() => {
+        const next = queryParamsRef.current.get("next");
+
+        if (next?.trim()) {
+          next.startsWith("/") ? navigate(next) : window.open(next);
+        } else {
+          navigate("/moderators");
+        }
+      })
       .catch(() =>
         setErrorMessage("The provided code is invalid or has expired."),
       );
