@@ -180,6 +180,7 @@ const ChangeUsernameCard: FC<ChangeUsernameCardProps> = ({
   );
 };
 
+import PricingTierBadge from "@/components/pricing-tier-badge";
 import { useChangePasswordMutation } from "@/hooks/auth-hooks";
 
 type PasswordStep = "enter-password" | "verify-code";
@@ -372,7 +373,12 @@ const ProfilePage: FC = () => {
                   className="h-full w-full object-cover"
                 />
               </div>
-              <h2 className="text-xl font-semibold">{meQuery.data.username}</h2>
+              <div className="flex items-center justify-center gap-3">
+                <h2 className="text-xl font-semibold">
+                  {meQuery.data.username}
+                </h2>
+                <PricingTierBadge tier={meQuery.data.pricing_tier} />
+              </div>
             </div>
 
             <Tabs defaultValue="general" className="w-full">
