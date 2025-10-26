@@ -8,8 +8,8 @@ from aiokafka import AIOKafkaProducer
 import stripe
 from sqlalchemy import select, update
 
-from backend.src.core.events import StopDeploymentEvent
-from backend.src.utils.kafka import dump_model
+from core.events import StopDeploymentEvent
+from utils.kafka import dump_model
 from config import (
     KAFKA_BOOTSTRAP_SERVER,
     KAFKA_DEPLOYMENT_EVENTS_TOPIC,
