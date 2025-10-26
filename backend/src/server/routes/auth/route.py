@@ -1,13 +1,21 @@
 import asyncio
+import json
+import random
+import string
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config import REDIS_CLIENT, REDIS_EMAIL_VERIFICATION_KEY
-from utils.db import get_datetime
+from config import (
+    REDIS_CLIENT,
+    REDIS_EMAIL_VERIFICATION_KEY,
+    REDIS_ACTION_VERIFICATION_PREFIX,
+    REDIS_EXPIRY,
+)
 from core.enums import MessagePlatformType
+from utils.db import get_datetime
 from db_models import Users
 from server.dependencies import depends_db_sess, depends_jwt
 from server.services import DiscordService, EmailService, JWTService
@@ -19,12 +27,18 @@ from .models import (
     UserCreate,
     UserLogin,
     UserMe,
-    VerifyEmail,
+    VerifyAction,
+    VerifyCode,
 )
 
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 em_service = EmailService("No-Reply", "no-reply@gova.chat")
+
+
+def _gen_verification_code(k: int = 6):
+    """Generates a random verification code."""
+    return "".join(random.choices(string.ascii_uppercase + string.digits, k=k))
 
 
 @router.post("/register", status_code=202)
@@ -34,12 +48,6 @@ async def register(
     db_sess: AsyncSession = Depends(depends_db_sess),
 ):
     global em_service
-
-    def gen_verification_code():
-        import random
-        import string
-
-        return "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
     res = await db_sess.scalar(
         select(Users).where(
@@ -52,21 +60,16 @@ async def register(
     new_user_id = await db_sess.scalar(
         insert(Users).values(**body.model_dump()).returning(Users.user_id)
     )
+    code = _gen_verification_code()
+    await REDIS_CLIENT.set(code, str(new_user_id), ex=REDIS_EXPIRY)
 
-    verification_code = gen_verification_code()
-    await REDIS_CLIENT.hset(
-        REDIS_EMAIL_VERIFICATION_KEY, verification_code, str(new_user_id)
-    )
-    await REDIS_CLIENT.hexpire(REDIS_EMAIL_VERIFICATION_KEY, 60, verification_code)
     bg_tasks.add_task(
         em_service.send_email,
         body.email,
         "Verify your email",
-        f"Your verification code is: {verification_code}",
+        f"Your verification code is: {code}",
     )
     await db_sess.commit()
-
-    return {"message": "User registered successfully. Please verify your email."}
 
 
 @router.post("/login")
@@ -92,18 +95,30 @@ async def login(body: UserLogin, db_sess: AsyncSession = Depends(depends_db_sess
     return JWTService.set_cookie(user)
 
 
+@router.post("/request-email-verification")
+async def request_email_verification(
+    bg_tasks: BackgroundTasks, jwt: JWTPayload = Depends(depends_jwt)
+):
+    code = _gen_verification_code()
+    await REDIS_CLIENT.set(code, str(jwt.sub), ex=REDIS_EXPIRY)
+    bg_tasks.add_task(
+        em_service.send_email,
+        jwt.em,
+        "Verify your email",
+        f"Your verification code is: {code}",
+    )
+
+
 @router.post("/verify-email")
 async def verify_email(
-    body: VerifyEmail, db_sess: AsyncSession = Depends(depends_db_sess)
+    body: VerifyCode, db_sess: AsyncSession = Depends(depends_db_sess)
 ):
-    user_id = None
-    user_id = await REDIS_CLIENT.hget(REDIS_EMAIL_VERIFICATION_KEY, str(body.code))
+    user_id = await REDIS_CLIENT.get(body.code)
     if not user_id:
         raise HTTPException(
             status_code=400, detail="Invalid or expired verification code."
         )
-    
-    await REDIS_CLIENT.hdel(REDIS_EMAIL_VERIFICATION_KEY, str(body.code))
+    await REDIS_CLIENT.delete(body.code)
 
     user = await db_sess.scalar(
         update(Users)
@@ -117,7 +132,7 @@ async def verify_email(
 
 
 @router.post("/logout")
-async def logout(jwt: JWTPayload = Depends(depends_jwt)):
+async def logout():
     return JWTService.remove_cookie()
 
 
@@ -176,39 +191,138 @@ async def discord_callback(
     return RedirectResponse(url="http://localhost:5173/connections")
 
 
-@router.patch("/change-username")
+@router.post("/change-username", status_code=202)
 async def change_username(
     body: UpdateUsername,
+    bg_tasks: BackgroundTasks,
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
 ):
-    # TODO: Auth and validation
     user = await db_sess.scalar(select(Users).where(Users.user_id == jwt.sub))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await db_sess.execute(
-        update(Users)
-        .where(Users.user_id == user.user_id)
-        .values(username=body.username)
+    existing_user = await db_sess.scalar(
+        select(Users).where(Users.username == body.username)
     )
-    await db_sess.commit()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists.")
+
+    prefix = f"{jwt.sub}:change_username:"
+    async for key in REDIS_CLIENT.scan_iter(f"{prefix}*"):
+        await REDIS_CLIENT.delete(key)
+
+    verification_code = _gen_verification_code()
+    payload = json.dumps(
+        {
+            "user_id": str(user.user_id),
+            "action": "change_username",
+            "new_value": body.username,
+        }
+    )
+
+    await REDIS_CLIENT.set(
+        f"{prefix}{verification_code}",
+        payload,
+        ex=REDIS_EXPIRY,
+    )
+
+    verification_link = f"http://localhost:5173/verify-action?code={verification_code}"
+
+    bg_tasks.add_task(
+        em_service.send_email,
+        user.email,
+        "Confirm Your Username Change",
+        f"Please click the following link to confirm your username change: {verification_link}",
+    )
+
+    return {"message": "A confirmation link has been sent to your email."}
 
 
-@router.patch("/change-password")
+@router.post("/change-password", status_code=202)
 async def change_password(
     body: UpdatePassword,
+    bg_tasks: BackgroundTasks,
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
 ):
-    # TODO: Auth and validation
     user = await db_sess.scalar(select(Users).where(Users.user_id == jwt.sub))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await db_sess.execute(
-        update(Users)
-        .where(Users.user_id == user.user_id)
-        .values(password=body.password)
+    prefix = f"{jwt.sub}:change_password:"
+    async for key in REDIS_CLIENT.scan_iter(f"{prefix}*"):
+        await REDIS_CLIENT.delete(key)
+
+    verification_code = _gen_verification_code(k=24)
+
+    payload = json.dumps(
+        {
+            "user_id": str(user.user_id),
+            "action": "change_password",
+            "new_value": body.password,
+        }
     )
+
+    await REDIS_CLIENT.set(
+        f"{prefix}{verification_code}",
+        payload,
+        ex=REDIS_EXPIRY,
+    )
+
+    verification_link = f"http://localhost:5173/verify-action?code={verification_code}"
+
+    bg_tasks.add_task(
+        em_service.send_email,
+        user.email,
+        "Confirm Your Password Change",
+        f"Please click the following link to confirm your password change: {verification_link}",
+    )
+
+    return {"message": "A confirmation link has been sent to your email."}
+
+
+@router.post("/verify-action")
+async def verify_action(
+    body: VerifyAction,
+    jwt: JWTPayload = Depends(depends_jwt),
+    db_sess: AsyncSession = Depends(depends_db_sess),
+):
+    redis_key = f"{jwt.sub}:{body.action}:{body.code}"
+    data_str = await REDIS_CLIENT.get(redis_key)
+    if not data_str:
+        raise HTTPException(
+            status_code=400, detail="Invalid or expired verification code."
+        )
+    await REDIS_CLIENT.delete(redis_key)
+
+    data = json.loads(data_str)
+    user_id = data["user_id"]
+    if user_id != jwt.sub:
+        raise HTTPException(status_code=401, detail="Unauthorised request.")
+
+    action = data["action"]
+    new_value = data["new_value"]
+
+    if action == "change_username":
+        # Final check for username uniqueness to avoid race conditions
+        existing_user = await db_sess.scalar(
+            select(Users).where(Users.username == new_value)
+        )
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username already taken.")
+
+        await db_sess.execute(
+            update(Users).where(Users.user_id == user_id).values(username=new_value)
+        )
+        message = "Username changed successfully."
+    elif action == "change_password":
+        await db_sess.execute(
+            update(Users).where(Users.user_id == user_id).values(password=new_value)
+        )
+        message = "Password changed successfully."
+    else:
+        raise HTTPException(status_code=400, detail="Unknown action specified.")
+
     await db_sess.commit()
+    return {"message": message}

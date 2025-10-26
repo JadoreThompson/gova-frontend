@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Literal
 
 from core.enums import ConnectionType
 from core.models import CustomBaseModel
@@ -30,5 +31,9 @@ class UpdatePassword(BaseModel):
     password: str
 
 
-class VerifyEmail(BaseModel):
+class VerifyCode(BaseModel):
     code: str
+
+
+class VerifyAction(VerifyCode):
+    action: Literal["change_username", "change_password"]
