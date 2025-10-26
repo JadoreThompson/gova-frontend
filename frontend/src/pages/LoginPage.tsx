@@ -2,13 +2,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLoginMutation } from "@/hooks/auth-hooks";
 import { useRedirectAuthenticated } from "@/hooks/redirect-authenticated";
-import { useState, type FC } from "react";
-import { Link, useNavigate } from "react-router";
+import { useRef, useState, type FC } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 
 const LoginPage: FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParamsRef = useRef(new URLSearchParams(location.search));
   const loginMutation = useLoginMutation();
-  const redirectAuthenticated = useRedirectAuthenticated({to: "/moderators"});
+  const redirectAuthenticated = useRedirectAuthenticated({ to: "/moderators" });
 
   const [formData, setFormData] = useState({
     username: "",
@@ -22,8 +24,16 @@ const LoginPage: FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await loginMutation.mutateAsync(formData);
-      navigate("/moderators");
+      loginMutation.mutateAsync(formData).then(() => {
+        const next = queryParamsRef.current.get("next");
+        if (next) {
+          if (next.startsWith("/")) {
+            navigate(next);
+          } else {
+            return window.open(next, "_blank");
+          }
+        }
+      });
     } catch (err) {
       console.error(err);
     }
@@ -85,8 +95,11 @@ const LoginPage: FC = () => {
         </form>
 
         <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-300">
-          Don’t have an account?{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
+          Don't have an account?{" "}
+          <Link
+            to={`/register${queryParamsRef.current.toString() && `?${queryParamsRef.current.toString()}`}`}
+            className="text-blue-600 hover:underline"
+          >
             Register
           </Link>
         </p>

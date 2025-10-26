@@ -88,6 +88,10 @@ const PricingPage: FC = () => {
         return navigate("/moderators");
       }
 
+      if (rsp.status === 401) {
+        return navigate(`/login?next=${(data as { url: string }).url}`);
+      }
+
       if (rsp.status === 500) {
         return navigate("/500");
       }

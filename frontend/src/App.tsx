@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router";
 import ConnectionsPage from "./pages/ConnectionsPage";
+import ContactUsPage from "./pages/ContactUsPage";
 import DeployModeratorPage from "./pages/DeployModeratorPage";
 import DeploymentPage from "./pages/DeploymentPage";
 import GuidelinesPage from "./pages/GuidelinesPage";
@@ -10,7 +11,6 @@ import PricingPage from "./pages/PricingPage";
 import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
 import Page500 from "./pages/page500";
-import ContactUsPage from "./pages/ContactUsPage";
 
 function App() {
   return (
