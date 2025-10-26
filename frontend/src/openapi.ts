@@ -252,6 +252,16 @@ export interface PlatformConnection {
   avatar: string;
 }
 
+export type PricingTierType =
+  (typeof PricingTierType)[keyof typeof PricingTierType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PricingTierType = {
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+} as const;
+
 export interface UpdatePassword {
   password: string;
 }
@@ -282,6 +292,7 @@ export type UserMeConnections = UserMeConnectionsAnyOf | null;
 
 export interface UserMe {
   username: string;
+  pricing_tier: PricingTierType;
   connections?: UserMeConnections;
 }
 

@@ -1,6 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router";
-import ChangePasswordPage from "./pages/ChangePasswordPage";
-import ChangeUsernamePage from "./pages/ChangeUsername";
 import ConfirmEmailPage from "./pages/ConfirmEmailPage";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import ContactUsPage from "./pages/ContactUsPage";
@@ -11,6 +9,7 @@ import LoginPage from "./pages/LoginPage";
 import ModeratorPage from "./pages/ModeratorPage";
 import ModeratorsPage from "./pages/ModeratorsPage";
 import PricingPage from "./pages/PricingPage";
+import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
 import Page500 from "./pages/page500";
 
@@ -22,7 +21,7 @@ function App() {
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          {/* <Route path="/profile" element={<ProfilePage />} /> */}
+          <Route path="/profile" element={<ProfilePage />} />
           <Route
             path="/deployments/:deploymentId"
             element={<DeploymentPage />}
@@ -38,8 +37,6 @@ function App() {
           <Route path="/contact-us" element={<ContactUsPage />} />
           <Route path="/500" element={<Page500 />} />
           <Route path="/confirm-email" element={<ConfirmEmailPage />} />
-          <Route path="/change-password" element={<ChangePasswordPage />} />
-          <Route path="/change-username" element={<ChangeUsernamePage />} />
         </Routes>
       </BrowserRouter>
     </>
