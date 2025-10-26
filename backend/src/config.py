@@ -54,6 +54,7 @@ REDIS_CLIENT = AsyncRedis(
     encoding="utf-8",
     decode_responses=True,
 )
+REDIS_EMAIL_VERIFICATION_KEY = os.getenv("REDIS_EMAIL_VERIFICATION_KEY")
 REDIS_STRIPE_INVOICE_METADATA_KEY = os.getenv("REDIS_STRIPE_INVOICE_METADATA_KEY")
 
 

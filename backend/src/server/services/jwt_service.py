@@ -34,7 +34,10 @@ class JWTService:
     @staticmethod
     def set_cookie(user: Users, rsp: Response | None = None) -> Response:
         token = JWTService.generate_jwt(
-            sub=user.user_id, em=user.email, pricing_tier=user.pricing_tier
+            sub=user.user_id,
+            em=user.email,
+            pricing_tier=user.pricing_tier,
+            authenticated=user.authenticated_at is not None,
         )
         if rsp is None:
             rsp = Response()

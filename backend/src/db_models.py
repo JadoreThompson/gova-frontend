@@ -42,6 +42,9 @@ class Users(Base):
     )
     payment_info: Mapped[dict] = mapped_column(JSONB, nullable=True)
     payment_link: Mapped[str] = mapped_column(String, nullable=True)
+    authenticated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Relationship
     moderators: Mapped[list["Moderators"]] = relationship(

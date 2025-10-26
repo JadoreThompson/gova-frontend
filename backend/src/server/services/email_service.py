@@ -14,7 +14,7 @@ class EmailService:
         self.sender_email = sender_email
         self._http_sess: ClientSession | None = None
 
-    async def send_mail(self, recipient: str, subject: str, body: str) -> None:
+    async def send_email(self, recipient: str, subject: str, body: str) -> None:
         if not recipient:
             raise ValueError("recipient is required")
 

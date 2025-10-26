@@ -12,6 +12,7 @@ class JWTPayload:
     em: str
     exp: datetime
     pricing_tier: PricingTierType
+    authenticated: bool
 
 
 class Identity(NamedTuple):

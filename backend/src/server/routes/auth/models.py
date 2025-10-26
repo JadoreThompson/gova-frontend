@@ -28,3 +28,7 @@ class UpdateUsername(BaseModel):
 
 class UpdatePassword(BaseModel):
     password: str
+
+
+class VerifyEmail(BaseModel):
+    code: str

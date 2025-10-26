@@ -102,6 +102,6 @@ if __name__ == "__main__":
     if len(args) == 1 or args[1] == "0":
         uvicorn.run("server.app:app", host="0.0.0.0", port=8000, reload=True)
     elif args[1] == "1":
-        asyncio.run(test())
-    elif args[1] == "2":
         main()
+    elif args[1] == "2":
+        asyncio.run(test())
