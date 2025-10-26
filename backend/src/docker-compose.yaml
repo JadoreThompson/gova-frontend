@@ -33,5 +33,16 @@ services:
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
 
+  redis:
+    image: redis:7
+    container_name: ai-chat-mod-redis
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - redis:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
 volumes:
   postgres:
+  redis:
