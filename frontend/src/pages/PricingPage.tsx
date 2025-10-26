@@ -8,7 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 import { type FC, type ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 interface PricingCardProps {
   planType?: "free" | "pro" | "enterprise";
@@ -71,7 +71,33 @@ const PricingCard: FC<PricingCardProps> = (props) => {
 };
 
 const PricingPage: FC = () => {
-  const sendToPaymentLink = () => {};
+  const navigate = useNavigate();
+  const sendToPaymentLink = async () => {
+    try {
+      const rsp = await fetch(
+        import.meta.env.VITE_HTTP_BASE_URL + "/payments/payment-link",
+        { credentials: "include" },
+      );
+      const data = await rsp.json();
+
+      if (rsp.ok) {
+        return window.open((data as { url: string }).url, "_blank");
+      }
+
+      if (rsp.status === 400) {
+        return navigate("/moderators");
+      }
+
+      if (rsp.status === 500) {
+        return navigate("/500");
+      }
+
+      throw Error((data as { error: string }).error);
+    } catch (error) {
+      console.error((error as Error).message);
+    }
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Fixed-positioned inner section */}
@@ -136,15 +162,9 @@ const PricingPage: FC = () => {
                     <Button className="w-full">Contact Us</Button>
                   </Link>
                 ) : config.planType === "pro" ? (
-                  <Link
-                    to={
-                      import.meta.env.VITE_HTTP_BASE_URL +
-                      "/payments/payment-link"
-                    }
-                    className="w-full"
-                  >
-                    <Button className="w-full">Get Started</Button>
-                  </Link>
+                  <Button onClick={sendToPaymentLink} className="w-full">
+                    Get Started
+                  </Button>
                 ) : (
                   <Link to="/login" className="w-full">
                     <Button className="w-full">Get Started</Button>

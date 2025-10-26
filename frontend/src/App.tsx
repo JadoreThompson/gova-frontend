@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router";
 import ConnectionsPage from "./pages/ConnectionsPage";
+import ContactUsPage from "./pages/ContactUsPage";
 import DeployModeratorPage from "./pages/DeployModeratorPage";
 import DeploymentPage from "./pages/DeploymentPage";
 import GuidelinesPage from "./pages/GuidelinesPage";
@@ -9,13 +10,14 @@ import ModeratorsPage from "./pages/ModeratorsPage";
 import PricingPage from "./pages/PricingPage";
 import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
+import Page500 from "./pages/page500";
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/pricing" element={<PricingPage/>}/>
+          <Route path="/pricing" element={<PricingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />
@@ -31,6 +33,7 @@ function App() {
             element={<DeployModeratorPage />}
           />
           <Route path="/connections" element={<ConnectionsPage />} />
+          <Route path="/500" element={<Page500 />} />
         </Routes>
       </BrowserRouter>
     </>
