@@ -2,26 +2,23 @@ import { queryClient } from "@/lib/query/query-client";
 import { queryKeys } from "@/lib/query/query-keys";
 import { handleApi } from "@/lib/utils/base";
 import {
-  changePasswordAuthChangePasswordPatch,
-  changeUsernameAuthChangeUsernamePatch,
   discordCallbackAuthDiscordOauthGet,
   getMeAuthMeGet,
   loginAuthLoginPost,
   logoutAuthLogoutPost,
-  registerAuthRegisterPost,
   type DiscordCallbackAuthDiscordOauthGetParams,
   type UpdatePassword,
   type UpdateUsername,
-  type UserCreate,
   type UserLogin,
 } from "@/openapi";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
+// TODO: Migrate
 export function useRegisterMutation() {
-  return useMutation({
-    mutationFn: async (data: UserCreate) =>
-      handleApi(await registerAuthRegisterPost(data)),
-  });
+  // return useMutation({
+  //   mutationFn: async (data: UserCreate) =>
+  //     handleApi(await registerAuthRegisterPost(data)),
+  // });
 }
 
 export function useLoginMutation() {
@@ -67,6 +64,7 @@ export function useDiscordCallbackQuery(
   });
 }
 
+// TODO: Migrate
 export function useUpdateUsernameMutation() {
   return useMutation({
     mutationFn: async (params: UpdateUsername) =>
@@ -76,6 +74,7 @@ export function useUpdateUsernameMutation() {
   });
 }
 
+// TODO: Migrate
 export function useUpdatePasswordMutation() {
   return useMutation({
     mutationFn: async (params: UpdatePassword) =>

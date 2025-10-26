@@ -1,12 +1,9 @@
-import type { HTTPValidationError } from "@/openapi";
 
 export function handleApi<T>(
-  response:
-    | { status: 200; data: T; headers: Headers }
-    | { status: number; data: HTTPValidationError; headers: Headers },
+  response:{ status: number; data: T; headers: Headers }
 ): T {
-  console.log(response);
-  if (response.status === 200) {
+  console.log("Handle API Response:", response);
+  if (response.status % 200 < 100) {
     return response.data as T;
   }
   throw response.data;

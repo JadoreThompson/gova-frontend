@@ -158,7 +158,7 @@ const PricingPage: FC = () => {
               features={config.features}
               cta={
                 config.planType === "enterprise" ? (
-                  <Link to="#" className="w-full">
+                  <Link to="/contact-us" className="w-full">
                     <Button className="w-full">Contact Us</Button>
                   </Link>
                 ) : config.planType === "pro" ? (

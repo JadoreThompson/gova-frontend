@@ -2,18 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useContactUsMutation } from "@/hooks/contact-us-hooks";
 import { cn } from "@/lib/utils";
+import { type ContactForm } from "@/openapi";
 import { useState, type ChangeEvent, type FC, type FormEvent } from "react";
 
-// A simple interface for the form data
-interface ContactFormData {
-  name: string;
-  email: string;
-  company: string;
-  message: string;
-}
 
-// A simple interface for validation errors
 interface FormErrors {
   name?: string;
   email?: string;
@@ -21,17 +15,17 @@ interface FormErrors {
 }
 
 const ContactUsPage: FC = () => {
-  const [formData, setFormData] = useState<ContactFormData>({
+  const [formData, setFormData] = useState<ContactForm>({
     name: "",
     email: "",
-    company: "",
     message: "",
   });
-
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // A single handler for all input changes
+  const contactUsMutation = useContactUsMutation();
+
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -40,13 +34,15 @@ const ContactUsPage: FC = () => {
       ...prev,
       [name]: value,
     }));
-    // Clear the error for a field when the user starts typing in it
+
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
+
+    setSuccessMessage(null);
+    setSubmitError(null);
   };
 
-  // Basic validation function
   const validateForm = (): FormErrors => {
     const newErrors: FormErrors = {};
     if (!formData.name.trim()) {
@@ -63,29 +59,36 @@ const ContactUsPage: FC = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSuccessMessage(null);
+    setSubmitError(null);
+
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    setIsSubmitting(true);
-    // Simulate an API call
-    console.log("Submitting form data:", formData);
-    setTimeout(() => {
-      alert("Thank you for your message! We will get back to you shortly.");
-      // Reset form state
-      setFormData({ name: "", email: "", company: "", message: "" });
-      setErrors({});
-      setIsSubmitting(false);
-    }, 1000);
+    contactUsMutation
+      .mutateAsync(formData)
+      .then(() => {
+        setSuccessMessage(
+          "Thank you! Your message has been sent successfully. We will be in touch soon.",
+        );
+        setFormData({ name: "", email: "", message: "" });
+        setErrors({});
+      })
+      .catch((error) => {
+        console.error("Failed to submit contact form:", error);
+        setSubmitError(
+          "An error occurred while sending your message. Please try again later.",
+        );
+      });
   };
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Fixed-positioned inner section for consistent layout */}
       <div className="bg-secondary fixed inset-0 m-2 flex flex-col items-center justify-center overflow-y-auto rounded-md border p-4 sm:m-4 sm:p-6 md:p-10 lg:m-8">
         <h2 className="mb-3 text-center text-2xl font-bold sm:text-3xl md:text-4xl">
           Contact Us
@@ -107,6 +110,7 @@ const ContactUsPage: FC = () => {
                   value={formData.name}
                   onChange={handleChange}
                   className={cn(errors.name && "border-red-500")}
+                  disabled={contactUsMutation.isPending}
                 />
                 {errors.name && (
                   <p className="text-sm text-red-500">{errors.name}</p>
@@ -122,43 +126,47 @@ const ContactUsPage: FC = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className={cn(errors.email && "border-red-500")}
+                  disabled={contactUsMutation.isPending}
                 />
                 {errors.email && (
                   <p className="text-sm text-red-500">{errors.email}</p>
                 )}
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="company">Company Name (Optional)</Label>
-              <Input
-                id="company"
-                name="company"
-                placeholder="Acme Inc."
-                value={formData.company}
-                onChange={handleChange}
-              />
-            </div>
+
             <div className="space-y-2">
               <Label htmlFor="message">Your Message</Label>
               <Textarea
                 id="message"
                 name="message"
                 placeholder="Tell us how we can help..."
-                className={cn("min-h-[120px]", errors.message && "border-red-500")}
+                className={cn(
+                  "min-h-[120px]",
+                  errors.message && "border-red-500",
+                )}
                 value={formData.message}
                 onChange={handleChange}
+                disabled={contactUsMutation.isPending}
               />
               {errors.message && (
                 <p className="text-sm text-red-500">{errors.message}</p>
               )}
             </div>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full md:w-auto"
-            >
-              {isSubmitting ? "Sending..." : "Submit Message"}
-            </Button>
+            <div className="flex flex-col items-start gap-4">
+              <Button
+                type="submit"
+                disabled={contactUsMutation.isPending}
+                className="w-full md:w-auto"
+              >
+                {contactUsMutation.isPending ? "Sending..." : "Submit Message"}
+              </Button>
+              {successMessage && (
+                <p className="text-sm text-green-600">{successMessage}</p>
+              )}
+              {submitError && (
+                <p className="text-sm text-red-600">{submitError}</p>
+              )}
+            </div>
           </form>
         </div>
       </div>

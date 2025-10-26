@@ -61,6 +61,12 @@ export const ConnectionType = {
   discord: "discord",
 } as const;
 
+export interface ContactForm {
+  name: string;
+  email: string;
+  message: string;
+}
+
 export type DeploymentActionActionParams = { [key: string]: unknown };
 
 export interface DeploymentAction {
@@ -256,11 +262,17 @@ export interface UpdateUsername {
 
 export interface UserCreate {
   username: string;
+  email: string;
   password: string;
 }
 
+export type UserLoginUsername = string | null;
+
+export type UserLoginEmail = string | null;
+
 export interface UserLogin {
-  username: string;
+  username?: UserLoginUsername;
+  email?: UserLoginEmail;
   password: string;
 }
 
@@ -279,6 +291,24 @@ export interface ValidationError {
   loc: ValidationErrorLocItem[];
   msg: string;
   type: string;
+}
+
+export type VerifyActionAction =
+  (typeof VerifyActionAction)[keyof typeof VerifyActionAction];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const VerifyActionAction = {
+  change_username: "change_username",
+  change_password: "change_password",
+} as const;
+
+export interface VerifyAction {
+  code: string;
+  action: VerifyActionAction;
+}
+
+export interface VerifyCode {
+  code: string;
 }
 
 export type DiscordCallbackAuthDiscordOauthGetParams = {
@@ -370,45 +400,11 @@ export const updateActionStatusActionsLogIdPatch = async (
 };
 
 /**
- * @summary Get Definitions Openapi
- */
-export type getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponse200 =
-  {
-    data: unknown;
-    status: 200;
-  };
-
-export type getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponseSuccess =
-  getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponse200 & {
-    headers: Headers;
-  };
-export type getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponse =
-  getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponseSuccess;
-
-export const getGetDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetUrl =
-  () => {
-    return `/actions/action-definitions.openapi.json`;
-  };
-
-export const getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGet =
-  async (
-    options?: RequestInit,
-  ): Promise<getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponse> => {
-    return customFetch<getDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetResponse>(
-      getGetDefinitionsOpenapiActionsActionDefinitionsOpenapiJsonGetUrl(),
-      {
-        ...options,
-        method: "GET",
-      },
-    );
-  };
-
-/**
  * @summary Register
  */
-export type registerAuthRegisterPostResponse200 = {
+export type registerAuthRegisterPostResponse202 = {
   data: unknown;
-  status: 200;
+  status: 202;
 };
 
 export type registerAuthRegisterPostResponse422 = {
@@ -417,7 +413,7 @@ export type registerAuthRegisterPostResponse422 = {
 };
 
 export type registerAuthRegisterPostResponseSuccess =
-  registerAuthRegisterPostResponse200 & {
+  registerAuthRegisterPostResponse202 & {
     headers: Headers;
   };
 export type registerAuthRegisterPostResponseError =
@@ -487,6 +483,84 @@ export const loginAuthLoginPost = async (
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(userLogin),
   });
+};
+
+/**
+ * @summary Request Email Verification
+ */
+export type requestEmailVerificationAuthRequestEmailVerificationPostResponse200 =
+  {
+    data: unknown;
+    status: 200;
+  };
+
+export type requestEmailVerificationAuthRequestEmailVerificationPostResponseSuccess =
+  requestEmailVerificationAuthRequestEmailVerificationPostResponse200 & {
+    headers: Headers;
+  };
+export type requestEmailVerificationAuthRequestEmailVerificationPostResponse =
+  requestEmailVerificationAuthRequestEmailVerificationPostResponseSuccess;
+
+export const getRequestEmailVerificationAuthRequestEmailVerificationPostUrl =
+  () => {
+    return `/auth/request-email-verification`;
+  };
+
+export const requestEmailVerificationAuthRequestEmailVerificationPost = async (
+  options?: RequestInit,
+): Promise<requestEmailVerificationAuthRequestEmailVerificationPostResponse> => {
+  return customFetch<requestEmailVerificationAuthRequestEmailVerificationPostResponse>(
+    getRequestEmailVerificationAuthRequestEmailVerificationPostUrl(),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+/**
+ * @summary Verify Email
+ */
+export type verifyEmailAuthVerifyEmailPostResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type verifyEmailAuthVerifyEmailPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type verifyEmailAuthVerifyEmailPostResponseSuccess =
+  verifyEmailAuthVerifyEmailPostResponse200 & {
+    headers: Headers;
+  };
+export type verifyEmailAuthVerifyEmailPostResponseError =
+  verifyEmailAuthVerifyEmailPostResponse422 & {
+    headers: Headers;
+  };
+
+export type verifyEmailAuthVerifyEmailPostResponse =
+  | verifyEmailAuthVerifyEmailPostResponseSuccess
+  | verifyEmailAuthVerifyEmailPostResponseError;
+
+export const getVerifyEmailAuthVerifyEmailPostUrl = () => {
+  return `/auth/verify-email`;
+};
+
+export const verifyEmailAuthVerifyEmailPost = async (
+  verifyCode: VerifyCode,
+  options?: RequestInit,
+): Promise<verifyEmailAuthVerifyEmailPostResponse> => {
+  return customFetch<verifyEmailAuthVerifyEmailPostResponse>(
+    getVerifyEmailAuthVerifyEmailPostUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(verifyCode),
+    },
+  );
 };
 
 /**
@@ -605,42 +679,42 @@ export const discordCallbackAuthDiscordOauthGet = async (
 /**
  * @summary Change Username
  */
-export type changeUsernameAuthChangeUsernamePatchResponse200 = {
+export type changeUsernameAuthChangeUsernamePostResponse202 = {
   data: unknown;
-  status: 200;
+  status: 202;
 };
 
-export type changeUsernameAuthChangeUsernamePatchResponse422 = {
+export type changeUsernameAuthChangeUsernamePostResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type changeUsernameAuthChangeUsernamePatchResponseSuccess =
-  changeUsernameAuthChangeUsernamePatchResponse200 & {
+export type changeUsernameAuthChangeUsernamePostResponseSuccess =
+  changeUsernameAuthChangeUsernamePostResponse202 & {
     headers: Headers;
   };
-export type changeUsernameAuthChangeUsernamePatchResponseError =
-  changeUsernameAuthChangeUsernamePatchResponse422 & {
+export type changeUsernameAuthChangeUsernamePostResponseError =
+  changeUsernameAuthChangeUsernamePostResponse422 & {
     headers: Headers;
   };
 
-export type changeUsernameAuthChangeUsernamePatchResponse =
-  | changeUsernameAuthChangeUsernamePatchResponseSuccess
-  | changeUsernameAuthChangeUsernamePatchResponseError;
+export type changeUsernameAuthChangeUsernamePostResponse =
+  | changeUsernameAuthChangeUsernamePostResponseSuccess
+  | changeUsernameAuthChangeUsernamePostResponseError;
 
-export const getChangeUsernameAuthChangeUsernamePatchUrl = () => {
+export const getChangeUsernameAuthChangeUsernamePostUrl = () => {
   return `/auth/change-username`;
 };
 
-export const changeUsernameAuthChangeUsernamePatch = async (
+export const changeUsernameAuthChangeUsernamePost = async (
   updateUsername: UpdateUsername,
   options?: RequestInit,
-): Promise<changeUsernameAuthChangeUsernamePatchResponse> => {
-  return customFetch<changeUsernameAuthChangeUsernamePatchResponse>(
-    getChangeUsernameAuthChangeUsernamePatchUrl(),
+): Promise<changeUsernameAuthChangeUsernamePostResponse> => {
+  return customFetch<changeUsernameAuthChangeUsernamePostResponse>(
+    getChangeUsernameAuthChangeUsernamePostUrl(),
     {
       ...options,
-      method: "PATCH",
+      method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
       body: JSON.stringify(updateUsername),
     },
@@ -650,44 +724,89 @@ export const changeUsernameAuthChangeUsernamePatch = async (
 /**
  * @summary Change Password
  */
-export type changePasswordAuthChangePasswordPatchResponse200 = {
+export type changePasswordAuthChangePasswordPostResponse202 = {
   data: unknown;
-  status: 200;
+  status: 202;
 };
 
-export type changePasswordAuthChangePasswordPatchResponse422 = {
+export type changePasswordAuthChangePasswordPostResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type changePasswordAuthChangePasswordPatchResponseSuccess =
-  changePasswordAuthChangePasswordPatchResponse200 & {
+export type changePasswordAuthChangePasswordPostResponseSuccess =
+  changePasswordAuthChangePasswordPostResponse202 & {
     headers: Headers;
   };
-export type changePasswordAuthChangePasswordPatchResponseError =
-  changePasswordAuthChangePasswordPatchResponse422 & {
+export type changePasswordAuthChangePasswordPostResponseError =
+  changePasswordAuthChangePasswordPostResponse422 & {
     headers: Headers;
   };
 
-export type changePasswordAuthChangePasswordPatchResponse =
-  | changePasswordAuthChangePasswordPatchResponseSuccess
-  | changePasswordAuthChangePasswordPatchResponseError;
+export type changePasswordAuthChangePasswordPostResponse =
+  | changePasswordAuthChangePasswordPostResponseSuccess
+  | changePasswordAuthChangePasswordPostResponseError;
 
-export const getChangePasswordAuthChangePasswordPatchUrl = () => {
+export const getChangePasswordAuthChangePasswordPostUrl = () => {
   return `/auth/change-password`;
 };
 
-export const changePasswordAuthChangePasswordPatch = async (
+export const changePasswordAuthChangePasswordPost = async (
   updatePassword: UpdatePassword,
   options?: RequestInit,
-): Promise<changePasswordAuthChangePasswordPatchResponse> => {
-  return customFetch<changePasswordAuthChangePasswordPatchResponse>(
-    getChangePasswordAuthChangePasswordPatchUrl(),
+): Promise<changePasswordAuthChangePasswordPostResponse> => {
+  return customFetch<changePasswordAuthChangePasswordPostResponse>(
+    getChangePasswordAuthChangePasswordPostUrl(),
     {
       ...options,
-      method: "PATCH",
+      method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
       body: JSON.stringify(updatePassword),
+    },
+  );
+};
+
+/**
+ * @summary Verify Action
+ */
+export type verifyActionAuthVerifyActionPostResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type verifyActionAuthVerifyActionPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type verifyActionAuthVerifyActionPostResponseSuccess =
+  verifyActionAuthVerifyActionPostResponse200 & {
+    headers: Headers;
+  };
+export type verifyActionAuthVerifyActionPostResponseError =
+  verifyActionAuthVerifyActionPostResponse422 & {
+    headers: Headers;
+  };
+
+export type verifyActionAuthVerifyActionPostResponse =
+  | verifyActionAuthVerifyActionPostResponseSuccess
+  | verifyActionAuthVerifyActionPostResponseError;
+
+export const getVerifyActionAuthVerifyActionPostUrl = () => {
+  return `/auth/verify-action`;
+};
+
+export const verifyActionAuthVerifyActionPost = async (
+  verifyAction: VerifyAction,
+  options?: RequestInit,
+): Promise<verifyActionAuthVerifyActionPostResponse> => {
+  return customFetch<verifyActionAuthVerifyActionPostResponse>(
+    getVerifyActionAuthVerifyActionPostUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(verifyAction),
     },
   );
 };
@@ -1843,6 +1962,115 @@ export const getModeratorStatsModeratorsModeratorIdStatsGet = async (
     {
       ...options,
       method: "GET",
+    },
+  );
+};
+
+/**
+ * Generate a Stripe Checkout link for a given user and pricing tier.
+ * @summary Get Payment Link
+ */
+export type getPaymentLinkPaymentsPaymentLinkGetResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type getPaymentLinkPaymentsPaymentLinkGetResponseSuccess =
+  getPaymentLinkPaymentsPaymentLinkGetResponse200 & {
+    headers: Headers;
+  };
+export type getPaymentLinkPaymentsPaymentLinkGetResponse =
+  getPaymentLinkPaymentsPaymentLinkGetResponseSuccess;
+
+export const getGetPaymentLinkPaymentsPaymentLinkGetUrl = () => {
+  return `/payments/payment-link`;
+};
+
+export const getPaymentLinkPaymentsPaymentLinkGet = async (
+  options?: RequestInit,
+): Promise<getPaymentLinkPaymentsPaymentLinkGetResponse> => {
+  return customFetch<getPaymentLinkPaymentsPaymentLinkGetResponse>(
+    getGetPaymentLinkPaymentsPaymentLinkGetUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * Stripe webhook endpoint for handling subscription events.
+ * @summary Stripe Webhook
+ */
+export type stripeWebhookPaymentsStripeWebhookPostResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type stripeWebhookPaymentsStripeWebhookPostResponseSuccess =
+  stripeWebhookPaymentsStripeWebhookPostResponse200 & {
+    headers: Headers;
+  };
+export type stripeWebhookPaymentsStripeWebhookPostResponse =
+  stripeWebhookPaymentsStripeWebhookPostResponseSuccess;
+
+export const getStripeWebhookPaymentsStripeWebhookPostUrl = () => {
+  return `/payments/stripe/webhook`;
+};
+
+export const stripeWebhookPaymentsStripeWebhookPost = async (
+  options?: RequestInit,
+): Promise<stripeWebhookPaymentsStripeWebhookPostResponse> => {
+  return customFetch<stripeWebhookPaymentsStripeWebhookPostResponse>(
+    getStripeWebhookPaymentsStripeWebhookPostUrl(),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+/**
+ * @summary Contact Us
+ */
+export type contactUsPublicContactUsPostResponse202 = {
+  data: unknown;
+  status: 202;
+};
+
+export type contactUsPublicContactUsPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type contactUsPublicContactUsPostResponseSuccess =
+  contactUsPublicContactUsPostResponse202 & {
+    headers: Headers;
+  };
+export type contactUsPublicContactUsPostResponseError =
+  contactUsPublicContactUsPostResponse422 & {
+    headers: Headers;
+  };
+
+export type contactUsPublicContactUsPostResponse =
+  | contactUsPublicContactUsPostResponseSuccess
+  | contactUsPublicContactUsPostResponseError;
+
+export const getContactUsPublicContactUsPostUrl = () => {
+  return `/public/contact-us`;
+};
+
+export const contactUsPublicContactUsPost = async (
+  contactForm: ContactForm,
+  options?: RequestInit,
+): Promise<contactUsPublicContactUsPostResponse> => {
+  return customFetch<contactUsPublicContactUsPostResponse>(
+    getContactUsPublicContactUsPostUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(contactForm),
     },
   );
 };
