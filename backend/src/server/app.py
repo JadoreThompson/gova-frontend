@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from config import DOMAIN, SCHEME
 from infra import KafkaManager, DiscordClientManager
 from server.exc import JWTError
 from server.routes.actions.route import router as action_router
@@ -35,7 +36,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[f"{SCHEME}://{DOMAIN}"],
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,
