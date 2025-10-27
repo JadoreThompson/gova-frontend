@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.enums import MessagePlatformType
 from db_models import Users
 from server.dependencies import depends_db_sess, depends_jwt
-from server.services import DiscordService
+from server.services import DiscordService, EncryptionService
 from server.typing import JWTPayload
 from .models import Guild, GuildChannel
 
@@ -26,7 +26,8 @@ async def get_owned_discord_guilds(
     if not discord_conn:
         return []
 
-    access_token = discord_conn.get("access_token")
+    decrypted = EncryptionService.decrypt(discord_conn, expected_aad=str(user.user_id))
+    access_token = decrypted.get("access_token")
     if not access_token:
         return []
 
@@ -48,7 +49,8 @@ async def get_discord_channels(
     if not discord_conn:
         return []
 
-    access_token = discord_conn.get("access_token")
+    decrypted = EncryptionService.decrypt(discord_conn, expected_aad=str(user.user_id))
+    access_token = decrypted.get("access_token")
     if not access_token:
         return []
 

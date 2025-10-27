@@ -33,7 +33,7 @@ def main() -> None:
     )
 
     ps = [
-        Process(target=target, args=args, kwargs=kw, name=name)#, daemon=True)
+        Process(target=target, args=args, kwargs=kw, name=name)
         for target, args, kw, name in pargs
     ]
 
@@ -49,9 +49,7 @@ def main() -> None:
                     p.join()
 
                     target, args, kw, name = pargs[idx]
-                    ps[idx] = Process(
-                        target=target, args=args, kwargs=kw, name=name#, daemon=True
-                    )
+                    ps[idx] = Process(target=target, args=args, kwargs=kw, name=name)
                     ps[idx].start()
 
                     logger.critical(
@@ -75,7 +73,11 @@ def main() -> None:
 
 async def test():
     from config import DISCORD_BOT_TOKEN
-    from engine.discord.actions import BanActionDefinition, MuteActionDefinition, KickActionDefinition
+    from engine.discord.actions import (
+        BanActionDefinition,
+        MuteActionDefinition,
+        KickActionDefinition,
+    )
     from engine.discord.config import DiscordConfig
     from engine.discord.moderator import DiscordModerator
 
@@ -87,7 +89,10 @@ async def test():
         config=DiscordConfig(
             guild_id=1334317047995432980,
             allowed_channels=[1334317050629460114],
-            allowed_actions=[MuteActionDefinition(requires_approval=False), KickActionDefinition(requires_approval=True)],
+            allowed_actions=[
+                MuteActionDefinition(requires_approval=False),
+                KickActionDefinition(requires_approval=True),
+            ],
         ),
     )
     async with mod:
