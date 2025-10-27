@@ -1,7 +1,5 @@
 import asyncio
 import json
-import random
-import string
 
 from argon2 import PasswordHasher
 from argon2.exceptions import Argon2Error
@@ -10,13 +8,14 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config import PW_HASH_SALT, REDIS_CLIENT, REDIS_EXPIRY
+from config import DOMAIN, PW_HASH_SALT, REDIS_CLIENT, REDIS_EXPIRY, SCHEME, SUB_DOMAIN
 from core.enums import MessagePlatformType
-from utils.db import get_datetime
 from db_models import Users
 from server.dependencies import depends_db_sess, depends_jwt
-from server.services import DiscordService, EmailService, JWTService
+from server.services import DiscordService, EmailService, EncryptionService, JWTService
 from server.typing import JWTPayload
+from utils.db import get_datetime
+from .controller import gen_verification_code
 from .models import (
     PlatformConnection,
     UpdatePassword,
@@ -32,11 +31,6 @@ from .models import (
 router = APIRouter(prefix="/auth", tags=["Auth"])
 em_service = EmailService("No-Reply", "no-reply@gova.chat")
 pw_hasher = PasswordHasher()
-
-
-def _gen_verification_code(k: int = 6):
-    """Generates a random verification code."""
-    return "".join(random.choices(string.ascii_uppercase + string.digits, k=k))
 
 
 @router.post("/register", status_code=202)
@@ -60,7 +54,7 @@ async def register(
     new_user_id = await db_sess.scalar(
         insert(Users).values(**body.model_dump()).returning(Users.user_id)
     )
-    code = _gen_verification_code()
+    code = gen_verification_code()
     await REDIS_CLIENT.set(code, str(new_user_id), ex=REDIS_EXPIRY)
 
     bg_tasks.add_task(
@@ -105,7 +99,7 @@ async def request_email_verification(
 ):
     global em_service
 
-    code = _gen_verification_code()
+    code = gen_verification_code()
     await REDIS_CLIENT.set(code, str(jwt.sub), ex=REDIS_EXPIRY)
     bg_tasks.add_task(
         em_service.send_email,
@@ -161,7 +155,8 @@ async def get_me(
     for plat, data in (user.connections or {}).items():
         func = funcs.get(plat)
         if func:
-            coros.append(wrapper(plat, func(data)))
+            decrypted = EncryptionService.decrypt(data, expected_aad=str(user.user_id))
+            coros.append(wrapper(plat, func(decrypted)))
 
     plat_conns = {}
     if coros:
@@ -177,7 +172,7 @@ async def get_me(
 
 
 @router.get("/discord/oauth")
-async def discord_callback(
+async def discord_oauth_callback(
     code: str,
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
@@ -190,13 +185,13 @@ async def discord_callback(
     if not conns:
         conns = {}
 
-    conns[MessagePlatformType.DISCORD] = data
+    conns[MessagePlatformType.DISCORD] = EncryptionService.encrypt(data, aad=str(jwt.sub))
     await db_sess.execute(
         update(Users).values(connections=conns).where(Users.user_id == jwt.sub)
     )
     await db_sess.commit()
 
-    return RedirectResponse(url="http://localhost:5173/connections")
+    return RedirectResponse(url=f"{SCHEME}://{SUB_DOMAIN}{DOMAIN}/connections")
 
 
 @router.post("/change-username", status_code=202)
@@ -222,7 +217,7 @@ async def change_username(
     async for key in REDIS_CLIENT.scan_iter(f"{prefix}*"):
         await REDIS_CLIENT.delete(key)
 
-    verification_code = _gen_verification_code()
+    verification_code = gen_verification_code()
     payload = json.dumps(
         {
             "user_id": str(user.user_id),
@@ -264,7 +259,7 @@ async def change_password(
     async for key in REDIS_CLIENT.scan_iter(f"{prefix}*"):
         await REDIS_CLIENT.delete(key)
 
-    verification_code = _gen_verification_code()
+    verification_code = gen_verification_code()
 
     payload = json.dumps(
         {
