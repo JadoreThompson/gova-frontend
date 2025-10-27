@@ -86,9 +86,10 @@ PAGE_SIZE = 10
 
 # Auth
 COOKIE_ALIAS = "app-cookie"
-JWT_ALGO = os.getenv("JWT_ALGO", "HS256")
-JWT_SECRET = os.getenv("JWT_SECRET", "secret")
+JWT_ALGO = os.getenv("JWT_ALGO")
+JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_EXPIRY = timedelta(days=1000)
+PW_HASH_SALT = os.getenv("PW_HASH_SALT")
 
 # Stripe
 STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")

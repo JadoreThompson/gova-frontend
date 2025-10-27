@@ -3,12 +3,14 @@ import json
 import random
 import string
 
+from argon2 import PasswordHasher
+from argon2.exceptions import Argon2Error
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config import REDIS_CLIENT, REDIS_EXPIRY
+from config import PW_HASH_SALT, REDIS_CLIENT, REDIS_EXPIRY
 from core.enums import MessagePlatformType
 from utils.db import get_datetime
 from db_models import Users
@@ -29,6 +31,7 @@ from .models import (
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 em_service = EmailService("No-Reply", "no-reply@gova.chat")
+pw_hasher = PasswordHasher()
 
 
 def _gen_verification_code(k: int = 6):
@@ -42,7 +45,7 @@ async def register(
     bg_tasks: BackgroundTasks,
     db_sess: AsyncSession = Depends(depends_db_sess),
 ):
-    global em_service
+    global em_service, pw_hasher
 
     res = await db_sess.scalar(
         select(Users).where(
@@ -51,6 +54,8 @@ async def register(
     )
     if res is not None:
         raise HTTPException(status_code=400, detail="Username or email already exists.")
+
+    body.password = pw_hasher.hash(body.password, salt=PW_HASH_SALT.encode())
 
     new_user_id = await db_sess.scalar(
         insert(Users).values(**body.model_dump()).returning(Users.user_id)
@@ -72,20 +77,24 @@ async def login(body: UserLogin, db_sess: AsyncSession = Depends(depends_db_sess
     if (body.username is None or not body.username.strip()) and (
         body.email is None or not body.email.strip()
     ):
-        return JSONResponse(
-            status_code=400,
-            content={"error": "Either username or email must be provided."},
+        raise HTTPException(
+            status_code=400, detail="Either username or email must be provided."
         )
 
-    res = await db_sess.execute(
-        select(Users).where(
-            Users.username == body.username, Users.password == body.password
-        )
-    )
-    user = res.scalar_one_or_none()
+    query = select(Users)
+    if body.username is not None:
+        query = query.where(Users.username == body.username)
+    else:
+        query = query.where(Users.email == body.email)
 
+    user = await db_sess.scalar(query)
     if user is None:
-        return JSONResponse(status_code=401, content={"error": "Invalid user."})
+        raise HTTPException(status_code=400, detail="User doesn't exist.")
+
+    try:
+        pw_hasher.verify(user.password, body.password)
+    except Argon2Error:
+        raise HTTPException(status_code=400, detail="Invalid password.")
 
     return JWTService.set_cookie(user)
 
@@ -94,6 +103,8 @@ async def login(body: UserLogin, db_sess: AsyncSession = Depends(depends_db_sess
 async def request_email_verification(
     bg_tasks: BackgroundTasks, jwt: JWTPayload = Depends(depends_jwt)
 ):
+    global em_service
+
     code = _gen_verification_code()
     await REDIS_CLIENT.set(code, str(jwt.sub), ex=REDIS_EXPIRY)
     bg_tasks.add_task(
@@ -160,7 +171,9 @@ async def get_me(
                 username=identity.username, avatar=identity.avatar
             )
 
-    return UserMe(username=user.username, connections=plat_conns, pricing_tier=user.pricing_tier)
+    return UserMe(
+        username=user.username, connections=plat_conns, pricing_tier=user.pricing_tier
+    )
 
 
 @router.get("/discord/oauth")
@@ -193,6 +206,8 @@ async def change_username(
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
 ):
+    global em_service
+
     user = await db_sess.scalar(select(Users).where(Users.user_id == jwt.sub))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -239,6 +254,8 @@ async def change_password(
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
 ):
+    global em_service
+
     user = await db_sess.scalar(select(Users).where(Users.user_id == jwt.sub))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -279,6 +296,8 @@ async def verify_action(
     jwt: JWTPayload = Depends(depends_jwt),
     db_sess: AsyncSession = Depends(depends_db_sess),
 ):
+    global pw_hasher
+
     redis_key = f"{jwt.sub}:{body.action}:{body.code}"
     data_str = await REDIS_CLIENT.get(redis_key)
     if not data_str:
@@ -307,13 +326,22 @@ async def verify_action(
             update(Users).where(Users.user_id == user_id).values(username=new_value)
         )
         message = "Username changed successfully."
+        await db_sess.commit()
+
     elif action == "change_password":
         await db_sess.execute(
-            update(Users).where(Users.user_id == user_id).values(password=new_value)
+            update(Users)
+            .where(Users.user_id == user_id)
+            .values(password=pw_hasher.hash(new_value, salt=PW_HASH_SALT.encode()))
         )
-        message = "Password changed successfully."
+        await db_sess.commit()
+
+        rsp = JSONResponse(
+            status_code=200, content={"message": "Password changed successfully."}
+        )
+        return JWTService.remove_cookie(rsp)
+
     else:
         raise HTTPException(status_code=400, detail="Unknown action specified.")
 
-    await db_sess.commit()
     return {"message": message}
