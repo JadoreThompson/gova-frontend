@@ -89,7 +89,7 @@ const PricingPage: FC = () => {
       }
 
       if (rsp.status === 401) {
-        return navigate(`/login?next=${(data as { url: string }).url}`);
+        return navigate(`/login?next=/pricing`);
       }
 
       if (rsp.status === 500) {
