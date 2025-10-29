@@ -39,8 +39,8 @@ const RegisterPage: FC = () => {
             : "/confirm-email",
         ),
       )
-      .catch((err: any) => {
-        const message = err?.error || "Registration failed. Please try again.";
+      .catch((err) => {
+        const message = err?.error?.error || "Registration failed. Please try again.";
         setErrorMessage(message);
       });
   };
