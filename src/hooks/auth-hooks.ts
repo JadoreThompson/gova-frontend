@@ -49,7 +49,7 @@ export function useLoginMutation() {
 export function useLogoutMutation() {
   return useMutation({
     mutationFn: async () => handleApi(await logoutAuthLogoutPost()),
-    onSuccess: () => queryClient.invalidateQueries(),
+    onSuccess: () => queryClient.clear(),
   });
 }
 
