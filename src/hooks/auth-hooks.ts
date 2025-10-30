@@ -4,7 +4,6 @@ import { handleApi } from "@/lib/utils/base";
 import {
   changePasswordAuthChangePasswordPost,
   changeUsernameAuthChangeUsernamePost,
-  discordCallbackAuthDiscordOauthGet,
   getMeAuthMeGet,
   loginAuthLoginPost,
   logoutAuthLogoutPost,
@@ -12,7 +11,6 @@ import {
   requestEmailVerificationAuthRequestEmailVerificationPost,
   verifyActionAuthVerifyActionPost,
   verifyEmailAuthVerifyEmailPost,
-  type DiscordCallbackAuthDiscordOauthGetParams,
   type UpdatePassword,
   type UpdateUsername,
   type UserCreate,
@@ -61,7 +59,9 @@ export function useLogoutMutation() {
 export function useRequestEmailVerificationMutation() {
   return useMutation({
     mutationFn: async () =>
-      handleApi(await requestEmailVerificationAuthRequestEmailVerificationPost()),
+      handleApi(
+        await requestEmailVerificationAuthRequestEmailVerificationPost(),
+      ),
   });
 }
 
@@ -98,23 +98,6 @@ export function useMeQueryAuthGuard() {
     queryKey: queryKeys.me(),
     queryFn: async () => handleApi(await getMeAuthMeGet()),
     retry: 1,
-  });
-}
-
-/**
- * Handles the OAuth callback from Discord to link a user's account.
- */
-export function useDiscordCallbackQuery(
-  params: DiscordCallbackAuthDiscordOauthGetParams,
-  enabled: boolean = true,
-) {
-  return useQuery({
-    queryKey: queryKeys.auth(),
-    queryFn: async () =>
-      handleApi(await discordCallbackAuthDiscordOauthGet(params)),
-    enabled: enabled && !!params.code,
-    staleTime: 0,
-    gcTime: 0,
   });
 }
 

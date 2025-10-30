@@ -53,14 +53,6 @@ export interface BodyListDeploymentsDeploymentsGet {
   platform?: BodyListDeploymentsDeploymentsGetPlatform;
 }
 
-export type ConnectionType =
-  (typeof ConnectionType)[keyof typeof ConnectionType];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ConnectionType = {
-  discord: "discord",
-} as const;
-
 export interface ContactForm {
   name: string;
   email: string;
@@ -247,11 +239,6 @@ export interface PaginatedResponseModeratorResponse {
   data: ModeratorResponse[];
 }
 
-export interface PlatformConnection {
-  username: string;
-  avatar: string;
-}
-
 export type PricingTierType =
   (typeof PricingTierType)[keyof typeof PricingTierType];
 
@@ -270,6 +257,11 @@ export interface UpdateUsername {
   username: string;
 }
 
+export interface UserConnection {
+  username: string;
+  avatar: string;
+}
+
 export interface UserCreate {
   username: string;
   email: string;
@@ -286,14 +278,12 @@ export interface UserLogin {
   password: string;
 }
 
-export type UserMeConnectionsAnyOf = { [key: string]: PlatformConnection };
-
-export type UserMeConnections = UserMeConnectionsAnyOf | null;
+export type UserMeConnections = { [key: string]: UserConnection };
 
 export interface UserMe {
   username: string;
   pricing_tier: PricingTierType;
-  connections?: UserMeConnections;
+  connections: UserMeConnections;
 }
 
 export type ValidationErrorLocItem = string | number;
@@ -322,7 +312,7 @@ export interface VerifyCode {
   code: string;
 }
 
-export type DiscordCallbackAuthDiscordOauthGetParams = {
+export type DiscordOauthCallbackAuthDiscordOauthGetParams = {
   code: string;
 };
 
@@ -631,33 +621,33 @@ export const getMeAuthMeGet = async (
 };
 
 /**
- * @summary Discord Callback
+ * @summary Discord Oauth Callback
  */
-export type discordCallbackAuthDiscordOauthGetResponse200 = {
+export type discordOauthCallbackAuthDiscordOauthGetResponse200 = {
   data: unknown;
   status: 200;
 };
 
-export type discordCallbackAuthDiscordOauthGetResponse422 = {
+export type discordOauthCallbackAuthDiscordOauthGetResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type discordCallbackAuthDiscordOauthGetResponseSuccess =
-  discordCallbackAuthDiscordOauthGetResponse200 & {
+export type discordOauthCallbackAuthDiscordOauthGetResponseSuccess =
+  discordOauthCallbackAuthDiscordOauthGetResponse200 & {
     headers: Headers;
   };
-export type discordCallbackAuthDiscordOauthGetResponseError =
-  discordCallbackAuthDiscordOauthGetResponse422 & {
+export type discordOauthCallbackAuthDiscordOauthGetResponseError =
+  discordOauthCallbackAuthDiscordOauthGetResponse422 & {
     headers: Headers;
   };
 
-export type discordCallbackAuthDiscordOauthGetResponse =
-  | discordCallbackAuthDiscordOauthGetResponseSuccess
-  | discordCallbackAuthDiscordOauthGetResponseError;
+export type discordOauthCallbackAuthDiscordOauthGetResponse =
+  | discordOauthCallbackAuthDiscordOauthGetResponseSuccess
+  | discordOauthCallbackAuthDiscordOauthGetResponseError;
 
-export const getDiscordCallbackAuthDiscordOauthGetUrl = (
-  params: DiscordCallbackAuthDiscordOauthGetParams,
+export const getDiscordOauthCallbackAuthDiscordOauthGetUrl = (
+  params: DiscordOauthCallbackAuthDiscordOauthGetParams,
 ) => {
   const normalizedParams = new URLSearchParams();
 
@@ -674,12 +664,12 @@ export const getDiscordCallbackAuthDiscordOauthGetUrl = (
     : `/auth/discord/oauth`;
 };
 
-export const discordCallbackAuthDiscordOauthGet = async (
-  params: DiscordCallbackAuthDiscordOauthGetParams,
+export const discordOauthCallbackAuthDiscordOauthGet = async (
+  params: DiscordOauthCallbackAuthDiscordOauthGetParams,
   options?: RequestInit,
-): Promise<discordCallbackAuthDiscordOauthGetResponse> => {
-  return customFetch<discordCallbackAuthDiscordOauthGetResponse>(
-    getDiscordCallbackAuthDiscordOauthGetUrl(params),
+): Promise<discordOauthCallbackAuthDiscordOauthGetResponse> => {
+  return customFetch<discordOauthCallbackAuthDiscordOauthGetResponse>(
+    getDiscordOauthCallbackAuthDiscordOauthGetUrl(params),
     {
       ...options,
       method: "GET",
