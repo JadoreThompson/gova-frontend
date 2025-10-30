@@ -3,8 +3,10 @@ import { useMeStore } from "@/stores/me-store";
 import { Bot, FileText, LogOut, SendToBack } from "lucide-react";
 import { useEffect, type FC, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
+import { toast } from "sonner";
 import AuthGuard from "../auth-guard";
 import SiteLogo from "../site-logo";
+import CustomToaster from "../toaster";
 import { Button } from "../ui/button";
 import {
   Sidebar,
@@ -46,8 +48,14 @@ const DashboardSidebar: FC = () => {
 
   const handleLogout = async () => {
     try {
-      await logoutMutation.mutateAsync();
-      navigate("/login", { replace: true });
+      logoutMutation
+        .mutateAsync()
+        .then(() => navigate("/login", { replace: true }))
+        .catch((err) =>
+          toast.info(
+            `Error logging out: ${err?.error?.error ?? "Something went wrong. Please try again later."}`,
+          ),
+        );
     } catch (err) {
       console.error("Logout failed:", err);
     }
@@ -130,6 +138,7 @@ const DashboardLayout: FC<{
     <AuthGuard>
       <SidebarProvider>
         <div className="flex min-h-screen w-full">
+          <CustomToaster />
           <DashboardSidebar />
           <div className="flex flex-1 flex-col pb-5">
             <Header />
