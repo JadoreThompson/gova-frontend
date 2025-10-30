@@ -29,11 +29,13 @@ const LoginPage: FC = () => {
         const next = queryParamsRef.current.get("next");
         if (next) {
           if (next.startsWith("/")) {
-            navigate(next);
+            return navigate(next);
           } else {
             return window.open(next, "_blank");
           }
         }
+
+        return navigate("/moderators");
       });
     } catch (err) {
       console.error(err);
