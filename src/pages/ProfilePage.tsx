@@ -120,7 +120,7 @@ const ChangeUsernameCard: FC<ChangeUsernameCardProps> = ({
               variant="link"
               type="button"
               onClick={() => setStep("enter-username")}
-              className="h-auto !p-0 "
+              className="h-auto !p-0"
             >
               Use a different username?
             </Button>
@@ -212,7 +212,7 @@ const ChangePasswordCard: FC = () => {
       })
       .catch((err) => {
         const message =
-          err?.body?.detail ||
+          err?.error?.error ||
           "Failed to initiate password change. Please try again.";
         toast.error(message);
       });
@@ -236,9 +236,7 @@ const ChangePasswordCard: FC = () => {
           });
         }, 2000);
       })
-      .catch(() => {
-        toast.error("Invalid or expired verification code.");
-      });
+      .catch(() => toast.error("Invalid or expired verification code."));
   };
 
   if (step === "verify-code") {
@@ -252,21 +250,19 @@ const ChangePasswordCard: FC = () => {
               saving, you'll be logged out.
             </CardDescription>
           </CardHeader>
-                    <CardContent className="mb-3">
-
-
-              <Input
-                id="code"
-                name="code"
-                placeholder="Enter your verification code"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                disabled={
-                  verifyActionMutation.isPending || logoutMutation.isPending
-                }
-                className="mb-2"
-                required
-              />
+          <CardContent className="mb-3">
+            <Input
+              id="code"
+              name="code"
+              placeholder="Enter your verification code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              disabled={
+                verifyActionMutation.isPending || logoutMutation.isPending
+              }
+              className="mb-2"
+              required
+            />
 
             <Button
               variant="link"
