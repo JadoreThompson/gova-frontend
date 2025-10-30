@@ -19,7 +19,9 @@ import { useEffect, useState, type FC } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
+import PricingTierBadge from "@/components/pricing-tier-badge";
 import {
+  useChangePasswordMutation,
   useChangeUsernameMutation,
   useVerifyActionMutation,
 } from "@/hooks/auth-hooks";
@@ -97,29 +99,28 @@ const ChangeUsernameCard: FC<ChangeUsernameCardProps> = ({
     return (
       <Card>
         <form onSubmit={handleCodeSubmit}>
-          <CardHeader>
-            <CardTitle>Verify Username Change</CardTitle>
+          <CardHeader className="mb-1">
+            <CardTitle className="mb-1">Verify Username Change</CardTitle>
             <CardDescription>
               Enter the code sent to your email to confirm the change.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3">
-              <Input
-                id="code"
-                name="code"
-                placeholder="Enter your verification code"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                disabled={verifyActionMutation.isPending}
-                required
-              />
-            </div>
+          <CardContent className="mb-3">
+            <Input
+              id="code"
+              name="code"
+              placeholder="Enter your verification code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              disabled={verifyActionMutation.isPending}
+              className="mb-2"
+              required
+            />
             <Button
               variant="link"
               type="button"
               onClick={() => setStep("enter-username")}
-              className="h-auto p-0"
+              className="h-auto !p-0 "
             >
               Use a different username?
             </Button>
@@ -143,20 +144,18 @@ const ChangeUsernameCard: FC<ChangeUsernameCardProps> = ({
 
   return (
     <Card>
-      <form onSubmit={handleUsernameSubmit}>
-        <CardHeader>
+      <form onSubmit={handleUsernameSubmit} className="">
+        <CardHeader className="mb-3">
           <CardTitle>Username</CardTitle>
           <CardDescription>This is your public display name.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-3">
-            <Input
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              disabled={changeUsernameMutation.isPending}
-            />
-          </div>
+        <CardContent className="mb-3">
+          <Input
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            disabled={changeUsernameMutation.isPending}
+          />
         </CardContent>
         <CardFooter>
           <Button
@@ -179,9 +178,6 @@ const ChangeUsernameCard: FC<ChangeUsernameCardProps> = ({
     </Card>
   );
 };
-
-import PricingTierBadge from "@/components/pricing-tier-badge";
-import { useChangePasswordMutation } from "@/hooks/auth-hooks";
 
 type PasswordStep = "enter-password" | "verify-code";
 
@@ -249,15 +245,16 @@ const ChangePasswordCard: FC = () => {
     return (
       <Card>
         <form onSubmit={handleCodeSubmit}>
-          <CardHeader>
-            <CardTitle>Verify Password Change</CardTitle>
+          <CardHeader className="mb-1">
+            <CardTitle className="mb-1">Verify Password Change</CardTitle>
             <CardDescription>
               Enter the code sent to your email to confirm the change. After
-              saving, you’ll be logged out.
+              saving, you'll be logged out.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3">
+                    <CardContent className="mb-3">
+
+
               <Input
                 id="code"
                 name="code"
@@ -267,14 +264,15 @@ const ChangePasswordCard: FC = () => {
                 disabled={
                   verifyActionMutation.isPending || logoutMutation.isPending
                 }
+                className="mb-2"
                 required
               />
-            </div>
+
             <Button
               variant="link"
               type="button"
               onClick={() => setStep("enter-password")}
-              className="h-auto p-0"
+              className="h-auto !p-0"
             >
               Use a different password?
             </Button>
@@ -292,7 +290,7 @@ const ChangePasswordCard: FC = () => {
                   Verifying...
                 </>
               ) : (
-                "Confirm and Log Out"
+                "Confirm"
               )}
             </Button>
           </CardFooter>
@@ -304,13 +302,13 @@ const ChangePasswordCard: FC = () => {
   return (
     <Card>
       <form onSubmit={handlePasswordSubmit}>
-        <CardHeader>
+        <CardHeader className="mb-3">
           <CardTitle>Change Password</CardTitle>
           <CardDescription>
             Enter a new password. After saving, you'll be logged out.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-6">
+        <CardContent className="mb-3 grid gap-6">
           <div className="grid gap-3">
             <Label htmlFor="new-password">New password</Label>
             <Input
@@ -382,9 +380,19 @@ const ProfilePage: FC = () => {
             </div>
 
             <Tabs defaultValue="general" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="general">General</TabsTrigger>
-                <TabsTrigger value="security">Security</TabsTrigger>
+              <TabsList className="flex w-full">
+                <TabsTrigger
+                  value="general"
+                  className="flex-1 focus:!outline-none"
+                >
+                  General
+                </TabsTrigger>
+                <TabsTrigger
+                  value="security"
+                  className="flex-1 focus:!outline-none"
+                >
+                  Security
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="general" className="mt-6 space-y-6">
