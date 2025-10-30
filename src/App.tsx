@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import ConfirmEmailPage from "./pages/ConfirmEmailPage";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import ContactUsPage from "./pages/ContactUsPage";
@@ -18,6 +18,7 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
+          <Route path="/*" element={<Navigate to="/pricing" />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
