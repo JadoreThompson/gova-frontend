@@ -1,6 +1,7 @@
 import { useLogoutMutation, useMeQuery } from "@/hooks/auth-hooks";
+import { PricingTierType } from "@/openapi";
 import { useMeStore } from "@/stores/me-store";
-import { Bot, FileText, LogOut, SendToBack } from "lucide-react";
+import { ArrowBigUp, Bot, FileText, LogOut, SendToBack } from "lucide-react";
 import { useEffect, type FC, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -82,6 +83,14 @@ const DashboardSidebar: FC = () => {
           </div>
           <span className="text-sm font-semibold">{me?.username ?? ""}</span>
         </Link>
+        {me?.pricing_tier === PricingTierType.NUMBER_0 && (
+          <Link to="/pricing">
+            <Button onClick={handleLogout} className="w-full">
+              <ArrowBigUp size={16} />
+              Upgrade
+            </Button>
+          </Link>
+        )}
       </SidebarHeader>
       <SidebarContent className="bg-background">
         <SidebarGroup>
