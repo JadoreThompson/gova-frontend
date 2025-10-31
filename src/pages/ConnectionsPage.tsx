@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useMeQuery } from "@/hooks/auth-hooks";
 import { useDeleteConnectionMutation } from "@/hooks/connections-hooks";
 import { OAUTH2_URLS } from "@/lib/utils/utils";
-import { MessagePlatformType, type PlatformConnection } from "@/openapi";
+import { MessagePlatformType, type UserConnection } from "@/openapi";
 import { Trash } from "lucide-react";
 import { type FC } from "react";
 import { Link } from "react-router";
@@ -32,7 +32,7 @@ const UnconnectedCard: FC<{ platform: MessagePlatformType }> = (props) => {
 
 const ConnectedCard: FC<{
   platform: MessagePlatformType;
-  conn: PlatformConnection;
+  conn: UserConnection;
   onDelete: (platform: MessagePlatformType) => void;
 }> = (props) => {
   return (
@@ -88,9 +88,7 @@ const ConnectionsPage: FC = () => {
                   <ConnectedCard
                     platform={pType}
                     conn={
-                      authMeQuery.data?.connections![
-                        pType
-                      ] as PlatformConnection
+                      authMeQuery.data?.connections![pType] as UserConnection
                     }
                     onDelete={handleOnDelete}
                   />
