@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useLoginMutation } from "@/hooks/auth-hooks";
+import { useLoginMutation } from "@/hooks/queries/auth-hooks";
 import { useRedirectAuthenticated } from "@/hooks/redirect-authenticated";
 import { useRef, useState, type FC } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 
 const LoginPage: FC = () => {
   useRedirectAuthenticated({ to: "/moderators" });
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const queryParamsRef = useRef(new URLSearchParams(location.search));

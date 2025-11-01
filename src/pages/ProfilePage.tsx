@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLogoutMutation, useMeQuery } from "@/hooks/auth-hooks";
+import { useLogoutMutation, useMeQuery } from "@/hooks/queries/auth-hooks";
 import { OAUTH2_URLS } from "@/lib/utils/utils";
 import { MessagePlatformType } from "@/openapi";
 import { useEffect, useState, type FC } from "react";
@@ -24,7 +24,7 @@ import {
   useChangePasswordMutation,
   useChangeUsernameMutation,
   useVerifyActionMutation,
-} from "@/hooks/auth-hooks";
+} from "@/hooks/queries/auth-hooks";
 import { VerifyActionAction } from "@/openapi";
 import { Loader2 } from "lucide-react";
 import { type FormEvent } from "react";

@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import {
   useRequestEmailVerificationMutation,
   useVerifyEmailMutation,
-} from "@/hooks/auth-hooks";
+} from "@/hooks/queries/auth-hooks";
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState, type FC, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router";
@@ -132,8 +132,8 @@ const ConfirmEmailPage: FC = () => {
               {requestEmailVerificationMutation.isPending
                 ? "Sending..."
                 : resendCooldown > 0
-                ? `Resend again in ${resendCooldown}s`
-                : "Resend email"}
+                  ? `Resend again in ${resendCooldown}s`
+                  : "Resend email"}
             </Button>
           </div>
 

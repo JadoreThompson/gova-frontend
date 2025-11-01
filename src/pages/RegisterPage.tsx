@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useRegisterMutation } from "@/hooks/auth-hooks";
+import { useRegisterMutation } from "@/hooks/queries/auth-hooks";
 import { useRedirectAuthenticated } from "@/hooks/redirect-authenticated";
 import { Loader2 } from "lucide-react";
 import { useRef, useState, type FC, type FormEvent } from "react";
@@ -40,7 +40,8 @@ const RegisterPage: FC = () => {
         ),
       )
       .catch((err) => {
-        const message = err?.error?.error || "Registration failed. Please try again.";
+        const message =
+          err?.error?.error || "Registration failed. Please try again.";
         setErrorMessage(message);
       });
   };

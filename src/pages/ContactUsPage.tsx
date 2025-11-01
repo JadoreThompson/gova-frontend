@@ -2,11 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useContactUsMutation } from "@/hooks/contact-us-hooks";
+import { useContactUsMutation } from "@/hooks/queries/public-hooks";
 import { cn } from "@/lib/utils";
 import { type ContactForm } from "@/openapi";
 import { useState, type ChangeEvent, type FC, type FormEvent } from "react";
-
 
 interface FormErrors {
   name?: string;

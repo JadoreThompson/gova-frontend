@@ -5,6 +5,16 @@
  * OpenAPI spec version: 0.1.0
  */
 import { customFetch } from "./lib/custom-fetch";
+export type ActionResponseActionParams = { [key: string]: unknown };
+
+export interface ActionResponse {
+  log_id: string;
+  action_type: string;
+  action_params: ActionResponseActionParams;
+  status: ActionStatus;
+  created_at: string;
+}
+
 export type ActionStatus = (typeof ActionStatus)[keyof typeof ActionStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -40,70 +50,20 @@ export interface BaseActionDefinition {
   requires_approval: boolean;
 }
 
-export type BodyListDeploymentsDeploymentsGetStatus = ModeratorStatus[] | null;
-
-export type BodyListDeploymentsDeploymentsGetPlatform =
-  | MessagePlatformType[]
-  | null;
-
-export interface BodyListDeploymentsDeploymentsGet {
-  status?: BodyListDeploymentsDeploymentsGetStatus;
-  platform?: BodyListDeploymentsDeploymentsGetPlatform;
-}
-
 export interface ContactForm {
   name: string;
   email: string;
   message: string;
 }
 
-export type DeploymentActionActionParams = { [key: string]: unknown };
+export type DiscordConfigAllowedChannels = ["*"] | number[];
 
-export interface DeploymentAction {
-  log_id: string;
-  deployment_id: string;
-  action_type: string;
-  action_params: DeploymentActionActionParams;
-  status: ActionStatus;
-  created_at: string;
-}
+export type DiscordConfigAllowedActions = ["*"] | BaseActionDefinition[];
 
-export type DeploymentCreateName = string | null;
-
-export type DeploymentCreateConf = { [key: string]: unknown };
-
-export interface DeploymentCreate {
-  platform: MessagePlatformType;
-  name: DeploymentCreateName;
-  conf: DeploymentCreateConf;
-}
-
-export interface DeploymentResponse {
-  deployment_id: string;
-  moderator_id: string;
-  platform: MessagePlatformType;
-  name: string;
-  conf: DiscordConfigResponse;
-  status: ModeratorStatus;
-  created_at: string;
-}
-
-export interface DeploymentStatsResponse {
-  total_messages: number;
-  total_actions: number;
-  message_chart: MessageChartData[];
-}
-
-export type DiscordConfigResponseAllowedChannels = ["*"] | number[];
-
-export type DiscordConfigResponseAllowedActions =
-  | ["*"]
-  | BaseActionDefinition[];
-
-export interface DiscordConfigResponse {
-  guild_id: string;
-  allowed_channels: DiscordConfigResponseAllowedChannels;
-  allowed_actions: DiscordConfigResponseAllowedActions;
+export interface DiscordConfig {
+  guild_id: number;
+  allowed_channels: DiscordConfigAllowedChannels;
+  allowed_actions: DiscordConfigAllowedActions;
 }
 
 export interface GuidelineCreate {
@@ -163,15 +123,20 @@ export const MessagePlatformType = {
 export interface ModeratorCreate {
   name: string;
   guideline_id: string;
+  platform: MessagePlatformType;
+  platform_server_id: string;
+  conf: DiscordConfig;
 }
 
 export interface ModeratorResponse {
   name: string;
   guideline_id: string;
   moderator_id: string;
+  platform: MessagePlatformType;
+  platform_server_id: string;
+  conf: DiscordConfig;
   status: ModeratorStatus;
   created_at: string;
-  deployment_platforms: MessagePlatformType[];
 }
 
 export interface ModeratorStats {
@@ -190,27 +155,11 @@ export const ModeratorStatus = {
   online: "online",
 } as const;
 
-export type ModeratorUpdateName = string | null;
-
-export type ModeratorUpdateGuidelineId = string | null;
-
-export interface ModeratorUpdate {
-  name?: ModeratorUpdateName;
-  guideline_id?: ModeratorUpdateGuidelineId;
-}
-
-export interface PaginatedResponseDeploymentAction {
+export interface PaginatedResponseActionResponse {
   page: number;
   size: number;
   has_next: boolean;
-  data: DeploymentAction[];
-}
-
-export interface PaginatedResponseDeploymentResponse {
-  page: number;
-  size: number;
-  has_next: boolean;
-  data: DeploymentResponse[];
+  data: ActionResponse[];
 }
 
 export interface PaginatedResponseGuidelineResponse {
@@ -227,10 +176,6 @@ export interface PaginatedResponseModeratorResponse {
   data: ModeratorResponse[];
 }
 
-export interface PasswordField {
-  password: string;
-}
-
 export type PricingTierType =
   (typeof PricingTierType)[keyof typeof PricingTierType];
 
@@ -240,6 +185,10 @@ export const PricingTierType = {
   NUMBER_1: 1,
   NUMBER_2: 2,
 } as const;
+
+export interface UpdatePassword {
+  password: string;
+}
 
 export interface UpdateUsername {
   username: string;
@@ -304,21 +253,6 @@ export type DiscordOauthCallbackAuthDiscordOauthGetParams = {
   code: string;
 };
 
-export type ListDeploymentsDeploymentsGetParams = {
-  /**
-   * @minimum 1
-   */
-  page: number;
-  name?: string | null;
-};
-
-export type GetDeploymentActionsDeploymentsDeploymentIdActionsGetParams = {
-  /**
-   * @minimum 1
-   */
-  page?: number;
-};
-
 export type ListGuidelinesGuidelinesGetParams = {
   /**
    * @minimum 1
@@ -335,18 +269,18 @@ export type ListModeratorsModeratorsGetParams = {
   page: number;
 };
 
-export type GetDeploymentsModeratorsModeratorIdDeploymentsGetParams = {
+export type ListModeratorActionsModeratorsModeratorIdActionsGetParams = {
   /**
    * @minimum 1
    */
-  page?: number;
+  page: number;
 };
 
 /**
  * @summary Update Action Status
  */
 export type updateActionStatusActionsLogIdPatchResponse200 = {
-  data: unknown;
+  data: ActionResponse;
   status: 200;
 };
 
@@ -741,7 +675,7 @@ export const getChangePasswordAuthChangePasswordPostUrl = () => {
 };
 
 export const changePasswordAuthChangePasswordPost = async (
-  passwordField: PasswordField,
+  updatePassword: UpdatePassword,
   options?: RequestInit,
 ): Promise<changePasswordAuthChangePasswordPostResponse> => {
   return customFetch<changePasswordAuthChangePasswordPostResponse>(
@@ -750,7 +684,7 @@ export const changePasswordAuthChangePasswordPost = async (
       ...options,
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(passwordField),
+      body: JSON.stringify(updatePassword),
     },
   );
 };
@@ -919,355 +853,6 @@ export const deleteConnectionConnectionsPlatformDelete = async (
     {
       ...options,
       method: "DELETE",
-    },
-  );
-};
-
-/**
- * @summary List Deployments
- */
-export type listDeploymentsDeploymentsGetResponse200 = {
-  data: PaginatedResponseDeploymentResponse;
-  status: 200;
-};
-
-export type listDeploymentsDeploymentsGetResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type listDeploymentsDeploymentsGetResponseSuccess =
-  listDeploymentsDeploymentsGetResponse200 & {
-    headers: Headers;
-  };
-export type listDeploymentsDeploymentsGetResponseError =
-  listDeploymentsDeploymentsGetResponse422 & {
-    headers: Headers;
-  };
-
-export type listDeploymentsDeploymentsGetResponse =
-  | listDeploymentsDeploymentsGetResponseSuccess
-  | listDeploymentsDeploymentsGetResponseError;
-
-export const getListDeploymentsDeploymentsGetUrl = (
-  params: ListDeploymentsDeploymentsGetParams,
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/deployments/?${stringifiedParams}`
-    : `/deployments/`;
-};
-
-export const listDeploymentsDeploymentsGet = async (
-  bodyListDeploymentsDeploymentsGet: BodyListDeploymentsDeploymentsGet,
-  params: ListDeploymentsDeploymentsGetParams,
-  options?: RequestInit,
-): Promise<listDeploymentsDeploymentsGetResponse> => {
-  return customFetch<listDeploymentsDeploymentsGetResponse>(
-    getListDeploymentsDeploymentsGetUrl(params),
-    {
-      ...options,
-      method: "GET",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(bodyListDeploymentsDeploymentsGet),
-    },
-  );
-};
-
-/**
- * @summary Get Deployment
- */
-export type getDeploymentDeploymentsDeploymentIdGetResponse200 = {
-  data: DeploymentResponse;
-  status: 200;
-};
-
-export type getDeploymentDeploymentsDeploymentIdGetResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type getDeploymentDeploymentsDeploymentIdGetResponseSuccess =
-  getDeploymentDeploymentsDeploymentIdGetResponse200 & {
-    headers: Headers;
-  };
-export type getDeploymentDeploymentsDeploymentIdGetResponseError =
-  getDeploymentDeploymentsDeploymentIdGetResponse422 & {
-    headers: Headers;
-  };
-
-export type getDeploymentDeploymentsDeploymentIdGetResponse =
-  | getDeploymentDeploymentsDeploymentIdGetResponseSuccess
-  | getDeploymentDeploymentsDeploymentIdGetResponseError;
-
-export const getGetDeploymentDeploymentsDeploymentIdGetUrl = (
-  deploymentId: string,
-) => {
-  return `/deployments/${deploymentId}`;
-};
-
-export const getDeploymentDeploymentsDeploymentIdGet = async (
-  deploymentId: string,
-  options?: RequestInit,
-): Promise<getDeploymentDeploymentsDeploymentIdGetResponse> => {
-  return customFetch<getDeploymentDeploymentsDeploymentIdGetResponse>(
-    getGetDeploymentDeploymentsDeploymentIdGetUrl(deploymentId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
-
-/**
- * @summary Delete Deployment
- */
-export type deleteDeploymentDeploymentsDeploymentIdDeleteResponse200 = {
-  data: unknown;
-  status: 200;
-};
-
-export type deleteDeploymentDeploymentsDeploymentIdDeleteResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type deleteDeploymentDeploymentsDeploymentIdDeleteResponseSuccess =
-  deleteDeploymentDeploymentsDeploymentIdDeleteResponse200 & {
-    headers: Headers;
-  };
-export type deleteDeploymentDeploymentsDeploymentIdDeleteResponseError =
-  deleteDeploymentDeploymentsDeploymentIdDeleteResponse422 & {
-    headers: Headers;
-  };
-
-export type deleteDeploymentDeploymentsDeploymentIdDeleteResponse =
-  | deleteDeploymentDeploymentsDeploymentIdDeleteResponseSuccess
-  | deleteDeploymentDeploymentsDeploymentIdDeleteResponseError;
-
-export const getDeleteDeploymentDeploymentsDeploymentIdDeleteUrl = (
-  deploymentId: string,
-) => {
-  return `/deployments/${deploymentId}`;
-};
-
-export const deleteDeploymentDeploymentsDeploymentIdDelete = async (
-  deploymentId: string,
-  options?: RequestInit,
-): Promise<deleteDeploymentDeploymentsDeploymentIdDeleteResponse> => {
-  return customFetch<deleteDeploymentDeploymentsDeploymentIdDeleteResponse>(
-    getDeleteDeploymentDeploymentsDeploymentIdDeleteUrl(deploymentId),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
-
-/**
- * @summary Get Deployment Stats
- */
-export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse200 = {
-  data: DeploymentStatsResponse;
-  status: 200;
-};
-
-export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponseSuccess =
-  getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse200 & {
-    headers: Headers;
-  };
-export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponseError =
-  getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse422 & {
-    headers: Headers;
-  };
-
-export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse =
-  | getDeploymentStatsDeploymentsDeploymentIdStatsGetResponseSuccess
-  | getDeploymentStatsDeploymentsDeploymentIdStatsGetResponseError;
-
-export const getGetDeploymentStatsDeploymentsDeploymentIdStatsGetUrl = (
-  deploymentId: string,
-) => {
-  return `/deployments/${deploymentId}/stats`;
-};
-
-export const getDeploymentStatsDeploymentsDeploymentIdStatsGet = async (
-  deploymentId: string,
-  options?: RequestInit,
-): Promise<getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse> => {
-  return customFetch<getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse>(
-    getGetDeploymentStatsDeploymentsDeploymentIdStatsGetUrl(deploymentId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
-
-/**
- * Get all actions (ModeratorLogs) for a specific deployment.
-Fully type-safe and paginated.
- * @summary Get Deployment Actions
- */
-export type getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse200 = {
-  data: PaginatedResponseDeploymentAction;
-  status: 200;
-};
-
-export type getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type getDeploymentActionsDeploymentsDeploymentIdActionsGetResponseSuccess =
-  getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse200 & {
-    headers: Headers;
-  };
-export type getDeploymentActionsDeploymentsDeploymentIdActionsGetResponseError =
-  getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse422 & {
-    headers: Headers;
-  };
-
-export type getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse =
-  | getDeploymentActionsDeploymentsDeploymentIdActionsGetResponseSuccess
-  | getDeploymentActionsDeploymentsDeploymentIdActionsGetResponseError;
-
-export const getGetDeploymentActionsDeploymentsDeploymentIdActionsGetUrl = (
-  deploymentId: string,
-  params?: GetDeploymentActionsDeploymentsDeploymentIdActionsGetParams,
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/deployments/${deploymentId}/actions?${stringifiedParams}`
-    : `/deployments/${deploymentId}/actions`;
-};
-
-export const getDeploymentActionsDeploymentsDeploymentIdActionsGet = async (
-  deploymentId: string,
-  params?: GetDeploymentActionsDeploymentsDeploymentIdActionsGetParams,
-  options?: RequestInit,
-): Promise<getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse> => {
-  return customFetch<getDeploymentActionsDeploymentsDeploymentIdActionsGetResponse>(
-    getGetDeploymentActionsDeploymentsDeploymentIdActionsGetUrl(
-      deploymentId,
-      params,
-    ),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
-
-/**
- * @summary Stop Deployment
- */
-export type stopDeploymentDeploymentsDeploymentIdStopPostResponse200 = {
-  data: unknown;
-  status: 200;
-};
-
-export type stopDeploymentDeploymentsDeploymentIdStopPostResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type stopDeploymentDeploymentsDeploymentIdStopPostResponseSuccess =
-  stopDeploymentDeploymentsDeploymentIdStopPostResponse200 & {
-    headers: Headers;
-  };
-export type stopDeploymentDeploymentsDeploymentIdStopPostResponseError =
-  stopDeploymentDeploymentsDeploymentIdStopPostResponse422 & {
-    headers: Headers;
-  };
-
-export type stopDeploymentDeploymentsDeploymentIdStopPostResponse =
-  | stopDeploymentDeploymentsDeploymentIdStopPostResponseSuccess
-  | stopDeploymentDeploymentsDeploymentIdStopPostResponseError;
-
-export const getStopDeploymentDeploymentsDeploymentIdStopPostUrl = (
-  deploymentId: string,
-) => {
-  return `/deployments/${deploymentId}/stop`;
-};
-
-export const stopDeploymentDeploymentsDeploymentIdStopPost = async (
-  deploymentId: string,
-  options?: RequestInit,
-): Promise<stopDeploymentDeploymentsDeploymentIdStopPostResponse> => {
-  return customFetch<stopDeploymentDeploymentsDeploymentIdStopPostResponse>(
-    getStopDeploymentDeploymentsDeploymentIdStopPostUrl(deploymentId),
-    {
-      ...options,
-      method: "POST",
-    },
-  );
-};
-
-/**
- * @summary Stop Deployment
- */
-export type stopDeploymentDeploymentsDeploymentIdStartPostResponse200 = {
-  data: unknown;
-  status: 200;
-};
-
-export type stopDeploymentDeploymentsDeploymentIdStartPostResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type stopDeploymentDeploymentsDeploymentIdStartPostResponseSuccess =
-  stopDeploymentDeploymentsDeploymentIdStartPostResponse200 & {
-    headers: Headers;
-  };
-export type stopDeploymentDeploymentsDeploymentIdStartPostResponseError =
-  stopDeploymentDeploymentsDeploymentIdStartPostResponse422 & {
-    headers: Headers;
-  };
-
-export type stopDeploymentDeploymentsDeploymentIdStartPostResponse =
-  | stopDeploymentDeploymentsDeploymentIdStartPostResponseSuccess
-  | stopDeploymentDeploymentsDeploymentIdStartPostResponseError;
-
-export const getStopDeploymentDeploymentsDeploymentIdStartPostUrl = (
-  deploymentId: string,
-) => {
-  return `/deployments/${deploymentId}/start`;
-};
-
-export const stopDeploymentDeploymentsDeploymentIdStartPost = async (
-  deploymentId: string,
-  options?: RequestInit,
-): Promise<stopDeploymentDeploymentsDeploymentIdStartPostResponse> => {
-  return customFetch<stopDeploymentDeploymentsDeploymentIdStartPostResponse>(
-    getStopDeploymentDeploymentsDeploymentIdStartPostUrl(deploymentId),
-    {
-      ...options,
-      method: "POST",
     },
   );
 };
@@ -1615,49 +1200,46 @@ export const listModeratorsModeratorsGet = async (
 };
 
 /**
- * @summary Deploy Moderator
+ * @summary Start Moderator
  */
-export type deployModeratorModeratorsModeratorIdDeployPostResponse200 = {
-  data: DeploymentResponse;
-  status: 200;
+export type startModeratorModeratorsModeratorIdStartPostResponse202 = {
+  data: unknown;
+  status: 202;
 };
 
-export type deployModeratorModeratorsModeratorIdDeployPostResponse422 = {
+export type startModeratorModeratorsModeratorIdStartPostResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type deployModeratorModeratorsModeratorIdDeployPostResponseSuccess =
-  deployModeratorModeratorsModeratorIdDeployPostResponse200 & {
+export type startModeratorModeratorsModeratorIdStartPostResponseSuccess =
+  startModeratorModeratorsModeratorIdStartPostResponse202 & {
     headers: Headers;
   };
-export type deployModeratorModeratorsModeratorIdDeployPostResponseError =
-  deployModeratorModeratorsModeratorIdDeployPostResponse422 & {
+export type startModeratorModeratorsModeratorIdStartPostResponseError =
+  startModeratorModeratorsModeratorIdStartPostResponse422 & {
     headers: Headers;
   };
 
-export type deployModeratorModeratorsModeratorIdDeployPostResponse =
-  | deployModeratorModeratorsModeratorIdDeployPostResponseSuccess
-  | deployModeratorModeratorsModeratorIdDeployPostResponseError;
+export type startModeratorModeratorsModeratorIdStartPostResponse =
+  | startModeratorModeratorsModeratorIdStartPostResponseSuccess
+  | startModeratorModeratorsModeratorIdStartPostResponseError;
 
-export const getDeployModeratorModeratorsModeratorIdDeployPostUrl = (
+export const getStartModeratorModeratorsModeratorIdStartPostUrl = (
   moderatorId: string,
 ) => {
-  return `/moderators/${moderatorId}/deploy`;
+  return `/moderators/${moderatorId}/start`;
 };
 
-export const deployModeratorModeratorsModeratorIdDeployPost = async (
+export const startModeratorModeratorsModeratorIdStartPost = async (
   moderatorId: string,
-  deploymentCreate: DeploymentCreate,
   options?: RequestInit,
-): Promise<deployModeratorModeratorsModeratorIdDeployPostResponse> => {
-  return customFetch<deployModeratorModeratorsModeratorIdDeployPostResponse>(
-    getDeployModeratorModeratorsModeratorIdDeployPostUrl(moderatorId),
+): Promise<startModeratorModeratorsModeratorIdStartPostResponse> => {
+  return customFetch<startModeratorModeratorsModeratorIdStartPostResponse>(
+    getStartModeratorModeratorsModeratorIdStartPostUrl(moderatorId),
     {
       ...options,
       method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(deploymentCreate),
     },
   );
 };
@@ -1753,54 +1335,6 @@ export const getModeratorModeratorsModeratorIdGet = async (
 };
 
 /**
- * @summary Update Moderator
- */
-export type updateModeratorModeratorsModeratorIdPutResponse200 = {
-  data: ModeratorResponse;
-  status: 200;
-};
-
-export type updateModeratorModeratorsModeratorIdPutResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type updateModeratorModeratorsModeratorIdPutResponseSuccess =
-  updateModeratorModeratorsModeratorIdPutResponse200 & {
-    headers: Headers;
-  };
-export type updateModeratorModeratorsModeratorIdPutResponseError =
-  updateModeratorModeratorsModeratorIdPutResponse422 & {
-    headers: Headers;
-  };
-
-export type updateModeratorModeratorsModeratorIdPutResponse =
-  | updateModeratorModeratorsModeratorIdPutResponseSuccess
-  | updateModeratorModeratorsModeratorIdPutResponseError;
-
-export const getUpdateModeratorModeratorsModeratorIdPutUrl = (
-  moderatorId: string,
-) => {
-  return `/moderators/${moderatorId}`;
-};
-
-export const updateModeratorModeratorsModeratorIdPut = async (
-  moderatorId: string,
-  moderatorUpdate: ModeratorUpdate,
-  options?: RequestInit,
-): Promise<updateModeratorModeratorsModeratorIdPutResponse> => {
-  return customFetch<updateModeratorModeratorsModeratorIdPutResponse>(
-    getUpdateModeratorModeratorsModeratorIdPutUrl(moderatorId),
-    {
-      ...options,
-      method: "PUT",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(moderatorUpdate),
-    },
-  );
-};
-
-/**
  * @summary Delete Moderator
  */
 export type deleteModeratorModeratorsModeratorIdDeleteResponse200 = {
@@ -1846,68 +1380,6 @@ export const deleteModeratorModeratorsModeratorIdDelete = async (
 };
 
 /**
- * @summary Get Deployments
- */
-export type getDeploymentsModeratorsModeratorIdDeploymentsGetResponse200 = {
-  data: PaginatedResponseDeploymentResponse;
-  status: 200;
-};
-
-export type getDeploymentsModeratorsModeratorIdDeploymentsGetResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type getDeploymentsModeratorsModeratorIdDeploymentsGetResponseSuccess =
-  getDeploymentsModeratorsModeratorIdDeploymentsGetResponse200 & {
-    headers: Headers;
-  };
-export type getDeploymentsModeratorsModeratorIdDeploymentsGetResponseError =
-  getDeploymentsModeratorsModeratorIdDeploymentsGetResponse422 & {
-    headers: Headers;
-  };
-
-export type getDeploymentsModeratorsModeratorIdDeploymentsGetResponse =
-  | getDeploymentsModeratorsModeratorIdDeploymentsGetResponseSuccess
-  | getDeploymentsModeratorsModeratorIdDeploymentsGetResponseError;
-
-export const getGetDeploymentsModeratorsModeratorIdDeploymentsGetUrl = (
-  moderatorId: string,
-  params?: GetDeploymentsModeratorsModeratorIdDeploymentsGetParams,
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/moderators/${moderatorId}/deployments?${stringifiedParams}`
-    : `/moderators/${moderatorId}/deployments`;
-};
-
-export const getDeploymentsModeratorsModeratorIdDeploymentsGet = async (
-  moderatorId: string,
-  params?: GetDeploymentsModeratorsModeratorIdDeploymentsGetParams,
-  options?: RequestInit,
-): Promise<getDeploymentsModeratorsModeratorIdDeploymentsGetResponse> => {
-  return customFetch<getDeploymentsModeratorsModeratorIdDeploymentsGetResponse>(
-    getGetDeploymentsModeratorsModeratorIdDeploymentsGetUrl(
-      moderatorId,
-      params,
-    ),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
-
-/**
  * @summary Get Moderator Stats
  */
 export type getModeratorStatsModeratorsModeratorIdStatsGetResponse200 = {
@@ -1945,6 +1417,68 @@ export const getModeratorStatsModeratorsModeratorIdStatsGet = async (
 ): Promise<getModeratorStatsModeratorsModeratorIdStatsGetResponse> => {
   return customFetch<getModeratorStatsModeratorsModeratorIdStatsGetResponse>(
     getGetModeratorStatsModeratorsModeratorIdStatsGetUrl(moderatorId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * @summary List Moderator Actions
+ */
+export type listModeratorActionsModeratorsModeratorIdActionsGetResponse200 = {
+  data: PaginatedResponseActionResponse;
+  status: 200;
+};
+
+export type listModeratorActionsModeratorsModeratorIdActionsGetResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type listModeratorActionsModeratorsModeratorIdActionsGetResponseSuccess =
+  listModeratorActionsModeratorsModeratorIdActionsGetResponse200 & {
+    headers: Headers;
+  };
+export type listModeratorActionsModeratorsModeratorIdActionsGetResponseError =
+  listModeratorActionsModeratorsModeratorIdActionsGetResponse422 & {
+    headers: Headers;
+  };
+
+export type listModeratorActionsModeratorsModeratorIdActionsGetResponse =
+  | listModeratorActionsModeratorsModeratorIdActionsGetResponseSuccess
+  | listModeratorActionsModeratorsModeratorIdActionsGetResponseError;
+
+export const getListModeratorActionsModeratorsModeratorIdActionsGetUrl = (
+  moderatorId: string,
+  params: ListModeratorActionsModeratorsModeratorIdActionsGetParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/moderators/${moderatorId}/actions?${stringifiedParams}`
+    : `/moderators/${moderatorId}/actions`;
+};
+
+export const listModeratorActionsModeratorsModeratorIdActionsGet = async (
+  moderatorId: string,
+  params: ListModeratorActionsModeratorsModeratorIdActionsGetParams,
+  options?: RequestInit,
+): Promise<listModeratorActionsModeratorsModeratorIdActionsGetResponse> => {
+  return customFetch<listModeratorActionsModeratorsModeratorIdActionsGetResponse>(
+    getListModeratorActionsModeratorsModeratorIdActionsGetUrl(
+      moderatorId,
+      params,
+    ),
     {
       ...options,
       method: "GET",

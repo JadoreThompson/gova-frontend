@@ -18,7 +18,7 @@ import { useDebouncedInput } from "@/hooks/debounced-input";
 import {
   useCreateGuidelineMutation,
   useGuidelinesQuery,
-} from "@/hooks/guidelines-hooks";
+} from "@/hooks/queries/guideline-hooks";
 import { formatDate } from "@/lib/utils/utils";
 import dayjs from "dayjs";
 import { ArrowDown, ArrowUp, Minus, PlusCircle, Search, X } from "lucide-react";

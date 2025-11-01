@@ -1,4 +1,4 @@
-import { useMeQueryAuthGuard } from "@/hooks/auth-hooks";
+import { useMeQueryAuthGuard } from "@/hooks/queries/auth-hooks";
 import { Loader2 } from "lucide-react";
 import { useEffect, type FC, type ReactNode } from "react";
 import { useNavigate } from "react-router";

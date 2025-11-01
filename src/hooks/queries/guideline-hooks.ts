@@ -15,6 +15,16 @@ import {
 } from "@/openapi";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
+export function useCreateGuidelineMutation() {
+  return useMutation({
+    mutationFn: async (data: GuidelineCreate) =>
+      handleApi(await createGuidelineGuidelinesPost(data)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.guidelines() });
+    },
+  });
+}
+
 export function useGuidelinesQuery(params: ListGuidelinesGuidelinesGetParams) {
   return useQuery<PaginatedResponseGuidelineResponse>({
     queryKey: queryKeys.guidelines(params),
@@ -23,23 +33,12 @@ export function useGuidelinesQuery(params: ListGuidelinesGuidelinesGetParams) {
   });
 }
 
-
 export function useGuidelineQuery(guidelineId?: string) {
   return useQuery<GuidelineResponse>({
     queryKey: queryKeys.guideline(guidelineId || "placeholder"),
     queryFn: async () =>
       handleApi(await getGuidelineGuidelinesGuidelineIdGet(guidelineId!)),
     enabled: !!guidelineId,
-  });
-}
-
-export function useCreateGuidelineMutation() {
-  return useMutation({
-    mutationFn: async (data: GuidelineCreate) =>
-      handleApi(await createGuidelineGuidelinesPost(data)),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.guidelines() });
-    },
   });
 }
 

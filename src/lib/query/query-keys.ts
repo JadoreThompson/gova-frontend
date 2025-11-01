@@ -1,8 +1,7 @@
-import type {
-  GetDeploymentActionsDeploymentsDeploymentIdActionsGetParams,
-  GetDeploymentsModeratorsModeratorIdDeploymentsGetParams,
-  ListGuidelinesGuidelinesGetParams,
-  ListModeratorsModeratorsGetParams,
+import {
+  type ListGuidelinesGuidelinesGetParams,
+  type ListModeratorActionsModeratorsModeratorIdActionsGetParams,
+  type ListModeratorsModeratorsGetParams,
 } from "@/openapi";
 
 export const queryKeys = {
@@ -28,19 +27,8 @@ export const queryKeys = {
     [...queryKeys.moderators(), moderatorId] as const,
   moderatorStats: (moderatorId: string) =>
     [...queryKeys.moderators(), "stats", moderatorId] as const,
-  moderatorDeployments: (
+  moderatorActions: (
     moderatorId: string,
-    params: GetDeploymentsModeratorsModeratorIdDeploymentsGetParams,
-  ) => [...queryKeys.moderators(), "deployments", moderatorId, params] as const,
-
-  // Deployments (Global list)
-  deployments: (params?: unknown) => ["deployments", params] as const,
-  deployment: (deploymentId: string) =>
-    [...queryKeys.deployments(), deploymentId] as const,
-  deploymentStats: (deploymentId: string) =>
-    [...queryKeys.deployments(), "stats", deploymentId] as const,
-  deploymentActions: (
-    deploymentId: string,
-    params?: GetDeploymentActionsDeploymentsDeploymentIdActionsGetParams,
-  ) => ["deployments", deploymentId, "actions", params] as const,
+    params?: ListModeratorActionsModeratorsModeratorIdActionsGetParams,
+  ) => ["moderator", moderatorId, "actions", params] as const,
 };

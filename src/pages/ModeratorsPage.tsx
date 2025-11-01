@@ -1,6 +1,5 @@
 import DeploymentStatusCircle from "@/components/deployment-status-circle";
 import DashboardLayout from "@/components/layouts/dashboard-layout";
-import MessagePlatformImg from "@/components/message-platform-image";
 import PaginationControls from "@/components/pagination-controls";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,16 +20,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDebouncedInput } from "@/hooks/debounced-input";
-import { useGuidelinesQuery } from "@/hooks/guidelines-hooks";
+import { useGuidelinesQuery } from "@/hooks/queries/guideline-hooks";
 import {
   useCreateModeratorMutation,
   useModeratorsQuery,
-} from "@/hooks/moderators-hooks";
+} from "@/hooks/queries/moderator-hooks";
 import { formatDate } from "@/lib/utils/utils";
 import dayjs from "dayjs";
 import { ArrowDown, ArrowUp, Minus, Search, X } from "lucide-react";
 import { useEffect, useState, type FC } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 interface ModeratorGuideline {
   guideline_id: string;
@@ -196,9 +195,9 @@ const ModeratorsPage: FC = () => {
             className="h-7 w-50 border-none !bg-transparent focus:!ring-0"
           />
         </div>
-        <Button onClick={() => setShowCreate(true)} variant={"outline"}>
-          Create Moderator
-        </Button>
+        <Link to="/moderators/create">
+          <Button variant="outline">Create Moderator</Button>
+        </Link>
       </div>
 
       <div className="border bg-transparent shadow-sm">
@@ -216,9 +215,6 @@ const ModeratorsPage: FC = () => {
                 {sortOrder === "asc" && <ArrowUp size={14} />}
                 {sortOrder === "desc" && <ArrowDown size={14} />}
                 {sortOrder === null && <Minus size={14} />}
-              </TableHead>
-              <TableHead className="font-bold text-gray-700 dark:text-gray-200">
-                Deployments
               </TableHead>
               <TableHead className="font-bold text-gray-700 dark:text-gray-200">
                 Status
@@ -244,15 +240,6 @@ const ModeratorsPage: FC = () => {
                   <TableCell className="font-medium">{mod.name}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     {formatDate(mod.created_at)}
-                  </TableCell>
-                  <TableCell className="flex flex-wrap gap-1 py-3">
-                    {mod.deployment_platforms.map((pl) => (
-                      <MessagePlatformImg
-                        key={pl}
-                        platform={pl}
-                        className="h-5 w-5"
-                      />
-                    ))}
                   </TableCell>
                   <TableCell>
                     <DeploymentStatusCircle status={mod.status} />

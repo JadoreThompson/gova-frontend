@@ -1,7 +1,7 @@
 import { useMeStore } from "@/stores/me-store";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { useMeQuery } from "./auth-hooks";
+import { useMeQuery } from "./queries/auth-hooks";
 
 export const useRedirectAuthenticated = (props: { to: string }) => {
   const navigate = useNavigate();

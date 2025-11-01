@@ -1,4 +1,4 @@
-import { useLogoutMutation, useMeQuery } from "@/hooks/auth-hooks";
+import { useLogoutMutation, useMeQuery } from "@/hooks/queries/auth-hooks";
 import { PricingTierType } from "@/openapi";
 import { useMeStore } from "@/stores/me-store";
 import { ArrowBigUp, Bot, FileText, LogOut, SendToBack } from "lucide-react";
@@ -85,7 +85,7 @@ const DashboardSidebar: FC = () => {
         </Link>
         {me?.pricing_tier === PricingTierType.NUMBER_0 && (
           <Link to="/pricing">
-            <Button onClick={handleLogout} className="w-full">
+            <Button className="w-full">
               <ArrowBigUp size={16} />
               Upgrade
             </Button>
