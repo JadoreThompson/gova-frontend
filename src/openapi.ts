@@ -40,9 +40,7 @@ export interface BaseActionDefinition {
   requires_approval: boolean;
 }
 
-export type BodyListDeploymentsDeploymentsGetStatus =
-  | ModeratorDeploymentStatus[]
-  | null;
+export type BodyListDeploymentsDeploymentsGetStatus = ModeratorStatus[] | null;
 
 export type BodyListDeploymentsDeploymentsGetPlatform =
   | MessagePlatformType[]
@@ -86,25 +84,14 @@ export interface DeploymentResponse {
   platform: MessagePlatformType;
   name: string;
   conf: DiscordConfigResponse;
-  status: ModeratorDeploymentStatus;
+  status: ModeratorStatus;
   created_at: string;
 }
 
-export interface DeploymentStats {
+export interface DeploymentStatsResponse {
   total_messages: number;
   total_actions: number;
   message_chart: MessageChartData[];
-}
-
-export type DeploymentUpdateName = string | null;
-
-export type DeploymentUpdateConfAnyOf = { [key: string]: unknown };
-
-export type DeploymentUpdateConf = DeploymentUpdateConfAnyOf | null;
-
-export interface DeploymentUpdate {
-  name?: DeploymentUpdateName;
-  conf?: DeploymentUpdateConf;
 }
 
 export type DiscordConfigResponseAllowedChannels = ["*"] | number[];
@@ -178,20 +165,11 @@ export interface ModeratorCreate {
   guideline_id: string;
 }
 
-export type ModeratorDeploymentStatus =
-  (typeof ModeratorDeploymentStatus)[keyof typeof ModeratorDeploymentStatus];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ModeratorDeploymentStatus = {
-  offline: "offline",
-  pending: "pending",
-  online: "online",
-} as const;
-
 export interface ModeratorResponse {
   name: string;
   guideline_id: string;
   moderator_id: string;
+  status: ModeratorStatus;
   created_at: string;
   deployment_platforms: MessagePlatformType[];
 }
@@ -201,6 +179,16 @@ export interface ModeratorStats {
   total_actions: number;
   message_chart: MessageChartData[];
 }
+
+export type ModeratorStatus =
+  (typeof ModeratorStatus)[keyof typeof ModeratorStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ModeratorStatus = {
+  offline: "offline",
+  pending: "pending",
+  online: "online",
+} as const;
 
 export type ModeratorUpdateName = string | null;
 
@@ -239,6 +227,10 @@ export interface PaginatedResponseModeratorResponse {
   data: ModeratorResponse[];
 }
 
+export interface PasswordField {
+  password: string;
+}
+
 export type PricingTierType =
   (typeof PricingTierType)[keyof typeof PricingTierType];
 
@@ -248,10 +240,6 @@ export const PricingTierType = {
   NUMBER_1: 1,
   NUMBER_2: 2,
 } as const;
-
-export interface UpdatePassword {
-  password: string;
-}
 
 export interface UpdateUsername {
   username: string;
@@ -263,9 +251,9 @@ export interface UserConnection {
 }
 
 export interface UserCreate {
+  password: string;
   username: string;
   email: string;
-  password: string;
 }
 
 export type UserLoginUsername = string | null;
@@ -753,7 +741,7 @@ export const getChangePasswordAuthChangePasswordPostUrl = () => {
 };
 
 export const changePasswordAuthChangePasswordPost = async (
-  updatePassword: UpdatePassword,
+  passwordField: PasswordField,
   options?: RequestInit,
 ): Promise<changePasswordAuthChangePasswordPostResponse> => {
   return customFetch<changePasswordAuthChangePasswordPostResponse>(
@@ -762,7 +750,7 @@ export const changePasswordAuthChangePasswordPost = async (
       ...options,
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(updatePassword),
+      body: JSON.stringify(passwordField),
     },
   );
 };
@@ -1041,54 +1029,6 @@ export const getDeploymentDeploymentsDeploymentIdGet = async (
 };
 
 /**
- * @summary Update Deployment
- */
-export type updateDeploymentDeploymentsDeploymentIdPutResponse200 = {
-  data: DeploymentResponse;
-  status: 200;
-};
-
-export type updateDeploymentDeploymentsDeploymentIdPutResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type updateDeploymentDeploymentsDeploymentIdPutResponseSuccess =
-  updateDeploymentDeploymentsDeploymentIdPutResponse200 & {
-    headers: Headers;
-  };
-export type updateDeploymentDeploymentsDeploymentIdPutResponseError =
-  updateDeploymentDeploymentsDeploymentIdPutResponse422 & {
-    headers: Headers;
-  };
-
-export type updateDeploymentDeploymentsDeploymentIdPutResponse =
-  | updateDeploymentDeploymentsDeploymentIdPutResponseSuccess
-  | updateDeploymentDeploymentsDeploymentIdPutResponseError;
-
-export const getUpdateDeploymentDeploymentsDeploymentIdPutUrl = (
-  deploymentId: string,
-) => {
-  return `/deployments/${deploymentId}`;
-};
-
-export const updateDeploymentDeploymentsDeploymentIdPut = async (
-  deploymentId: string,
-  deploymentUpdate: DeploymentUpdate,
-  options?: RequestInit,
-): Promise<updateDeploymentDeploymentsDeploymentIdPutResponse> => {
-  return customFetch<updateDeploymentDeploymentsDeploymentIdPutResponse>(
-    getUpdateDeploymentDeploymentsDeploymentIdPutUrl(deploymentId),
-    {
-      ...options,
-      method: "PUT",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(deploymentUpdate),
-    },
-  );
-};
-
-/**
  * @summary Delete Deployment
  */
 export type deleteDeploymentDeploymentsDeploymentIdDeleteResponse200 = {
@@ -1137,7 +1077,7 @@ export const deleteDeploymentDeploymentsDeploymentIdDelete = async (
  * @summary Get Deployment Stats
  */
 export type getDeploymentStatsDeploymentsDeploymentIdStatsGetResponse200 = {
-  data: DeploymentStats;
+  data: DeploymentStatsResponse;
   status: 200;
 };
 
@@ -1718,6 +1658,51 @@ export const deployModeratorModeratorsModeratorIdDeployPost = async (
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
       body: JSON.stringify(deploymentCreate),
+    },
+  );
+};
+
+/**
+ * @summary Stop Moderator
+ */
+export type stopModeratorModeratorsModeratorIdStopPostResponse202 = {
+  data: unknown;
+  status: 202;
+};
+
+export type stopModeratorModeratorsModeratorIdStopPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type stopModeratorModeratorsModeratorIdStopPostResponseSuccess =
+  stopModeratorModeratorsModeratorIdStopPostResponse202 & {
+    headers: Headers;
+  };
+export type stopModeratorModeratorsModeratorIdStopPostResponseError =
+  stopModeratorModeratorsModeratorIdStopPostResponse422 & {
+    headers: Headers;
+  };
+
+export type stopModeratorModeratorsModeratorIdStopPostResponse =
+  | stopModeratorModeratorsModeratorIdStopPostResponseSuccess
+  | stopModeratorModeratorsModeratorIdStopPostResponseError;
+
+export const getStopModeratorModeratorsModeratorIdStopPostUrl = (
+  moderatorId: string,
+) => {
+  return `/moderators/${moderatorId}/stop`;
+};
+
+export const stopModeratorModeratorsModeratorIdStopPost = async (
+  moderatorId: string,
+  options?: RequestInit,
+): Promise<stopModeratorModeratorsModeratorIdStopPostResponse> => {
+  return customFetch<stopModeratorModeratorsModeratorIdStopPostResponse>(
+    getStopModeratorModeratorsModeratorIdStopPostUrl(moderatorId),
+    {
+      ...options,
+      method: "POST",
     },
   );
 };

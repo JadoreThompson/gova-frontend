@@ -37,7 +37,7 @@ import {
 import {
   ActionStatus as ActionStatusEnum,
   ActionUpdateStatus,
-  ModeratorDeploymentStatus,
+  ModeratorStatus,
   type ActionStatus,
   type DeploymentAction,
 } from "@/openapi";
@@ -291,7 +291,7 @@ const DeploymentPage: FC = () => {
         if (prev.length > 1) {
           return prev.filter((s) => s !== status);
         }
-        
+
         return prev;
       } else {
         return [...prev, status];
@@ -325,7 +325,7 @@ const DeploymentPage: FC = () => {
               </p>
             </div>
 
-            {deployment.status === ModeratorDeploymentStatus.online && (
+            {deployment.status === ModeratorStatus.online && (
               <Button
                 variant="destructive"
                 disabled={isControlBusy}
@@ -341,11 +341,11 @@ const DeploymentPage: FC = () => {
               </Button>
             )}
 
-            {deployment.status === ModeratorDeploymentStatus.offline && (
+            {deployment.status === ModeratorStatus.offline && (
               <Button
                 disabled={isControlBusy}
                 onClick={handleStartDeployment}
-                className="flex w-36 items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+                className="flex w-36 items-center gap-2 bg-green-600 text-white hover:bg-green-700"
               >
                 {startDeploymentMutation.isPending && (
                   <Loader2 className="h-4 w-4 animate-spin" />

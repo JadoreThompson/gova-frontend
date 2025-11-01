@@ -516,7 +516,7 @@ const DeployModeratorPage: FC = () => {
         moderatorId: moderatorId!,
         data,
       })
-      .then(() => navigate(`/moderators/${moderatorId}`));
+      // .then(() => navigate(`/moderators/${moderatorId}`));
     setShowLoading(false);
   };
 

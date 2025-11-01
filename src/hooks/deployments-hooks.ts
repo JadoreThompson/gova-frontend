@@ -8,10 +8,8 @@ import {
   listDeploymentsDeploymentsGet,
   stopDeploymentDeploymentsDeploymentIdStartPost,
   stopDeploymentDeploymentsDeploymentIdStopPost,
-  updateDeploymentDeploymentsDeploymentIdPut,
   type BodyListDeploymentsDeploymentsGet,
   type DeploymentResponse,
-  type DeploymentUpdate,
   type ListDeploymentsDeploymentsGetParams,
   type PaginatedResponseDeploymentResponse,
 } from "@/openapi";
@@ -40,27 +38,6 @@ export function useDeploymentQuery(deploymentId?: string) {
     queryFn: async () =>
       handleApi(await getDeploymentDeploymentsDeploymentIdGet(deploymentId!)),
     enabled: !!deploymentId,
-  });
-}
-
-export function useUpdateDeploymentMutation() {
-  return useMutation({
-    mutationFn: async (params: {
-      deploymentId: string;
-      data: DeploymentUpdate;
-    }) =>
-      handleApi(
-        await updateDeploymentDeploymentsDeploymentIdPut(
-          params.deploymentId,
-          params.data,
-        ),
-      ),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.deployments() });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.deployment(variables.deploymentId),
-      });
-    },
   });
 }
 

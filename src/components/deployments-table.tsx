@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/table";
 import {
   MessagePlatformType,
-  ModeratorDeploymentStatus,
   type DeploymentResponse,
+  ModeratorStatus,
 } from "@/openapi";
 import dayjs from "dayjs";
 import { ArrowDown, ArrowUp, CirclePlus, Minus } from "lucide-react";
@@ -34,14 +34,14 @@ const DeploymentsTable: FC<
   } & PaginationControlsProps
 > = (props) => {
   const [selectedStatuses, setSelectedStatuses] = useState<
-    ModeratorDeploymentStatus[]
-  >(Object.values(ModeratorDeploymentStatus));
+    ModeratorStatus[]
+  >(Object.values(ModeratorStatus));
   const [selectedPlatforms, setSelectedPlatforms] = useState<
     MessagePlatformType[]
   >(Object.values(MessagePlatformType));
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
 
-  const toggleStatus = (status: ModeratorDeploymentStatus) =>
+  const toggleStatus = (status: ModeratorStatus) =>
     setSelectedStatuses((prev) => {
       if (prev.includes(status)) {
         if (prev.length > 1) {
@@ -102,7 +102,7 @@ const DeploymentsTable: FC<
             </span>
           </PopoverTrigger>
           <PopoverContent className="w-40 p-2">
-            {Object.values(ModeratorDeploymentStatus).map((s) => (
+            {Object.values(ModeratorStatus).map((s) => (
               <label
                 key={s}
                 className="flex cursor-pointer items-center gap-2 p-1 text-sm"

@@ -1,3 +1,4 @@
+import DeploymentStatusCircle from "@/components/deployment-status-circle";
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import MessagePlatformImg from "@/components/message-platform-image";
 import PaginationControls from "@/components/pagination-controls";
@@ -219,6 +220,9 @@ const ModeratorsPage: FC = () => {
               <TableHead className="font-bold text-gray-700 dark:text-gray-200">
                 Deployments
               </TableHead>
+              <TableHead className="font-bold text-gray-700 dark:text-gray-200">
+                Status
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -249,6 +253,9 @@ const ModeratorsPage: FC = () => {
                         className="h-5 w-5"
                       />
                     ))}
+                  </TableCell>
+                  <TableCell>
+                    <DeploymentStatusCircle status={mod.status} />
                   </TableCell>
                 </TableRow>
               ))
