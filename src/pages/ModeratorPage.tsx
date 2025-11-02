@@ -34,10 +34,18 @@ import {
   useStartModeratorMutation,
   useStopModeratorMutation,
 } from "@/hooks/queries/moderator-hooks";
-import { ActionStatus, ModeratorStatus, type ActionResponse } from "@/openapi";
+import { queryKeys } from "@/lib/query/query-keys";
+import { handleApi } from "@/lib/utils/base";
+import {
+  ActionStatus,
+  getModeratorModeratorsModeratorIdGet,
+  ModeratorStatus,
+  type ActionResponse,
+} from "@/openapi";
+import { useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Bot, CirclePlus, Loader2 } from "lucide-react";
-import { useState, type FC } from "react";
+import { useEffect, useRef, useState, type FC } from "react";
 import { useParams } from "react-router";
 
 const ActionsTable: FC<{
@@ -279,16 +287,20 @@ const StatsCards: FC<{
   </div>
 );
 
-const ACTIONS_PAGE_SIZE = 10;
-
 const ModeratorPage: FC = () => {
   const { moderatorId } = useParams() as { moderatorId: string };
+  const queryClient = useQueryClient();
 
   const [page, setPage] = useState(1);
   const [selectedStatuses, setSelectedStatuses] = useState<ActionStatus[]>(
     Object.values(ActionStatus),
   );
+  const [status, setStatus] = useState<ModeratorStatus | "pending">(
+    ModeratorStatus.offline,
+  );
 
+  const abortControllerRef = useRef(new AbortController());
+  const pollingPromiseRef = useRef<Promise<void> | undefined>(undefined);
   const startModeratorMutation = useStartModeratorMutation();
   const stopModeratorMutation = useStopModeratorMutation();
   const moderatorQuery = useModeratorQuery(moderatorId);
@@ -296,47 +308,94 @@ const ModeratorPage: FC = () => {
   const moderatorActionsQuery = useModeratorActionsQuery(moderatorId, {
     page,
     status: selectedStatuses,
-  });
+  } as any);
 
-  const pollModerator = async () => {
-    for (let i = 0; i < 15; i++) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      moderatorQuery.refetch();
+  useEffect(() => {
+    if (moderatorQuery.data && status !== "pending") {
+      setStatus(moderatorQuery.data.status);
     }
+  }, [moderatorQuery.data, status]);
+
+  useEffect(() => {
+    return () => {
+      if (!abortControllerRef.current.signal.aborted) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  const pollForStatus = async (
+    status: ModeratorStatus,
+    signal: AbortController,
+  ) => {
+    let attempts = 0;
+    const maxAttempts = 30;
+    
+    while (!signal.signal.aborted && attempts < maxAttempts) {
+      try {
+        const rsp = await queryClient.fetchQuery({
+          queryKey: queryKeys.moderator(moderatorId),
+          queryFn: async () =>
+            handleApi(await getModeratorModeratorsModeratorIdGet(moderatorId)),
+        });
+        setStatus(rsp.status);
+        if (rsp.status === status) return;
+      } catch (err) {
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+  };
+
+  const handlePollForStatus = async (targetStatus: ModeratorStatus) => {
+    if (!abortControllerRef.current.signal.aborted) {
+      abortControllerRef.current.abort();
+      await pollingPromiseRef.current;
+    }
+
+    abortControllerRef.current = new AbortController();
+    pollingPromiseRef.current = pollForStatus(
+      targetStatus,
+      abortControllerRef.current,
+    );
   };
 
   const toggleModerator = () => {
-    if (moderatorQuery.data?.status === ModeratorStatus.offline) {
+    if (status === "pending") return;
+
+    if (status === ModeratorStatus.offline) {
       startModeratorMutation
         .mutateAsync(moderatorId)
-        .then((rsp) => {
-          console.log(rsp);
-          pollModerator();
+        .then(() => {
+          setStatus(ModeratorStatus.pending);
+          handlePollForStatus(ModeratorStatus.online);
         })
         .catch((err) => {
-          console.error(err);
+          console.error("Failed to start moderator", err);
         });
-    } else if (moderatorQuery.data?.status === ModeratorStatus.online) {
+    } else if (status === ModeratorStatus.online) {
       stopModeratorMutation
-        .mutateAsync(moderatorId!)
+        .mutateAsync(moderatorId)
         .then(() => {
-          pollModerator();
+          setStatus(ModeratorStatus.pending);
+          handlePollForStatus(ModeratorStatus.offline);
         })
-        .catch((err) => {});
+        .catch((err) => {
+          console.error("Failed to stop moderator", err);
+        });
     }
   };
 
-  const toggleStatus = (status: ActionStatus) => {
+  const toggleStatus = (statusToToggle: ActionStatus) => {
     setPage(1);
     setSelectedStatuses((prev) => {
-      if (prev.includes(status)) {
+      if (prev.includes(statusToToggle)) {
         if (prev.length > 1) {
-          return prev.filter((s) => s !== status);
+          return prev.filter((s) => s !== statusToToggle);
         }
-
         return prev;
       } else {
-        return [...prev, status];
+        return [...prev, statusToToggle];
       }
     });
   };
@@ -349,23 +408,36 @@ const ModeratorPage: FC = () => {
     setPage((prev) => prev + 1);
   };
 
+  const botColorClass = {
+    [ModeratorStatus.online]: "text-green-500",
+    [ModeratorStatus.offline]: "text-white",
+    pending: "text-yellow-500",
+  }[status];
+
   return (
     <DashboardLayout>
       <div className="mb-6 flex items-center justify-between pt-5">
-        {moderatorQuery.isFetching ? (
-          <Skeleton />
+        {moderatorQuery.isFetching && !moderatorQuery.data ? (
+          <Skeleton className="h-8 w-48" />
         ) : (
           <div className="flex items-center gap-2">
-            <Bot />
+            <Bot className={`${botColorClass} animate-bot`} />
             <h4 className="font-semibold">{moderatorQuery.data?.name}</h4>
           </div>
         )}
-        <Button onClick={toggleModerator}>
-          {moderatorQuery.data?.status === ModeratorStatus.offline
-            ? "Deploy"
-            : moderatorQuery.data?.status == ModeratorStatus.online
-              ? "Stop"
-              : "Pending"}
+        <Button
+          onClick={toggleModerator}
+          disabled={status === "pending"}
+          variant={
+            status === ModeratorStatus.online ? "destructive" : "default"
+          }
+        >
+          {status === "pending" && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {status === ModeratorStatus.offline && "Deploy"}
+          {status === ModeratorStatus.online && "Stop"}
+          {status === "pending" && "Pending"}
         </Button>
       </div>
 

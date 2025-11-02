@@ -196,3 +196,25 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes animateBot {
+  0% {
+    transform: translateY(0px);
+  }
+
+  25% {
+    transform: rotate(12deg);
+  }
+
+  75% {
+    transform: rotate(-12deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+.animate-bot {
+  animation: animateBot infinite 2s ease-in-out;
+}
