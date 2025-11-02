@@ -20,7 +20,6 @@ export type ActionStatus = (typeof ActionStatus)[keyof typeof ActionStatus];
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ActionStatus = {
   failed: "failed",
-  pending: "pending",
   success: "success",
   declined: "declined",
   awaiting_approval: "awaiting_approval",
@@ -273,7 +272,7 @@ export type ListModeratorActionsModeratorsModeratorIdActionsGetParams = {
   /**
    * @minimum 1
    */
-  page: number;
+  page?: number;
 };
 
 /**
@@ -1452,7 +1451,7 @@ export type listModeratorActionsModeratorsModeratorIdActionsGetResponse =
 
 export const getListModeratorActionsModeratorsModeratorIdActionsGetUrl = (
   moderatorId: string,
-  params: ListModeratorActionsModeratorsModeratorIdActionsGetParams,
+  params?: ListModeratorActionsModeratorsModeratorIdActionsGetParams,
 ) => {
   const normalizedParams = new URLSearchParams();
 
@@ -1471,7 +1470,7 @@ export const getListModeratorActionsModeratorsModeratorIdActionsGetUrl = (
 
 export const listModeratorActionsModeratorsModeratorIdActionsGet = async (
   moderatorId: string,
-  params: ListModeratorActionsModeratorsModeratorIdActionsGetParams,
+  params?: ListModeratorActionsModeratorsModeratorIdActionsGetParams,
   options?: RequestInit,
 ): Promise<listModeratorActionsModeratorsModeratorIdActionsGetResponse> => {
   return customFetch<listModeratorActionsModeratorsModeratorIdActionsGetResponse>(

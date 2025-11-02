@@ -1,5 +1,6 @@
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import MessagesChart from "@/components/messages-chart";
+import PaginationControls from "@/components/pagination-controls";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -36,8 +37,8 @@ import {
 import { ActionStatus, ModeratorStatus, type ActionResponse } from "@/openapi";
 import dayjs from "dayjs";
 import { Bot, CirclePlus, Loader2 } from "lucide-react";
-import { useMemo, useState, type FC } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useState, type FC } from "react";
+import { useParams } from "react-router";
 
 const ActionsTable: FC<{
   actions: ActionResponse[];
@@ -86,7 +87,6 @@ const ActionsTable: FC<{
         className +=
           "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
         break;
-      case ActionStatus.pending:
       case ActionStatus.awaiting_approval:
         className +=
           "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
@@ -106,7 +106,7 @@ const ActionsTable: FC<{
 
   return (
     <>
-      <div className="border bg-transparent shadow-sm">
+      <div className="overflow-hidden rounded-lg border shadow-sm">
         <Table>
           <TableHeader className="bg-gray-50 dark:bg-neutral-800">
             <TableRow>
@@ -279,9 +279,10 @@ const StatsCards: FC<{
   </div>
 );
 
+const ACTIONS_PAGE_SIZE = 10;
+
 const ModeratorPage: FC = () => {
   const { moderatorId } = useParams() as { moderatorId: string };
-  const navigate = useNavigate();
 
   const [page, setPage] = useState(1);
   const [selectedStatuses, setSelectedStatuses] = useState<ActionStatus[]>(
@@ -293,18 +294,9 @@ const ModeratorPage: FC = () => {
   const moderatorQuery = useModeratorQuery(moderatorId);
   const moderatorStatsQuery = useModeratorStatsQuery(moderatorId);
   const moderatorActionsQuery = useModeratorActionsQuery(moderatorId, {
-    page: 1,
+    page,
+    status: selectedStatuses,
   });
-
-  const filteredActions = useMemo(
-    () =>
-      moderatorActionsQuery.data?.data?.filter((action) =>
-        selectedStatuses.length > 0
-          ? selectedStatuses.includes(action.status)
-          : true,
-      ) ?? [],
-    [selectedStatuses, moderatorActionsQuery],
-  );
 
   const pollModerator = async () => {
     for (let i = 0; i < 15; i++) {
@@ -335,6 +327,7 @@ const ModeratorPage: FC = () => {
   };
 
   const toggleStatus = (status: ActionStatus) => {
+    setPage(1);
     setSelectedStatuses((prev) => {
       if (prev.includes(status)) {
         if (prev.length > 1) {
@@ -346,6 +339,14 @@ const ModeratorPage: FC = () => {
         return [...prev, status];
       }
     });
+  };
+
+  const handlePrevPage = () => {
+    setPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setPage((prev) => prev + 1);
   };
 
   return (
@@ -403,9 +404,17 @@ const ModeratorPage: FC = () => {
       </div>
 
       <ActionsTable
-        actions={filteredActions ?? []}
+        actions={moderatorActionsQuery.data?.data ?? []}
         isLoading={moderatorActionsQuery.isFetching}
       />
+      <div className="mt-4">
+        <PaginationControls
+          page={page}
+          hasNextPage={!!moderatorActionsQuery.data?.has_next}
+          onPrevPage={handlePrevPage}
+          onNextPage={handleNextPage}
+        />
+      </div>
     </DashboardLayout>
   );
 };

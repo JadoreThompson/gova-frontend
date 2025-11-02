@@ -1,4 +1,3 @@
-// src/pages/CreateModeratorPage.tsx
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import MessagePlatformImg from "@/components/message-platform-image";
 import {
@@ -63,10 +62,6 @@ const AVAILABLE_ACTIONS: ActionConfig[] = [
     defaultRequiresApproval: false,
   },
 ];
-
-const LoadingPage: FC = () => {
-  return <h1>loading</h1>;
-};
 
 const SelectGuidelineCard: FC<ModeratorCreationStageProps<string>> = (props) => {
   const guidelinesQuery = useGuidelinesQuery({ page: 1 });
@@ -560,13 +555,10 @@ const CreateModeratorPage: FC = () => {
   >(undefined);
   // Using `any` for discordConfig to handle string `guild_id` from component before converting to number for API
   const [discordConfig, setDiscordConfig] = useState<any>({});
-  const [showLoading, setShowLoading] = useState(false);
   const createModeratorMutation = useCreateModeratorMutation();
 
   const handleCreateModerator = async (name: string) => {
     if (!guidelineId || !moderatorPlatform) return;
-
-    setShowLoading(true);
 
     const payload: ModeratorCreate = {
       name,
@@ -579,8 +571,6 @@ const CreateModeratorPage: FC = () => {
       } as DiscordConfig,
     };
 
-    console.log(payload);
-
     createModeratorMutation
       .mutateAsync(payload)
       .then(() => navigate(`/moderators`))
@@ -588,12 +578,10 @@ const CreateModeratorPage: FC = () => {
         console.error("Failed to create moderator:", err);
         // Handle error display to the user
       })
-      .finally(() => setShowLoading(false));
   };
 
   return (
     <DashboardLayout>
-      {showLoading && <LoadingPage />}
       <div className="mb-3">
         <div className="mb-3 flex w-full items-center justify-start gap-2">
           <div className="flex items-center justify-start">
