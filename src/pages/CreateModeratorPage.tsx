@@ -1,5 +1,6 @@
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import MessagePlatformImg from "@/components/message-platform-image";
+import CustomToaster from "@/components/toaster";
 import {
   Accordion,
   AccordionContent,
@@ -28,6 +29,7 @@ import {
 import { ArrowLeft } from "lucide-react";
 import { useState, type FC } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 interface ModeratorCreationStageProps<T> {
   onNext: (arg: T) => void;
@@ -48,7 +50,9 @@ type ActionConfig = {
 const AVAILABLE_ACTIONS: ActionConfig[] = [
   {
     type: "mute",
-    fields: [{ name: "duration", type: "number", label: "Duration ms (Optional)" }],
+    fields: [
+      { name: "duration", type: "number", label: "Duration ms (Optional)" },
+    ],
     defaultRequiresApproval: false,
   },
   {
@@ -63,7 +67,9 @@ const AVAILABLE_ACTIONS: ActionConfig[] = [
   },
 ];
 
-const SelectGuidelineCard: FC<ModeratorCreationStageProps<string>> = (props) => {
+const SelectGuidelineCard: FC<ModeratorCreationStageProps<string>> = (
+  props,
+) => {
   const guidelinesQuery = useGuidelinesQuery({ page: 1 });
   const [selectedGuidelineId, setSelectedGuidelineId] = useState<
     string | undefined
@@ -89,14 +95,14 @@ const SelectGuidelineCard: FC<ModeratorCreationStageProps<string>> = (props) => 
                   key={g.guideline_id}
                   onClick={() => setSelectedGuidelineId(g.guideline_id)}
                   className={cn(
-                    "cursor-pointer p-4 transition-all hover:border-primary",
+                    "hover:border-primary cursor-pointer p-4 transition-all",
                     selectedGuidelineId === g.guideline_id &&
-                      "border-2 border-primary",
+                      "border-primary border-2",
                   )}
                 >
                   <CardContent className="p-0">
                     <h5 className="truncate font-semibold">{g.name}</h5>
-                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                    <p className="text-muted-foreground line-clamp-2 text-sm">
                       {g.text}
                     </p>
                   </CardContent>
@@ -119,7 +125,9 @@ const SelectGuidelineCard: FC<ModeratorCreationStageProps<string>> = (props) => 
   );
 };
 
-const SetModeratorNameCard: FC<ModeratorCreationStageProps<string>> = (props) => {
+const SetModeratorNameCard: FC<ModeratorCreationStageProps<string>> = (
+  props,
+) => {
   const [name, setName] = useState("");
 
   return (
@@ -219,7 +227,23 @@ const SelectActionsCard: FC<
     let finalActions: DiscordConfigAllowedActions;
 
     if (allowAll) {
-      finalActions = ["*"];
+      finalActions = AVAILABLE_ACTIONS.map((action) => {
+        const collectedParams = action.fields.reduce(
+          (acc, field) => {
+            acc[field.name] = undefined;
+            return acc;
+          },
+          {} as Record<string, unknown>,
+        );
+
+        const baseAction: BaseActionDefinition = {
+          type: action.type,
+          requires_approval: false,
+          ...collectedParams,
+        } as BaseActionDefinition;
+
+        return baseAction;
+      });
     } else {
       finalActions = AVAILABLE_ACTIONS.filter(
         (action) => allowedActions[action.type].enabled,
@@ -300,7 +324,7 @@ const SelectActionsCard: FC<
                   <span>{action.type}</span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="border-t bg-secondary p-4">
+              <AccordionContent className="bg-secondary border-t p-4">
                 <div className="space-y-3">
                   {/* Action-specific fields */}
                   {action.fields.map((field) => (
@@ -394,10 +418,7 @@ const SelectChannelsCard: FC<
   }>({});
 
   const handleConfirm = () => {
-    const selectedIds = Object.keys(selectedChannels);
-    // The API expects numbers for channel IDs, so we convert them.
-    const numericIds = selectedIds.map(Number);
-    props.onNext(numericIds);
+    props.onNext(Object.keys(selectedChannels));
   };
 
   return (
@@ -411,7 +432,11 @@ const SelectChannelsCard: FC<
               <h4 className="font-semibold">Select Channels</h4>
               <Button
                 variant="outline"
-                onClick={() => props.onNext(["*"])}
+                // onClick={() => props.onNext(["*"])}
+                onClick={() => {
+                  if (!discordChannelsQuery.data) return;
+                  props.onNext(discordChannelsQuery.data.map((ch) => ch.id));
+                }}
                 className="hover:bg-secondary/80 rounded-md px-4 py-2 transition"
               >
                 Select All
@@ -516,9 +541,9 @@ const SelectGuildCard: FC<ModeratorCreationStageProps<string>> = (props) => {
   );
 };
 
-const SelectPlatformCard: FC<ModeratorCreationStageProps<MessagePlatformType>> = (
-  props,
-) => {
+const SelectPlatformCard: FC<
+  ModeratorCreationStageProps<MessagePlatformType>
+> = (props) => {
   const borderCols = {
     [MessagePlatformType.discord]: "hover:border-purple-400",
   };
@@ -553,7 +578,6 @@ const CreateModeratorPage: FC = () => {
   const [moderatorPlatform, setModeratorPlatform] = useState<
     MessagePlatformType | undefined
   >(undefined);
-  // Using `any` for discordConfig to handle string `guild_id` from component before converting to number for API
   const [discordConfig, setDiscordConfig] = useState<any>({});
   const createModeratorMutation = useCreateModeratorMutation();
 
@@ -571,128 +595,126 @@ const CreateModeratorPage: FC = () => {
       } as DiscordConfig,
     };
 
+
     createModeratorMutation
       .mutateAsync(payload)
       .then(() => navigate(`/moderators`))
       .catch((err) => {
-        console.error("Failed to create moderator:", err);
-        // Handle error display to the user
-      })
+        console.error(err);
+        toast(`Failed to create moderator: ${err.error?.error ?? "Unknown error"}`);
+      });
   };
 
   return (
-    <DashboardLayout>
-      <div className="mb-3">
-        <div className="mb-3 flex w-full items-center justify-start gap-2">
-          <div className="flex items-center justify-start">
-            <ArrowLeft
-              size={25}
-              onClick={
-                curStage > 1
-                  ? () => setCurStage((prev) => prev - 1)
-                  : () => navigate(`/moderators`)
-              }
-              className="text-muted-foreground cursor-pointer"
-            />
+    <>
+      <CustomToaster position="top-center"  />
+      <DashboardLayout>
+        <div className="mb-3">
+          <div className="mb-3 flex w-full items-center justify-start gap-2">
+            <div className="flex items-center justify-start">
+              <ArrowLeft
+                size={25}
+                onClick={
+                  curStage > 1
+                    ? () => setCurStage((prev) => prev - 1)
+                    : () => navigate(`/moderators`)
+                }
+                className="text-muted-foreground cursor-pointer"
+              />
+            </div>
+            <h4 className="font-semibold">Create Moderator</h4>
           </div>
-          <h4 className="font-semibold">Create Moderator</h4>
+
+          <div className="flex h-1 w-full gap-3">
+            {(() => {
+              const els = [];
+              for (let i = 0; i < maxStages; i++) {
+                els.push(
+                  <div
+                    key={i}
+                    className={cn(
+                      "h-full rounded-md",
+                      curStage >= i + 1
+                        ? "bg-blue-500 shadow-xs shadow-blue-700"
+                        : "bg-neutral-500 shadow-xs shadow-neutral-700",
+                    )}
+                    style={{ width: `calc(100% / ${maxStages})` }}
+                  ></div>,
+                );
+              }
+              return els;
+            })()}
+          </div>
         </div>
 
-        <div className="flex h-1 w-full gap-3">
-          {(() => {
-            const els = [];
-            for (let i = 0; i < maxStages; i++) {
-              els.push(
-                <div
-                  key={i}
-                  className={cn(
-                    "h-full rounded-md",
-                    curStage >= i + 1
-                      ? "bg-blue-500 shadow-xs shadow-blue-700"
-                      : "bg-neutral-500 shadow-xs shadow-neutral-700",
-                  )}
-                  style={{ width: `calc(100% / ${maxStages})` }}
-                ></div>,
-              );
-            }
-            return els;
-          })()}
-        </div>
-      </div>
+        <div className="mb-3">
+          <div className="">
+            {curStage === 1 && (
+              <SelectGuidelineCard
+                onNext={(arg: string) => {
+                  setGuidelineId(arg);
+                  setCurStage((prev) => prev + 1);
+                }}
+              />
+            )}
 
-      <div className="mb-3">
-        <div className="">
-          {curStage === 1 && (
-            <SelectGuidelineCard
-              onNext={(arg: string) => {
-                setGuidelineId(arg);
-                setCurStage((prev) => prev + 1);
-              }}
-            />
-          )}
+            {curStage === 2 && (
+              <SelectPlatformCard
+                onNext={(arg: MessagePlatformType) => {
+                  setModeratorPlatform(arg);
+                  setCurStage((prev) => prev + 1);
+                }}
+              />
+            )}
 
-          {curStage === 2 && (
-            <SelectPlatformCard
-              onNext={(arg: MessagePlatformType) => {
-                setModeratorPlatform(arg);
-                setCurStage((prev) => prev + 1);
-              }}
-            />
-          )}
-
-          {curStage === 3 && (
-            <SelectGuildCard
-              onNext={(arg: string) => {
-                setDiscordConfig(
-                  (prev) => ({
+            {curStage === 3 && (
+              <SelectGuildCard
+                onNext={(arg: string) => {
+                  setDiscordConfig((prev) => ({
                     ...(prev ?? {}),
                     guild_id: arg,
-                  }),
-                );
-                setCurStage((prev) => prev + 1);
-              }}
-            />
-          )}
+                  }));
+                  setCurStage((prev) => prev + 1);
+                }}
+              />
+            )}
 
-          {curStage === 4 && (discordConfig ?? {}).guild_id && (
-            <SelectChannelsCard
-              onNext={(arg: DiscordConfigAllowedChannels) => {
-                setDiscordConfig(
-                  (prev) => ({
+            {curStage === 4 && (discordConfig ?? {}).guild_id && (
+              <SelectChannelsCard
+                onNext={(arg: DiscordConfigAllowedChannels) => {
+                  setDiscordConfig((prev) => ({
                     ...prev,
                     allowed_channels: arg,
-                  }),
-                );
-                setCurStage((prev) => prev + 1);
-              }}
-              guildId={discordConfig.guild_id}
-            />
-          )}
+                  }));
+                  setCurStage((prev) => prev + 1);
+                }}
+                guildId={discordConfig.guild_id}
+              />
+            )}
 
-          {curStage === 5 && (
-            <SelectActionsCard
-              onNext={(arg: DiscordConfigAllowedActions) => {
-                setDiscordConfig(
-                  (prev) => ({
+            {curStage === 5 && (
+              <SelectActionsCard
+                onNext={(arg: DiscordConfigAllowedActions) => {
+                  setDiscordConfig((prev) => ({
                     ...prev,
                     allowed_actions: arg,
-                  }),
-                );
-                setCurStage((prev) => prev + 1);
-              }}
-            />
-          )}
+                  }));
+                  setCurStage((prev) => prev + 1);
+                }}
+              />
+            )}
 
-          {curStage === 6 && (
-            <SetModeratorNameCard
-              onNext={(arg: string) => {
-                handleCreateModerator(arg);
-              }}
-            />
-          )}
+            {curStage === 6 && (
+              <SetModeratorNameCard
+                onNext={(arg: string) => {
+                  handleCreateModerator(arg);
+                }}
+              />
+            )}
+          </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </>
   );
 };
 export default CreateModeratorPage;

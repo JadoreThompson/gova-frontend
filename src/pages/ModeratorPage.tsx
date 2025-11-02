@@ -339,7 +339,9 @@ const ModeratorPage: FC = () => {
             handleApi(await getModeratorModeratorsModeratorIdGet(moderatorId)),
         });
         setStatus(rsp.status);
+        
         if (rsp.status === status) return;
+        await new Promise(resolve => setTimeout(resolve, 1000))
       } catch (err) {
         attempts++;
         await new Promise(resolve => setTimeout(resolve, 1000))

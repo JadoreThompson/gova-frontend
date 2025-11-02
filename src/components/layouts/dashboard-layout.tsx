@@ -7,7 +7,6 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import AuthGuard from "../auth-guard";
 import SiteLogo from "../site-logo";
-import CustomToaster from "../toaster";
 import { Button } from "../ui/button";
 import {
   Sidebar,
@@ -147,7 +146,6 @@ const DashboardLayout: FC<{
     <AuthGuard>
       <SidebarProvider>
         <div className="flex min-h-screen w-full">
-          <CustomToaster />
           <DashboardSidebar />
           <div className="flex flex-1 flex-col pb-5">
             <Header />
