@@ -39,13 +39,8 @@ export interface ActionUpdate {
   status: ActionUpdateStatus;
 }
 
-/**
- * The client facing model(s) which allow prefilling
-parameters. Used in the platforms config for defining
-the allowed actions.
- */
-export interface BaseActionDefinition {
-  type: unknown;
+export interface BanActionDefinition {
+  type?: "ban";
   requires_approval: boolean;
 }
 
@@ -55,14 +50,26 @@ export interface ContactForm {
   message: string;
 }
 
-export type DiscordConfigAllowedChannels = ["*"] | number[];
-
-export type DiscordConfigAllowedActions = ["*"] | BaseActionDefinition[];
+export type DiscordConfigAllowedActionsItem =
+  | MuteActionDefinition
+  | BanActionDefinition
+  | KickActionDefinition;
 
 export interface DiscordConfig {
   guild_id: number;
-  allowed_channels: DiscordConfigAllowedChannels;
-  allowed_actions: DiscordConfigAllowedActions;
+  allowed_channels: number[];
+  allowed_actions: DiscordConfigAllowedActionsItem[];
+}
+
+export type DiscordConfigBodyAllowedActionsItem =
+  | MuteActionDefinition
+  | BanActionDefinition
+  | KickActionDefinition;
+
+export interface DiscordConfigBody {
+  guild_id: string;
+  allowed_channels: string[];
+  allowed_actions: DiscordConfigBodyAllowedActionsItem[];
 }
 
 export interface GuidelineCreate {
@@ -104,6 +111,11 @@ export interface HTTPValidationError {
   detail?: ValidationError[];
 }
 
+export interface KickActionDefinition {
+  type?: "kick";
+  requires_approval: boolean;
+}
+
 export type MessageChartDataCounts = { [key: string]: number };
 
 export interface MessageChartData {
@@ -124,7 +136,7 @@ export interface ModeratorCreate {
   guideline_id: string;
   platform: MessagePlatformType;
   platform_server_id: string;
-  conf: DiscordConfig;
+  conf: DiscordConfigBody;
 }
 
 export interface ModeratorResponse {
@@ -153,6 +165,18 @@ export const ModeratorStatus = {
   pending: "pending",
   online: "online",
 } as const;
+
+/**
+ * Duration in milliseconds to mute the user.
+ */
+export type MuteActionDefinitionDuration = number | null;
+
+export interface MuteActionDefinition {
+  type?: "mute";
+  requires_approval: boolean;
+  /** Duration in milliseconds to mute the user. */
+  duration?: MuteActionDefinitionDuration;
+}
 
 export interface PaginatedResponseActionResponse {
   page: number;
@@ -324,9 +348,9 @@ export const updateActionStatusActionsLogIdPatch = async (
 /**
  * @summary Register
  */
-export type registerAuthRegisterPostResponse202 = {
+export type registerAuthRegisterPostResponse200 = {
   data: unknown;
-  status: 202;
+  status: 200;
 };
 
 export type registerAuthRegisterPostResponse422 = {
@@ -335,7 +359,7 @@ export type registerAuthRegisterPostResponse422 = {
 };
 
 export type registerAuthRegisterPostResponseSuccess =
-  registerAuthRegisterPostResponse202 & {
+  registerAuthRegisterPostResponse200 & {
     headers: Headers;
   };
 export type registerAuthRegisterPostResponseError =

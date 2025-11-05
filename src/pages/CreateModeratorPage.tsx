@@ -20,10 +20,8 @@ import { useCreateModeratorMutation } from "@/hooks/queries/moderator-hooks";
 import { cn } from "@/lib/utils";
 import {
   MessagePlatformType,
-  type BaseActionDefinition,
-  type DiscordConfig,
-  type DiscordConfigAllowedActions,
-  type DiscordConfigAllowedChannels,
+  type DiscordConfigBody,
+  type DiscordConfigBodyAllowedActionsItem,
   type ModeratorCreate,
 } from "@/openapi";
 import { ArrowLeft } from "lucide-react";
@@ -35,19 +33,8 @@ interface ModeratorCreationStageProps<T> {
   onNext: (arg: T) => void;
 }
 
-type ActionField = {
-  name: string;
-  type: "number" | "text";
-  label?: string;
-};
 
-type ActionConfig = {
-  type: string;
-  fields: ActionField[];
-  defaultRequiresApproval: boolean;
-};
-
-const AVAILABLE_ACTIONS: ActionConfig[] = [
+const AVAILABLE_ACTIONS = [
   {
     type: "mute",
     fields: [
@@ -65,7 +52,7 @@ const AVAILABLE_ACTIONS: ActionConfig[] = [
     fields: [],
     defaultRequiresApproval: false,
   },
-];
+] as const;
 
 const SelectGuidelineCard: FC<ModeratorCreationStageProps<string>> = (
   props,
@@ -158,7 +145,7 @@ const SetModeratorNameCard: FC<ModeratorCreationStageProps<string>> = (
 };
 
 const SelectActionsCard: FC<
-  ModeratorCreationStageProps<DiscordConfigAllowedActions>
+  ModeratorCreationStageProps<DiscordConfigBodyAllowedActionsItem[]>
 > = (props) => {
   const [allowAll, setAllowAll] = useState(false);
   const [allowedActions, setAllowedActions] = useState<{
@@ -224,7 +211,7 @@ const SelectActionsCard: FC<
   };
 
   const finalizeAndSubmit = () => {
-    let finalActions: DiscordConfigAllowedActions;
+    let finalActions: DiscordConfigBodyAllowedActionsItem[];
 
     if (allowAll) {
       finalActions = AVAILABLE_ACTIONS.map((action) => {
@@ -236,11 +223,11 @@ const SelectActionsCard: FC<
           {} as Record<string, unknown>,
         );
 
-        const baseAction: BaseActionDefinition = {
+        const baseAction = {
           type: action.type,
           requires_approval: false,
           ...collectedParams,
-        } as BaseActionDefinition;
+        };
 
         return baseAction;
       });
@@ -270,11 +257,11 @@ const SelectActionsCard: FC<
           {} as Record<string, unknown>,
         );
 
-        const baseAction: BaseActionDefinition = {
+        const baseAction = {
           type: action.type,
           requires_approval: config.requires_approval,
           ...collectedParams,
-        } as BaseActionDefinition;
+        };
 
         return baseAction;
       });
@@ -408,7 +395,7 @@ const SelectActionsCard: FC<
 };
 
 const SelectChannelsCard: FC<
-  ModeratorCreationStageProps<DiscordConfigAllowedChannels> & {
+  ModeratorCreationStageProps<string[]> & {
     guildId: string;
   }
 > = (props) => {
@@ -592,22 +579,23 @@ const CreateModeratorPage: FC = () => {
       conf: {
         ...discordConfig,
         guild_id: discordConfig.guild_id,
-      } as DiscordConfig,
+      } as DiscordConfigBody,
     };
-
 
     createModeratorMutation
       .mutateAsync(payload)
       .then(() => navigate(`/moderators`))
       .catch((err) => {
         console.error(err);
-        toast(`Failed to create moderator: ${err.error?.error ?? "Unknown error"}`);
+        toast(
+          `Failed to create moderator: ${err.error?.error ?? "Unknown error"}`,
+        );
       });
   };
 
   return (
     <>
-      <CustomToaster position="top-center"  />
+      <CustomToaster position="top-center" />
       <DashboardLayout>
         <div className="mb-3">
           <div className="mb-3 flex w-full items-center justify-start gap-2">
@@ -670,7 +658,7 @@ const CreateModeratorPage: FC = () => {
             {curStage === 3 && (
               <SelectGuildCard
                 onNext={(arg: string) => {
-                  setDiscordConfig((prev) => ({
+                  setDiscordConfig((prev: DiscordConfigBody) => ({
                     ...(prev ?? {}),
                     guild_id: arg,
                   }));
@@ -681,8 +669,8 @@ const CreateModeratorPage: FC = () => {
 
             {curStage === 4 && (discordConfig ?? {}).guild_id && (
               <SelectChannelsCard
-                onNext={(arg: DiscordConfigAllowedChannels) => {
-                  setDiscordConfig((prev) => ({
+                onNext={(arg: string[]) => {
+                  setDiscordConfig((prev: DiscordConfigBody) => ({
                     ...prev,
                     allowed_channels: arg,
                   }));
@@ -694,8 +682,8 @@ const CreateModeratorPage: FC = () => {
 
             {curStage === 5 && (
               <SelectActionsCard
-                onNext={(arg: DiscordConfigAllowedActions) => {
-                  setDiscordConfig((prev) => ({
+                onNext={(arg: DiscordConfigBodyAllowedActionsItem[]) => {
+                  setDiscordConfig((prev: DiscordConfigBody) => ({
                     ...prev,
                     allowed_actions: arg,
                   }));

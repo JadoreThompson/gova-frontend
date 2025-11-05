@@ -26,6 +26,7 @@ import {
   useModeratorsQuery,
 } from "@/hooks/queries/moderator-hooks";
 import { formatDate } from "@/lib/utils/utils";
+import type { ModeratorCreate } from "@/openapi";
 import dayjs from "dayjs";
 import { ArrowDown, ArrowUp, Minus, Search, X } from "lucide-react";
 import { useEffect, useState, type FC } from "react";
@@ -149,7 +150,7 @@ const ModeratorsPage: FC = () => {
 
     const formData = Object.fromEntries(
       new FormData(e.currentTarget).entries(),
-    ) as { guideline_id: string; name: string };
+    ) as unknown as ModeratorCreate;
     if (!formData.name.trim()) return;
 
     createModeratorMutation

@@ -1,23 +1,23 @@
 import { cn } from "@/lib/utils";
-import type { ModeratorDeploymentStatus } from "@/openapi";
+import { ModeratorStatus } from "@/openapi";
 import type { FC } from "react";
 
-const DeploymentStatusCircle: FC<{ status: ModeratorDeploymentStatus }> = ({
+const DeploymentStatusCircle: FC<{ status: ModeratorStatus }> = ({
   status,
 }) => {
-  const getColorClass = (value: ModeratorDeploymentStatus) => {
+  const getColorClass = (value: ModeratorStatus) => {
     switch (value) {
-      case "online":
+      case ModeratorStatus.online:
         return {
           base: "bg-green-500 dark:bg-green-400",
           ring: "bg-green-400/30 dark:bg-green-300/20",
         };
-      case "pending":
+      case ModeratorStatus.pending:
         return {
           base: "bg-yellow-500 dark:bg-yellow-400",
           ring: "bg-yellow-400/30 dark:bg-yellow-300/20",
         };
-      case "offline":
+      case ModeratorStatus.offline:
         return {
           base: "bg-gray-400 dark:bg-gray-500",
           ring: "bg-gray-300/30 dark:bg-gray-400/20",
