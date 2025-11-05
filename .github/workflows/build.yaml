@@ -1,0 +1,28 @@
+name: Build project
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_job:
+    name: build
+    permissions:
+      contents: read
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Build project
+        run: npm run build
+
+      - name: Serve
+        run: mv dist ~/frontend
