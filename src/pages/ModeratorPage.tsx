@@ -42,6 +42,7 @@ import {
   ModeratorStatus,
   type ActionResponse,
 } from "@/openapi";
+import { useStatusStore } from "@/stores/status-store";
 import { useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Bot, CirclePlus, Loader2 } from "lucide-react";
@@ -295,12 +296,18 @@ const ModeratorPage: FC = () => {
   const [selectedStatuses, setSelectedStatuses] = useState<ActionStatus[]>(
     Object.values(ActionStatus),
   );
-  const [status, setStatus] = useState<ModeratorStatus | "pending">(
+  const [status, setStatus] = useState<ModeratorStatus>(
     ModeratorStatus.offline,
   );
 
   const abortControllerRef = useRef(new AbortController());
   const pollingPromiseRef = useRef<Promise<void> | undefined>(undefined);
+  const hasSetStatusRef = useRef(false);
+  const hasCheckedStoreRef = useRef(false);
+
+  const statusStore = useStatusStore((state) => state.data);
+  const setStatusStore = useStatusStore((state) => state.setData);
+  const deleteStatusStoreKey = useStatusStore((state) => state.deleteKey);
   const startModeratorMutation = useStartModeratorMutation();
   const stopModeratorMutation = useStopModeratorMutation();
   const moderatorQuery = useModeratorQuery(moderatorId);
@@ -311,10 +318,32 @@ const ModeratorPage: FC = () => {
   } as any);
 
   useEffect(() => {
-    if (moderatorQuery.data && status !== "pending") {
+    if (!hasSetStatusRef.current && moderatorQuery.data?.status) {
+      hasSetStatusRef.current = true;
       setStatus(moderatorQuery.data.status);
     }
-  }, [moderatorQuery.data, status]);
+  }, [moderatorQuery]);
+
+  useEffect(() => {
+    const handle = async () => {
+      if (!abortControllerRef.current.signal.aborted) {
+        abortControllerRef.current.abort();
+        await pollingPromiseRef.current;
+      }
+
+      setStatus(ModeratorStatus.pending);
+      abortControllerRef.current = new AbortController();
+      pollingPromiseRef.current = pollForStatus(
+        statusStore[moderatorId].targetStatus,
+        abortControllerRef.current,
+      );
+    };
+
+    if (!hasCheckedStoreRef.current && moderatorId in statusStore) {
+      handle();
+      hasCheckedStoreRef.current = true;
+    }
+  }, [statusStore, moderatorQuery]);
 
   useEffect(() => {
     return () => {
@@ -324,13 +353,13 @@ const ModeratorPage: FC = () => {
     };
   }, []);
 
-  const pollForStatus = async (
+  async function pollForStatus(
     status: ModeratorStatus,
     signal: AbortController,
-  ) => {
+  ) {
     let attempts = 0;
     const maxAttempts = 30;
-    
+
     while (!signal.signal.aborted && attempts < maxAttempts) {
       try {
         const rsp = await queryClient.fetchQuery({
@@ -338,16 +367,19 @@ const ModeratorPage: FC = () => {
           queryFn: async () =>
             handleApi(await getModeratorModeratorsModeratorIdGet(moderatorId)),
         });
-        setStatus(rsp.status);
-        
-        if (rsp.status === status) return;
-        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        if (rsp.status === status) {
+          setStatus(rsp.status);
+          deleteStatusStoreKey(moderatorId);
+          return;
+        }
       } catch (err) {
         attempts++;
-        await new Promise(resolve => setTimeout(resolve, 1000))
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
-  };
+  }
 
   const handlePollForStatus = async (targetStatus: ModeratorStatus) => {
     if (!abortControllerRef.current.signal.aborted) {
@@ -355,35 +387,39 @@ const ModeratorPage: FC = () => {
       await pollingPromiseRef.current;
     }
 
+    setStatus(ModeratorStatus.pending);
     abortControllerRef.current = new AbortController();
     pollingPromiseRef.current = pollForStatus(
       targetStatus,
       abortControllerRef.current,
     );
+    setStatusStore(moderatorId, { targetStatus });
   };
 
   const toggleModerator = () => {
     if (status === "pending") return;
 
     if (status === ModeratorStatus.offline) {
+      setStatus(ModeratorStatus.pending);
       startModeratorMutation
         .mutateAsync(moderatorId)
         .then(() => {
-          setStatus(ModeratorStatus.pending);
           handlePollForStatus(ModeratorStatus.online);
         })
         .catch((err) => {
           console.error("Failed to start moderator", err);
+          setStatus(ModeratorStatus.offline);
         });
     } else if (status === ModeratorStatus.online) {
+      setStatus(ModeratorStatus.pending);
       stopModeratorMutation
         .mutateAsync(moderatorId)
         .then(() => {
-          setStatus(ModeratorStatus.pending);
           handlePollForStatus(ModeratorStatus.offline);
         })
         .catch((err) => {
           console.error("Failed to stop moderator", err);
+          setStatus(ModeratorStatus.online);
         });
     }
   };
@@ -437,7 +473,7 @@ const ModeratorPage: FC = () => {
           {status === "pending" && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {status === ModeratorStatus.offline && "Deploy"}
+          {status === ModeratorStatus.offline && "Launch"}
           {status === ModeratorStatus.online && "Stop"}
           {status === "pending" && "Pending"}
         </Button>
