@@ -245,12 +245,42 @@ const ActionsTable: FC<{
               The following parameters were used for this action.
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4 max-h-64 overflow-y-auto rounded-md bg-gray-100 p-4 dark:bg-neutral-800">
+          <div className="scrollbar-hide mt-4 max-h-64 space-y-4 overflow-y-auto">
             {viewedActionResponse?.action_params &&
             Object.keys(viewedActionResponse.action_params).length > 0 ? (
-              <pre className="text-sm">
-                {JSON.stringify(viewedActionResponse.action_params, null, 2)}
-              </pre>
+              <form className="space-y-3">
+                {([
+                  ...Object.entries(viewedActionResponse.action_params),
+                  ["message", viewedActionResponse.message],
+                ] as [string, any][]).map(([key, value]) => (
+                  <div key={key} className="flex flex-col text-sm">
+                    <label className="font-medium text-gray-600 capitalize dark:text-gray-300">
+                      {key.replace(/_/g, " ")}
+                    </label>
+                    {key === "message" ? (
+                      <textarea
+                        name=""
+                        id=""
+                        readOnly
+                        className="bg-primary-foreground scrollbar-hide h-50 resize-none rounded-md border border-gray-700 px-3 py-1.5 focus:outline-none"
+                      >
+                        {value}
+                      </textarea>
+                    ) : (
+                      <Input
+                        type="text"
+                        readOnly
+                        value={
+                          typeof value === "object"
+                            ? JSON.stringify(value, null, 2)
+                            : String(value)
+                        }
+                        className="mt-1 w-full rounded-md border !border-gray-700 px-3 py-1.5 focus:!ring-0"
+                      />
+                    )}
+                  </div>
+                ))}
+              </form>
             ) : (
               <p className="text-muted-foreground text-sm">
                 No parameters for this action.
