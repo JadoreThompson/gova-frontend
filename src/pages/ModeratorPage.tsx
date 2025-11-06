@@ -128,8 +128,9 @@ const ActionsTable: FC<{
               <TableHead className="font-bold text-gray-700 dark:text-gray-200">
                 Status
               </TableHead>
+              <TableHead>Message</TableHead>
               <TableHead className="text-right font-bold text-gray-700 dark:text-gray-200">
-                ActionResponses
+                Action
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -166,6 +167,10 @@ const ActionsTable: FC<{
                     {dayjs(action.created_at).format("YYYY-MM-DD HH:mm")}
                   </TableCell>
                   <TableCell>{getBadge(action.status)}</TableCell>
+                  <TableCell className="ellipsis">
+                    {action.message.slice(0, 20)}
+                    {action.message.length > 20 && "..."}
+                  </TableCell>
                   <TableCell className="text-right">
                     {action.status === ActionStatus.awaiting_approval && (
                       <Button
@@ -194,7 +199,7 @@ const ActionsTable: FC<{
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Review ActionResponse</DialogTitle>
+            <DialogTitle>Review Action</DialogTitle>
             <DialogDescription>
               Approve or decline the action:{" "}
               <span className="font-semibold capitalize">
@@ -276,7 +281,7 @@ const StatsCards: FC<{
     <Card className="h-full w-70 gap-2">
       <CardHeader className="mb-0">
         <CardTitle className="text-muted-foreground">
-          Total ActionResponses Taken
+          Total Actions Taken
         </CardTitle>
       </CardHeader>
       <CardContent>
