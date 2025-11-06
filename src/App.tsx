@@ -4,6 +4,7 @@ import ConnectionsPage from "./pages/ConnectionsPage";
 import ContactUsPage from "./pages/ContactUsPage";
 import CreateModeratorPage from "./pages/CreateModeratorPage";
 import GuidelinesPage from "./pages/GuidelinesPage";
+import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ModeratorPage from "./pages/ModeratorPage";
 import ModeratorsPage from "./pages/ModeratorsPage";
@@ -17,6 +18,7 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<HomePage />} />
           <Route path="/*" element={<Navigate to="/pricing" />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/login" element={<LoginPage />} />
