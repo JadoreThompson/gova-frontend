@@ -1,6 +1,7 @@
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import MessagesChart from "@/components/messages-chart";
 import PaginationControls from "@/components/pagination-controls";
+import CustomToaster from "@/components/toaster";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/table";
 import { useUpdateActionStatusMutation } from "@/hooks/queries/actions-hooks";
 import {
+  useDeletModeratorMutation,
   useModeratorActionsQuery,
   useModeratorQuery,
   useModeratorStatsQuery,
@@ -45,9 +47,17 @@ import {
 import { useStatusStore } from "@/stores/status-store";
 import { useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { Bot, CirclePlus, Loader2 } from "lucide-react";
+import {
+  Bot,
+  CirclePlus,
+  EllipsisVertical,
+  Loader2,
+  Trash,
+  TriangleAlert,
+} from "lucide-react";
 import { useEffect, useRef, useState, type FC } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
 
 const ActionsTable: FC<{
   actions: ActionResponse[];
@@ -249,10 +259,12 @@ const ActionsTable: FC<{
             {viewedActionResponse?.action_params &&
             Object.keys(viewedActionResponse.action_params).length > 0 ? (
               <form className="space-y-3">
-                {([
-                  ...Object.entries(viewedActionResponse.action_params),
-                  ["message", viewedActionResponse.message],
-                ] as [string, any][]).map(([key, value]) => (
+                {(
+                  [
+                    ...Object.entries(viewedActionResponse.action_params),
+                    ["message", viewedActionResponse.message],
+                  ] as [string, any][]
+                ).map(([key, value]) => (
                   <div key={key} className="flex flex-col text-sm">
                     <label className="font-medium text-gray-600 capitalize dark:text-gray-300">
                       {key.replace(/_/g, " ")}
@@ -326,6 +338,7 @@ const StatsCards: FC<{
 const ModeratorPage: FC = () => {
   const { moderatorId } = useParams() as { moderatorId: string };
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [page, setPage] = useState(1);
   const [selectedStatuses, setSelectedStatuses] = useState<ActionStatus[]>(
@@ -334,6 +347,7 @@ const ModeratorPage: FC = () => {
   const [status, setStatus] = useState<ModeratorStatus>(
     ModeratorStatus.offline,
   );
+  const [showDeleteModerator, setShowDeleteModerator] = useState(false);
 
   const abortControllerRef = useRef(new AbortController());
   const pollingPromiseRef = useRef<Promise<void> | undefined>(undefined);
@@ -351,6 +365,7 @@ const ModeratorPage: FC = () => {
     page,
     status: selectedStatuses,
   } as any);
+  const deleteModeratorMutation = useDeletModeratorMutation();
 
   useEffect(() => {
     if (!hasSetStatusRef.current && moderatorQuery.data?.status) {
@@ -432,7 +447,7 @@ const ModeratorPage: FC = () => {
   };
 
   const toggleModerator = () => {
-    if (status === "pending") return;
+    if (status === ModeratorStatus.pending) return;
 
     if (status === ModeratorStatus.offline) {
       setStatus(ModeratorStatus.pending);
@@ -484,83 +499,153 @@ const ModeratorPage: FC = () => {
   const botColorClass = {
     [ModeratorStatus.online]: "text-green-500",
     [ModeratorStatus.offline]: "text-white",
-    pending: "text-yellow-500",
+    [ModeratorStatus.pending]: "text-yellow-500",
   }[status];
 
   return (
-    <DashboardLayout>
-      <div className="mb-6 flex items-center justify-between pt-5">
-        {moderatorQuery.isFetching && !moderatorQuery.data ? (
-          <Skeleton className="h-8 w-48" />
-        ) : (
-          <div className="flex items-center gap-2">
-            <Bot className={`${botColorClass} animate-bot`} />
-            <h4 className="font-semibold">{moderatorQuery.data?.name}</h4>
-          </div>
-        )}
-        <Button
-          onClick={toggleModerator}
-          disabled={status === "pending"}
-          variant={
-            status === ModeratorStatus.online ? "destructive" : "default"
-          }
-        >
-          {status === "pending" && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+    <>
+      <CustomToaster position="top-center" />
+      {showDeleteModerator && (
+        <div className="fixed flex h-screen w-full items-center justify-center">
+          <Dialog
+            open={showDeleteModerator}
+            onOpenChange={(isOpen) => setShowDeleteModerator(isOpen)}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="flex gap-3 !text-2xl capitalize">
+                  <TriangleAlert /> Delete Moderator
+                </DialogTitle>
+                <DialogDescription>
+                  The following parameters were used for this action.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteModerator(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() =>
+                    deleteModeratorMutation
+                      .mutateAsync(moderatorId)
+                      .then(() => navigate("/moderators"))
+                      .catch((err) => {
+                        const error = err.error?.error;
+                        if (error) {
+                          toast(error);
+                        } else {
+                          toast("An unexpected error occured");
+                          console.error(err);
+                        }
+                      })
+                  }
+                >
+                  Confirm
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+
+      <DashboardLayout>
+        <div className="mb-6 flex items-center justify-between pt-5">
+          {moderatorQuery.isFetching && !moderatorQuery.data ? (
+            <Skeleton className="h-8 w-48" />
+          ) : (
+            <div className="flex items-center gap-2">
+              <Bot className={`${botColorClass} animate-bot`} />
+              <h4 className="font-semibold">{moderatorQuery.data?.name}</h4>
+            </div>
           )}
-          {status === ModeratorStatus.offline && "Launch"}
-          {status === ModeratorStatus.online && "Stop"}
-          {status === "pending" && "Pending"}
-        </Button>
-      </div>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={toggleModerator}
+              disabled={status === "pending"}
+              variant={
+                status === ModeratorStatus.online ? "destructive" : "default"
+              }
+            >
+              {status === "pending" && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {status === ModeratorStatus.offline && "Launch"}
+              {status === ModeratorStatus.online && "Stop"}
+              {status === "pending" && "Pending"}
+            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button className="!bg-transparent">
+                  <EllipsisVertical className="text-white"></EllipsisVertical>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-50 p-1">
+                <div className="flex flex-col">
+                  <div
+                    onClick={() => setShowDeleteModerator(true)}
+                    className="hover:bg-secondary flex cursor-pointer items-center justify-start gap-3 rounded-sm p-1"
+                  >
+                    <Trash size="10" className="text-red-500" />
+                    <span className="text-xs">Delete Moderator</span>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
 
-      <StatsCards
-        totalMessages={moderatorStatsQuery.data?.total_messages ?? 0}
-        totalActionResponses={moderatorStatsQuery.data?.total_actions ?? 0}
-      />
-      <MessagesChart
-        chartData={moderatorStatsQuery.data?.message_chart ?? []}
-      />
-
-      <div className="mb-4 flex h-8 w-full gap-1">
-        <Popover>
-          <PopoverTrigger asChild>
-            <span className="bg-muted flex w-24 cursor-pointer items-center justify-center gap-2 rounded-sm border border-dashed border-neutral-600 text-sm font-semibold">
-              <CirclePlus size={15} /> Status
-            </span>
-          </PopoverTrigger>
-          <PopoverContent className="w-48 p-2">
-            {Object.values(ActionStatus).map((s) => (
-              <label
-                key={s}
-                className="flex cursor-pointer items-center gap-2 p-1 text-sm"
-              >
-                <Input
-                  type="checkbox"
-                  checked={selectedStatuses.includes(s)}
-                  onChange={() => toggleStatus(s)}
-                  className="w-5"
-                />
-                <span className="capitalize">{s.replace(/_/g, " ")}</span>
-              </label>
-            ))}
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <ActionsTable
-        actions={moderatorActionsQuery.data?.data ?? []}
-        isLoading={moderatorActionsQuery.isFetching}
-      />
-      <div className="mt-4">
-        <PaginationControls
-          page={page}
-          hasNextPage={!!moderatorActionsQuery.data?.has_next}
-          onPrevPage={handlePrevPage}
-          onNextPage={handleNextPage}
+        <StatsCards
+          totalMessages={moderatorStatsQuery.data?.total_messages ?? 0}
+          totalActionResponses={moderatorStatsQuery.data?.total_actions ?? 0}
         />
-      </div>
-    </DashboardLayout>
+        <MessagesChart
+          chartData={moderatorStatsQuery.data?.message_chart ?? []}
+        />
+
+        <div className="mb-4 flex h-8 w-full gap-1">
+          <Popover>
+            <PopoverTrigger asChild>
+              <span className="bg-muted flex w-24 cursor-pointer items-center justify-center gap-2 rounded-sm border border-dashed border-neutral-600 text-sm font-semibold">
+                <CirclePlus size={15} /> Status
+              </span>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-2">
+              {Object.values(ActionStatus).map((s) => (
+                <label
+                  key={s}
+                  className="flex cursor-pointer items-center gap-2 p-1 text-sm"
+                >
+                  <Input
+                    type="checkbox"
+                    checked={selectedStatuses.includes(s)}
+                    onChange={() => toggleStatus(s)}
+                    className="w-5"
+                  />
+                  <span className="capitalize">{s.replace(/_/g, " ")}</span>
+                </label>
+              ))}
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <ActionsTable
+          actions={moderatorActionsQuery.data?.data ?? []}
+          isLoading={moderatorActionsQuery.isFetching}
+        />
+        <div className="mt-4">
+          <PaginationControls
+            page={page}
+            hasNextPage={!!moderatorActionsQuery.data?.has_next}
+            onPrevPage={handlePrevPage}
+            onNextPage={handleNextPage}
+          />
+        </div>
+      </DashboardLayout>
+    </>
   );
 };
 

@@ -141,3 +141,18 @@ export function useStopModeratorMutation() {
     },
   });
 }
+
+export function useDeletModeratorMutation() {
+  return useMutation({
+    mutationFn: async (moderatorId: string) =>
+      handleApi(await deleteModeratorModeratorsModeratorIdDelete(moderatorId)),
+    onSuccess: (_data, moderatorId) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.moderator(moderatorId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.moderatorStats(moderatorId),
+      });
+    },
+  });
+}
