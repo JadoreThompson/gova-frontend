@@ -82,7 +82,7 @@ const DashboardSidebar: FC = () => {
           </div>
           <span className="text-sm font-semibold">{me?.username ?? ""}</span>
         </Link>
-        {me?.pricing_tier === PricingTierType.NUMBER_0 && (
+        {me?.pricing_tier === PricingTierType.free && (
           <Link to="/pricing">
             <Button className="w-full">
               <ArrowBigUp size={16} />
