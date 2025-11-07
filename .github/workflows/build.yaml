@@ -29,4 +29,13 @@ jobs:
         run: npm run build
 
       - name: Serve
-        run: rm -rf /frontend && mv dist/ /frontend/
+        run: |
+          set -e
+          echo "Moving /frontend to /frontend-old and replacing with dist..."
+          if mv /frontend /frontend-old && mv dist /frontend; then
+            echo "Folders moved successfully!"
+          else
+            echo "Folder move failed. Restoring /frontend..."
+            mv /frontend-old /frontend || echo "Restore failed! Please check manually."
+            exit 1
+          fi
