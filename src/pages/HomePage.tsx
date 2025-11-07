@@ -31,6 +31,7 @@ import {
   Zap,
 } from "lucide-react";
 import React, { useState, type FC, type HTMLAttributes } from "react";
+import { Link } from "react-router";
 
 interface IconProps extends HTMLAttributes<SVGElement> {
   children?: never;
@@ -46,7 +47,7 @@ type Feature = {
 
 const Header: FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navLinks = ["Features", "Demo", "Pricing", "Docs"];
+  const navLinks = ["Features", "Demo", "Pricing"];
 
   return (
     <header className="bg-background/95 sticky top-0 z-50 w-full border-b backdrop-blur-sm">
@@ -66,8 +67,9 @@ const Header: FC = () => {
         </nav>
 
         <div className="hidden items-center gap-4 md:flex">
-          <Button variant="ghost">Log In</Button>
-          <Button>Sign Up</Button>
+          <Link to="/login">
+            <Button>Launch</Button>
+          </Link>
         </div>
 
         <div className="md:hidden">
