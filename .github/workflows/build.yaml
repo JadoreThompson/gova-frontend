@@ -35,7 +35,7 @@ jobs:
 
           echo "Moving ${SERVE_PATH} to ${OLD_SERVE_PATH} and replacing with dist..."
           if [ -d $SERVE_PATH ]; then
-            if mv ${SERVE_PATH}/ $OLD_SERVE_PATH && mv dist/ $SERVE_PATH; then
+            if mv -f ${SERVE_PATH}/ $OLD_SERVE_PATH && mv dist/ $SERVE_PATH; then
               echo "Folders moved successfully!"
             else
               echo "Folder move failed. Restoring ${SERVE_PATH}..."
