@@ -29,16 +29,21 @@ jobs:
       - name: Serve
         run: |
           set -e
-          echo "Moving /frontend to /frontend-old and replacing with dist..."
-          if [ -d /opt/workspace/frontend ]; then
-            if mv /opt/workspace/frontend /opt/workspace/frontend-old && mv dist /opt/workspace/frontend; then
+          
+          SERVE_PATH=/opt/workspace/frontend
+          OLD_SERVE_PATH="${SERVE_PATH}-old"
+
+          echo "Moving ${SERVE_PATH} to ${OLD_SERVE_PATH} and replacing with dist..."
+          if [ -d $SERVE_PATH ]; then
+            if mv $SERVE_PATH $OLD_SERVE_PATH && mv dist $SERVE_PATH; then
               echo "Folders moved successfully!"
             else
-              echo "Folder move failed. Restoring /frontend..."
-              mv /opt/workspace/frontend-old /opt/workspace/frontend || echo "Restore failed! Please check manually."
+              echo "Folder move failed. Restoring ${SERVE_PATH}..."
+              mv $OLD_SERVE_PATH $SERVE_PATH || echo "Restore failed! Please check manually."
               exit 1
             fi
           else
-            mkdir -p /opt/workspace/frontend
-            mv dist /opt/workspace/frontend
+          echo "Created frontend folder at $SERVE_PATH"
+            mkdir -p $SERVE_PATH
+            mv dist $SERVE_PATH
           fi        
