@@ -30,7 +30,7 @@ jobs:
         run: |
           set -e
           echo "Moving /frontend to /frontend-old and replacing with dist..."
-          if [ -f /opt/workspace/frontend ]; then
+          if [ -d /opt/workspace/frontend ]; then
             if mv /opt/workspace/frontend /opt/workspace/frontend-old && mv dist /opt/workspace/frontend; then
               echo "Folders moved successfully!"
             else
@@ -39,5 +39,6 @@ jobs:
               exit 1
             fi
           else
+            mkdir -p /opt/workspace/frontend
             mv dist /opt/workspace/frontend
           fi        
