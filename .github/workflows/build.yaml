@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build_job:
+  build:
     name: build
     permissions:
       contents: read
@@ -14,8 +14,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install node
         uses: actions/setup-node@v6
@@ -32,10 +30,14 @@ jobs:
         run: |
           set -e
           echo "Moving /frontend to /frontend-old and replacing with dist..."
-          if mv /frontend /frontend-old && mv dist /frontend; then
-            echo "Folders moved successfully!"
+          if [ -f /opt/workspace/frontend ]; then
+            if mv /opt/workspace/frontend /opt/workspace/frontend-old && mv dist /opt/workspace/frontend; then
+              echo "Folders moved successfully!"
+            else
+              echo "Folder move failed. Restoring /frontend..."
+              mv /opt/workspace/frontend-old /opt/workspace/frontend || echo "Restore failed! Please check manually."
+              exit 1
+            fi
           else
-            echo "Folder move failed. Restoring /frontend..."
-            mv /frontend-old /frontend || echo "Restore failed! Please check manually."
-            exit 1
-          fi
+            mv dist /opt/workspace/frontend
+          fi        
