@@ -419,7 +419,6 @@ const SelectChannelsCard: FC<
               <h4 className="font-semibold">Select Channels</h4>
               <Button
                 variant="outline"
-                // onClick={() => props.onNext(["*"])}
                 onClick={() => {
                   if (!discordChannelsQuery.data) return;
                   props.onNext(discordChannelsQuery.data.map((ch) => ch.id));

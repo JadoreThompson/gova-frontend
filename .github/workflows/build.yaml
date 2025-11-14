@@ -30,7 +30,7 @@ jobs:
         run: |
           set -e
           
-          SERVE_PATH=/opt/workspace/frontend
+          SERVE_PATH="/opt/workspace/frontend"
           OLD_SERVE_PATH="${SERVE_PATH}-old"
 
           echo "Moving ${SERVE_PATH} to ${OLD_SERVE_PATH} and replacing with dist..."
