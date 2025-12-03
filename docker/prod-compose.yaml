@@ -5,7 +5,7 @@ services:
       - gova_network
     deploy:
       labels:
-        - "traefik.enabled=true"
+        - "traefik.enable=true"
         - "traefik.http.routers.frontend.rule=Host(`gova.chat`)"
         - "traefik.http.routers.frontend.service=gova_stack_frontend"
         - "traefik.http.services.gova_stack_frontend.loadbalancer.server.port=80"
