@@ -6,5 +6,5 @@ export const formatDate = (value: string) =>
 
 export const OAUTH2_URLS = {
   [MessagePlatformType.discord]:
-    "https://discord.com/oauth2/authorize?client_id=1427581240772657152&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauth%2Fdiscord%2Foauth&scope=identify",
+    import.meta.env.VITE_DISCORD_OAUTH2_URL,
 } as const;
