@@ -30,7 +30,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@radix-ui/react-tooltip";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, RefreshCcwIcon } from "lucide-react";
 import { useState, type FC } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -413,6 +413,8 @@ const SelectChannelsCard: FC<
     props.onNext(Object.keys(selectedChannels));
   };
 
+  const hasError = !!discordChannelsQuery.error;
+
   return (
     <div className="flex w-full flex-col">
       <div className="flex w-full flex-col items-start gap-4">
@@ -422,17 +424,46 @@ const SelectChannelsCard: FC<
           <div className="w-full">
             <div className="mb-4 flex w-full items-center justify-between">
               <h4 className="font-semibold">Select Channels</h4>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (!discordChannelsQuery.data) return;
-                  props.onNext(discordChannelsQuery.data.map((ch) => ch.id));
-                }}
-                className="hover:bg-secondary/80 rounded-md px-4 py-2 transition"
-              >
-                Select All
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    discordChannelsQuery.refetch();
+                  }}
+                  className="hover:bg-secondary/80 rounded-md px-4 py-2 transition"
+                >
+                  <RefreshCcwIcon />
+                  Refresh
+                </Button>
+
+                {!hasError && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (!discordChannelsQuery.data) return;
+                      props.onNext(
+                        discordChannelsQuery.data.map((ch) => ch.id),
+                      );
+                    }}
+                    className="hover:bg-secondary/80 rounded-md px-4 py-2 transition"
+                  >
+                    Select All
+                  </Button>
+                )}
+              </div>
             </div>
+
+            {hasError && (
+              <div className="bg-secondary flex h-25 w-full items-center justify-center rounded-md border-gray-500">
+                <a
+                  href={import.meta.env.VITE_DISCORD_BOT_URL}
+                  target="_blank"
+                  className="text-blue-200 !underline"
+                >
+                  Add to guild
+                </a>
+              </div>
+            )}
 
             <div className="flex flex-col gap-2">
               {discordChannelsQuery.data!.map((ch) => {

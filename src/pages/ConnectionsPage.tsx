@@ -8,7 +8,6 @@ import { OAUTH2_URLS } from "@/lib/utils/utils";
 import { MessagePlatformType, type UserConnection } from "@/openapi";
 import { Trash } from "lucide-react";
 import { type FC } from "react";
-import { Link } from "react-router";
 
 const UnconnectedCard: FC<{ platform: MessagePlatformType }> = (props) => {
   return (
@@ -17,14 +16,14 @@ const UnconnectedCard: FC<{ platform: MessagePlatformType }> = (props) => {
         <MessagePlatformImg platform={props.platform} className="h-25 w-25" />
       </CardContent>
       <CardFooter>
-        <Link
-          to={OAUTH2_URLS[props.platform]}
+        <a
+          href={OAUTH2_URLS[props.platform]}
           target="_blank"
           type="button"
           className="w-full rounded-sm bg-white p-1 text-center text-black"
         >
           Connect
-        </Link>
+        </a>
       </CardFooter>
     </Card>
   );
