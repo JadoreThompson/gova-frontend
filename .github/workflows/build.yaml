@@ -15,6 +15,12 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Saving env file
+        run: |
+          cat <<'EOF' > .env
+          ${{ secrets.ENV_FILE }}
+          EOF
+
       - name: Build image
         run: docker build --no-cache -t wifimemes/gova-frontend:latest -f docker/Dockerfile .
 
