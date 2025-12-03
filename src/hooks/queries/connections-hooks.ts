@@ -26,6 +26,7 @@ export function useDiscordChannelsQuery(guildId: string) {
       handleApi(
         await getDiscordChannelsConnectionsDiscordGuildIdChannelsGet(guildId),
       ),
+    retry: false
   });
 }
 

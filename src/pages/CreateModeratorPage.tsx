@@ -31,7 +31,7 @@ import {
   TooltipTrigger,
 } from "@radix-ui/react-tooltip";
 import { ArrowLeft, RefreshCcwIcon } from "lucide-react";
-import { useEffect, useState, type FC } from "react";
+import { useState, type FC } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -415,14 +415,6 @@ const SelectChannelsCard: FC<
 
   const hasError = !!discordChannelsQuery.error;
 
-  useEffect(() => {
-
-    if (discordChannelsQuery.error && (discordChannelsQuery.error as any).status !== 400) {
-      toast("Unknown error occured. Please try again later.");
-    }
-
-  }, [discordChannelsQuery.error]);
-
   return (
     <div className="flex w-full flex-col">
       <div className="flex w-full flex-col items-start gap-4">
@@ -444,25 +436,21 @@ const SelectChannelsCard: FC<
                   Refresh
                 </Button>
 
-                
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      if (!discordChannelsQuery.data) return;
-                      props.onNext(
-                        discordChannelsQuery.data.map((ch) => ch.id),
-                      );
-                    }}
-                    className="hover:bg-secondary/80 rounded-md px-4 py-2 transition"
-                    disabled={hasError}
-                  >
-                    Select All
-                  </Button>
-                
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (!discordChannelsQuery.data) return;
+                    props.onNext(discordChannelsQuery.data.map((ch) => ch.id));
+                  }}
+                  className="hover:bg-secondary/80 rounded-md px-4 py-2 transition"
+                  disabled={hasError}
+                >
+                  Select All
+                </Button>
               </div>
             </div>
 
-            {hasError && (
+            {hasError ? (
               <div className="bg-secondary flex h-25 w-full items-center justify-center rounded-md border-gray-500">
                 <a
                   href={import.meta.env.VITE_DISCORD_BOT_URL}
@@ -472,50 +460,52 @@ const SelectChannelsCard: FC<
                   Add to guild
                 </a>
               </div>
-            )}
+            ) : (
+              <>
+                <div className="flex flex-col gap-2">
+                  {discordChannelsQuery.data?.map((ch) => {
+                    const isSelected = ch.id in selectedChannels;
 
-            <div className="flex flex-col gap-2">
-              {discordChannelsQuery.data!.map((ch) => {
-                const isSelected = ch.id in selectedChannels;
-
-                return (
-                  <div
-                    key={ch.id}
-                    onClick={() =>
-                      setSelectedChannels((prev) => {
-                        const updated = { ...prev };
-                        if (isSelected) delete updated[ch.id];
-                        else updated[ch.id] = true;
-                        return updated;
-                      })
-                    }
-                    className={cn(
-                      "bg-secondary/40 hover:bg-secondary/60 flex h-10 w-full cursor-pointer items-center justify-between rounded-lg border border-gray-700 p-3 transition-all duration-200 hover:shadow-md",
-                      isSelected &&
-                        "border-green-400 bg-green-500/20 hover:bg-green-500/30",
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
+                    return (
+                      <div
+                        key={ch.id}
+                        onClick={() =>
+                          setSelectedChannels((prev) => {
+                            const updated = { ...prev };
+                            if (isSelected) delete updated[ch.id];
+                            else updated[ch.id] = true;
+                            return updated;
+                          })
+                        }
                         className={cn(
-                          "h-4 w-4 rounded-full border border-gray-500 transition-colors",
-                          isSelected && "border-green-500 bg-green-500",
+                          "bg-secondary/40 hover:bg-secondary/60 flex h-10 w-full cursor-pointer items-center justify-between rounded-lg border border-gray-700 p-3 transition-all duration-200 hover:shadow-md",
+                          isSelected &&
+                            "border-green-400 bg-green-500/20 hover:bg-green-500/30",
                         )}
-                      ></span>
-                      <span className="truncate font-medium text-gray-100">
-                        {ch.name}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={cn(
+                              "h-4 w-4 rounded-full border border-gray-500 transition-colors",
+                              isSelected && "border-green-500 bg-green-500",
+                            )}
+                          ></span>
+                          <span className="truncate font-medium text-gray-100">
+                            {ch.name}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-            <div className="mt-6 flex justify-start">
-              <Button type="button" onClick={handleConfirm}>
-                Confirm
-              </Button>
-            </div>
+                <div className="mt-6 flex justify-start">
+                  <Button type="button" onClick={handleConfirm}>
+                    Confirm
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
