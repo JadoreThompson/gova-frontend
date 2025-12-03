@@ -496,7 +496,10 @@ const SelectGuildCard: FC<ModeratorCreationStageProps<string>> = (props) => {
             ownedDiscordGuildsQuery.data?.map((g, idx) => (
               <Card
                 key={idx}
-                onClick={() => props.onNext(g.id)}
+                onClick={() => {
+                  console.log(g);
+                  props.onNext(g.id)
+                }}
                 className="flex h-30 w-30 cursor-pointer flex-col items-center justify-between gap-0 py-3 duration-100 ease-in hover:-translate-y-1 hover:scale-101 hover:border-white"
               >
                 <CardContent className="flex w-full items-center justify-center">

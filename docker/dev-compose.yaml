@@ -1,0 +1,7 @@
+services:
+  frontend:
+    image: wifimemes/gova-frontend:latest
+    ports:
+      - 2568:80
+    networks:
+      - gova_network

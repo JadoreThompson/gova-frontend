@@ -1,0 +1,22 @@
+services:
+  frontend:
+    image: wifimemes/gova-frontend:latest
+    networks:
+      - gova_network
+    deploy:
+      labels:
+        - "traefik.enabled=true"
+        - "traefik.http.routers.backend.rule=Host(`gova.chat`)"
+        - "traefik.http.routers.frontend.service=gova_stack_frontend"
+        - "traefik.http.services.gova_stack_frontend.loadbalancer.server.port=2568"
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        monitor: 1m
+        order: start-first
+
+networks:
+  gova_network:
+    attachable: true
+    external: true

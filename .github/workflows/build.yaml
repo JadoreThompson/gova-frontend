@@ -15,35 +15,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install node
-        uses: actions/setup-node@v6
-        with:
-          node-version: latest
+      - name: Build image
+        run: docker build -t wifimemes/gova-frontend:latest -f docker/Dockerfile .
 
-      - name: Install dependencies
-        run: npm i
-
-      - name: Build project
-        run: npm run build
-
-      - name: Serve
-        run: |
-          set -e
-          
-          SERVE_PATH="/opt/workspace/frontend"
-          OLD_SERVE_PATH="${SERVE_PATH}-old"
-
-          echo "Moving ${SERVE_PATH} to ${OLD_SERVE_PATH} and replacing with dist..."
-          if [ -d $SERVE_PATH ]; then
-            if mv -f ${SERVE_PATH}/ $OLD_SERVE_PATH && mv dist/ $SERVE_PATH; then
-              echo "Folders moved successfully!"
-            else
-              echo "Folder move failed. Restoring ${SERVE_PATH}..."
-              mv ${OLD_SERVE_PATH}/ $SERVE_PATH || echo "Restore failed! Please check manually."
-              exit 1
-            fi
-          else
-            echo "Created frontend folder at $SERVE_PATH"
-            mkdir -p $SERVE_PATH
-            mv dist/ $SERVE_PATH
-          fi        
+      - name: Deploy stack
+        run: docker stack deploy -c docker/prod-compose.yaml gova_stack
