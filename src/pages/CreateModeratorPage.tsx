@@ -31,7 +31,7 @@ import {
   TooltipTrigger,
 } from "@radix-ui/react-tooltip";
 import { ArrowLeft, RefreshCcwIcon } from "lucide-react";
-import { useState, type FC } from "react";
+import { useEffect, useState, type FC } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -415,6 +415,14 @@ const SelectChannelsCard: FC<
 
   const hasError = !!discordChannelsQuery.error;
 
+  useEffect(() => {
+
+    if (discordChannelsQuery.error && (discordChannelsQuery.error as any).status !== 400) {
+      toast("Unknown error occured. Please try again later.");
+    }
+
+  }, [discordChannelsQuery.error]);
+
   return (
     <div className="flex w-full flex-col">
       <div className="flex w-full flex-col items-start gap-4">
@@ -436,7 +444,7 @@ const SelectChannelsCard: FC<
                   Refresh
                 </Button>
 
-                {!hasError && (
+                
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -446,10 +454,11 @@ const SelectChannelsCard: FC<
                       );
                     }}
                     className="hover:bg-secondary/80 rounded-md px-4 py-2 transition"
+                    disabled={hasError}
                   >
                     Select All
                   </Button>
-                )}
+                
               </div>
             </div>
 
