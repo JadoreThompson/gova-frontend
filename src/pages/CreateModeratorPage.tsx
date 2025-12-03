@@ -24,6 +24,12 @@ import {
   type DiscordConfigBodyAllowedActionsItem,
   type ModeratorCreate,
 } from "@/openapi";
+import {
+  Tooltip,
+  TooltipArrow,
+  TooltipContent,
+  TooltipTrigger,
+} from "@radix-ui/react-tooltip";
 import { ArrowLeft } from "lucide-react";
 import { useState, type FC } from "react";
 import { useNavigate } from "react-router";
@@ -32,7 +38,6 @@ import { toast } from "sonner";
 interface ModeratorCreationStageProps<T> {
   onNext: (arg: T) => void;
 }
-
 
 const AVAILABLE_ACTIONS = [
   {
@@ -498,7 +503,7 @@ const SelectGuildCard: FC<ModeratorCreationStageProps<string>> = (props) => {
                 key={idx}
                 onClick={() => {
                   console.log(g);
-                  props.onNext(g.id)
+                  props.onNext(g.id);
                 }}
                 className="flex h-30 w-30 cursor-pointer flex-col items-center justify-between gap-0 py-3 duration-100 ease-in hover:-translate-y-1 hover:scale-101 hover:border-white"
               >
@@ -517,9 +522,20 @@ const SelectGuildCard: FC<ModeratorCreationStageProps<string>> = (props) => {
                 </CardContent>
 
                 <CardFooter className="flex w-full justify-center">
-                  <span className="max-w-[6rem] truncate text-center text-xs font-semibold">
-                    {g.name}
-                  </span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="max-w-[6rem] truncate text-center text-xs font-semibold">
+                        {g.name}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent sideOffset={5} className="max-w-[10rem]">
+                      <TooltipArrow className="fill-background" />
+
+                      <span className="bg-background block truncate rounded-md p-1 text-sm">
+                        {g.name}
+                      </span>
+                    </TooltipContent>
+                  </Tooltip>
                 </CardFooter>
               </Card>
             ))
