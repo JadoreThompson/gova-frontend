@@ -1,7 +1,6 @@
 import { useLogoutMutation, useMeQuery } from "@/hooks/queries/auth-hooks";
-import { PricingTierType } from "@/openapi";
 import { useMeStore } from "@/stores/me-store";
-import { ArrowBigUp, Bot, FileText, LogOut, SendToBack } from "lucide-react";
+import { Bot, FileText, LogOut, SendToBack } from "lucide-react";
 import { useEffect, type FC, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
