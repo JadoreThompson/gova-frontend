@@ -477,7 +477,7 @@ const HomePage: FC = () => {
         <FeaturesSection />
         <HowItWorksSection />
         <AnalyticsDemoSection />
-        <PricingSection />
+        {/* <PricingSection /> */}
       </main>
       <Footer />
     </div>

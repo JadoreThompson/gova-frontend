@@ -8,7 +8,6 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ModeratorPage from "./pages/ModeratorPage";
 import ModeratorsPage from "./pages/ModeratorsPage";
-import PricingPage from "./pages/PricingPage";
 import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
 import Page500 from "./pages/page500";
@@ -19,8 +18,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/*" element={<Navigate to="/pricing" />} />
-          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/*" element={<Navigate to="/login" />} />
+          {/* <Route path="/pricing" element={<PricingPage />} /> */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />

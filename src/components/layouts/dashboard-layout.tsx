@@ -82,14 +82,14 @@ const DashboardSidebar: FC = () => {
           </div>
           <span className="text-sm font-semibold">{me?.username ?? ""}</span>
         </Link>
-        {me?.pricing_tier === PricingTierType.free && (
+        {/* {me?.pricing_tier === PricingTierType.free && (
           <Link to="/pricing">
             <Button className="w-full">
               <ArrowBigUp size={16} />
               Upgrade
             </Button>
           </Link>
-        )}
+        )} */}
       </SidebarHeader>
       <SidebarContent className="bg-background">
         <SidebarGroup>
