@@ -28,6 +28,7 @@ import {
   Zap,
 } from "lucide-react";
 import React, { type FC, type HTMLAttributes } from "react";
+import { Link } from "react-router";
 interface IconProps extends HTMLAttributes<SVGElement> {
   children?: never;
   color?: string;
@@ -53,7 +54,9 @@ const HeroSection: FC = () => (
       configure automated actions, and let our AI handle the toxicity, 24/7.
     </p>
     <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-      <Button size="lg">Get Started for Free</Button>
+      <Link to="/login">
+        <Button size="lg">Get Started for Free</Button>
+      </Link>
       <Button size="lg" variant="outline">
         Request a Demo
       </Button>
