@@ -20,7 +20,6 @@ Create nuanced, context-aware moderation guidelines tailored to your community's
 - **Context-Aware Rules**: AI understands tone, intent, and community norms
 - **Multi-Guideline Support**: Manage different policies for different communities
 
-![Guidelines Management](docs/images/guidelines.png)
 
 ### 🤖 Intelligent AI Moderators
 
@@ -31,7 +30,6 @@ Deploy autonomous AI agents that enforce your guidelines across chat platforms w
 - **Real-Time Processing**: Instant message analysis and action execution
 - **Configurable Actions**: Mute, ban, kick, or custom enforcement actions
 
-![AI Moderator Dashboard](docs/images/moderators.png)
 
 ### ⚖️ Approval Workflow System
 
@@ -42,7 +40,6 @@ Maintain human oversight with intelligent escalation for sensitive moderation de
 - **One-Click Approval/Denial**: Review and execute actions instantly
 - **Audit Trail**: Complete history of all moderation decisions
 
-![Approval Queue](docs/images/approval-queue.png)
 
 ### 📊 Moderation Analytics
 
@@ -53,7 +50,6 @@ Track community health and AI performance with comprehensive insights.
 - **Trend Visualization**: Identify patterns in community behavior
 - **Historical Data**: Long-term community health tracking
 
-![Analytics Dashboard](docs/images/analytics.png)
 
 ### 🔗 Seamless Platform Integration
 
@@ -64,7 +60,6 @@ Connect your community platforms quickly and securely with OAuth 2.0 authenticat
 - **Secure Authentication**: OAuth 2.0 with encrypted credential storage
 - **Easy Connection Management**: Connect or disconnect with one click
 
-![Platform Connections](docs/images/connections.png)
 
 ---
 
@@ -244,31 +239,6 @@ approveAction.mutate({ log_id: "..." });
 3. Approve or decline actions with a single click
 4. Monitor the action history and analytics
 
----
-
-## 🏗️ Project Structure
-
-```
-gova-frontend/
-├── src/
-│   ├── assets/          # Images, logos, and static assets
-│   ├── components/      # Reusable React components
-│   │   ├── layouts/     # Page layout components
-│   │   └── ui/          # shadcn/ui components
-│   ├── hooks/           # Custom React hooks
-│   │   └── queries/     # React Query hooks for API calls
-│   ├── lib/             # Utility functions and helpers
-│   │   ├── query/       # Query client configuration
-│   │   └── utils/       # General utilities
-│   ├── pages/           # Page components (routes)
-│   ├── stores/          # Zustand state stores
-│   ├── App.tsx          # Root application component
-│   ├── main.tsx         # Application entry point
-│   └── openapi.ts       # Auto-generated API client
-├── docker/              # Docker configuration files
-├── public/              # Public static files
-└── package.json         # Dependencies and scripts
-```
 
 ---
 
@@ -306,81 +276,3 @@ gova-frontend/
 ## 📄 License
 
 This project is proprietary software. All rights reserved.
-
----
-
-## 🤝 Support
-
-For issues, feature requests, or questions:
-
-- **Email**: support@gova.ai
-- **Documentation**: https://docs.gova.ai
-- **Discord Community**: https://discord.gg/gova
-
----
-
-## 🚧 Roadmap
-
-### Q1 2025
-
-- [x] Discord integration
-- [x] Approval workflow system
-- [x] Multi-guideline support
-- [ ] Advanced analytics dashboard
-- [ ] Slack integration
-
-### Q2 2025
-
-- [ ] Telegram integration
-- [ ] YouTube comment moderation
-- [ ] Custom action webhooks
-- [ ] Multi-language support
-- [ ] Advanced AI training tools
-
-### Q3 2025
-
-- [ ] Community sentiment analysis
-- [ ] Automated reporting system
-- [ ] Role-based access control
-- [ ] API for custom integrations
-- [ ] Mobile application
-
----
-
-## 👥 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📊 Performance
-
-- **Build Size**: < 500KB gzipped
-- **First Load**: < 2s on 3G
-- **Lighthouse Score**: 95+ across all metrics
-- **Framework**: React 19 with concurrent features
-- **Bundle**: Optimized with Vite code splitting
-
----
-
-## 🙏 Acknowledgments
-
-Built with modern web technologies and open-source libraries:
-
-- React Team for React 19
-- Vercel for Next.js inspiration
-- shadcn for amazing UI components
-- Radix UI for accessible primitives
-- TanStack for React Query
-
----
-
-<p align="center">
-  Made with ❤️ by the Gova Team
-</p>
