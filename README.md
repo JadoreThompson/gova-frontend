@@ -1,9 +1,5 @@
 # Gova - AI-Powered Chat Moderation Platform
 
-<p align="center">
-  <img src="src/assets/logo_black.png" alt="Gova Logo" width="200"/>
-</p>
-
 **Build safer online communities with intelligent, automated moderation.**
 
 Gova empowers community managers to deploy AI-powered moderators across Discord, Slack, YouTube, and other platforms. Define your community guidelines, configure automated enforcement actions, and let AI handle toxic behavior 24/7 - with full human oversight when needed.
