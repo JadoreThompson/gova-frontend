@@ -4,14 +4,6 @@ import PaginationControls from "@/components/pagination-controls";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Sheet, SheetClose, SheetContent } from "@/components/ui/sheet";
-import {
   Table,
   TableBody,
   TableCell,
@@ -20,119 +12,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDebouncedInput } from "@/hooks/debounced-input";
-import { useGuidelinesQuery } from "@/hooks/queries/guideline-hooks";
-import {
-  useCreateModeratorMutation,
-  useModeratorsQuery,
-} from "@/hooks/queries/moderator-hooks";
+import { useModeratorsQuery } from "@/hooks/queries/moderator-hooks";
 import { formatDate } from "@/lib/utils/utils";
-import type { ModeratorCreate } from "@/openapi";
 import dayjs from "dayjs";
-import { ArrowDown, ArrowUp, Minus, Search, X } from "lucide-react";
-import { useEffect, useState, type FC } from "react";
+import { ArrowDown, ArrowUp, Minus, Search } from "lucide-react";
+import { useState, type FC } from "react";
 import { Link, useNavigate } from "react-router";
-
-interface ModeratorGuideline {
-  guideline_id: string;
-  name: string;
-}
-
-const AddModeratorSheet: FC<{
-  open: boolean;
-  onClose: (open: boolean) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-}> = (props) => {
-  const [newName, setNewName] = useState("");
-  const [selectedGuidelineId, setSelectedGuidelineId] = useState("");
-
-  const guidelinesQuery = useGuidelinesQuery({ page: 1, search: "" });
-
-  const guidelines: ModeratorGuideline[] = (
-    (guidelinesQuery.data?.data as ModeratorGuideline[]) ?? []
-  ).filter((g) => !!g.guideline_id && !!g.name);
-
-  useEffect(() => {
-    if (!props.open) {
-      setNewName("");
-      setSelectedGuidelineId("");
-    }
-  }, [props.open]);
-
-  return (
-    <Sheet open={props.open} onOpenChange={props.onClose}>
-      <SheetContent side="right" className="w-[400px] px-5 pt-10 sm:w-[480px]">
-        <SheetClose className="absolute top-0 right-0 focus:!outline-none">
-          <X size={17} />
-        </SheetClose>
-
-        <form onSubmit={props.onSubmit}>
-          <h4 className="mb-4 font-semibold underline">Create New Moderator</h4>
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="moderator-name" className="text-sm font-medium">
-                Moderator Name
-              </label>
-              <Input
-                id="name"
-                placeholder="Enter moderator name"
-                value={newName}
-                name="name"
-                onChange={(e) => setNewName(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="guideline-select" className="text-sm font-medium">
-                Base Guideline
-              </label>
-              <Select
-                name="guideline_id"
-                value={selectedGuidelineId}
-                onValueChange={setSelectedGuidelineId}
-              >
-                <SelectTrigger id="guideline-select" className="mt-1 w-full">
-                  <SelectValue placeholder="Select a guideline..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {guidelinesQuery.isLoading && (
-                    <div className="p-2 text-center text-sm">
-                      Loading guidelines...
-                    </div>
-                  )}
-                  {guidelines.length === 0 && !guidelinesQuery.isLoading && (
-                    <div className="p-2 text-center text-sm">
-                      No guidelines found.
-                    </div>
-                  )}
-                  {guidelines.map((g) => (
-                    <SelectItem key={g.guideline_id} value={g.guideline_id}>
-                      {g.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex justify-end pt-4">
-              <Button type="submit" className="w-full border-1">
-                Create Moderator
-              </Button>
-            </div>
-          </div>
-        </form>
-      </SheetContent>
-    </Sheet>
-  );
-};
 
 const ModeratorsPage: FC = () => {
   const navigate = useNavigate();
 
   const [page, setPage] = useState(1);
   const [name, setName] = useState("");
-  const [showCreate, setShowCreate] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
 
   const debouncedInput = useDebouncedInput({
@@ -142,22 +33,11 @@ const ModeratorsPage: FC = () => {
       setName(e.target.value);
     },
   });
-  const moderatorsQuery = useModeratorsQuery({ page, name });
-  const createModeratorMutation = useCreateModeratorMutation();
-
-  const handleModeratorSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const formData = Object.fromEntries(
-      new FormData(e.currentTarget).entries(),
-    ) as unknown as ModeratorCreate;
-    if (!formData.name.trim()) return;
-
-    createModeratorMutation
-      .mutateAsync(formData)
-      .then((rsp) => navigate(`/moderators/${rsp.moderator_id}`));
-    setShowCreate(false);
-  };
+  const moderatorsQuery = useModeratorsQuery({
+    skip: (page - 1) * 10,
+    limit: 10,
+    ...(name && { name }),
+  });
 
   const toggleSort = () => {
     setSortOrder((prev) =>
@@ -257,12 +137,6 @@ const ModeratorsPage: FC = () => {
         hasNextPage={moderatorsQuery.data?.has_next ?? false}
         onNextPage={() => setPage((p) => p + 1)}
         onPrevPage={() => setPage((p) => p - 1)}
-      />
-
-      <AddModeratorSheet
-        open={showCreate}
-        onClose={setShowCreate}
-        onSubmit={handleModeratorSubmit}
       />
     </DashboardLayout>
   );

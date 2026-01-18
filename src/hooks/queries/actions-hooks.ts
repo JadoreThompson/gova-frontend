@@ -1,22 +1,37 @@
+import { queryClient } from "@/lib/query/query-client";
 import { handleApi } from "@/lib/utils/base";
 import {
-  updateActionStatusActionsLogIdPatch,
-  type ActionUpdate,
+  approveActionActionsActionIdApprovePost,
+  rejectActionActionsActionIdRejectPost,
 } from "@/openapi";
 import { useMutation } from "@tanstack/react-query";
 
 /**
- * Updates the status of a specific action (e.g., approve, decline).
- * On success, invalidates the actions list for the corresponding deployment.
+ * Approves an action that is awaiting approval.
+ * On success, invalidates the moderator actions list.
  */
-export function useUpdateActionStatusMutation() {
+export function useApproveActionMutation() {
   return useMutation({
-    mutationFn: async ({
-      logId,
-      data,
-    }: {
-      logId: string;
-      data: ActionUpdate;
-    }) => handleApi(await updateActionStatusActionsLogIdPatch(logId, data)),
+    mutationFn: async (actionId: string) =>
+      handleApi(await approveActionActionsActionIdApprovePost(actionId)),
+    onSuccess: () => {
+      // Invalidate all moderator actions queries
+      queryClient.invalidateQueries({ queryKey: ["moderator"] });
+    },
+  });
+}
+
+/**
+ * Rejects an action that is awaiting approval.
+ * On success, invalidates the moderator actions list.
+ */
+export function useRejectActionMutation() {
+  return useMutation({
+    mutationFn: async (actionId: string) =>
+      handleApi(await rejectActionActionsActionIdRejectPost(actionId)),
+    onSuccess: () => {
+      // Invalidate all moderator actions queries
+      queryClient.invalidateQueries({ queryKey: ["moderator"] });
+    },
   });
 }

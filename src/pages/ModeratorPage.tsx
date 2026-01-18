@@ -27,7 +27,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useUpdateActionStatusMutation } from "@/hooks/queries/actions-hooks";
+import {
+  useApproveActionMutation,
+  useRejectActionMutation,
+} from "@/hooks/queries/actions-hooks";
 import {
   useDeletModeratorMutation,
   useModeratorActionsQuery,
@@ -67,33 +70,38 @@ const ActionsTable: FC<{
     useState<ActionResponse | null>(null);
   const [viewedActionResponse, setViewedActionResponse] =
     useState<ActionResponse | null>(null);
-  const updateActionResponseMutation = useUpdateActionStatusMutation();
+  const approveActionMutation = useApproveActionMutation();
+  const rejectActionMutation = useRejectActionMutation();
 
   const handleApprove = () => {
     if (selectedActionResponse) {
-      updateActionResponseMutation.mutate(
-        {
-          logId: selectedActionResponse.log_id,
-          data: { status: ActionStatus.approved },
+      approveActionMutation.mutate(selectedActionResponse.action_id, {
+        onSuccess: () => {
+          setSelectedActionResponse(null);
+          toast.success("Action approved successfully");
         },
-        {
-          onSuccess: () => setSelectedActionResponse(null),
+        onError: (error: any) => {
+          toast.error(
+            `Failed to approve action: ${error?.error?.error ?? "Unknown error"}`,
+          );
         },
-      );
+      });
     }
   };
 
   const handleDecline = () => {
     if (selectedActionResponse) {
-      updateActionResponseMutation.mutate(
-        {
-          logId: selectedActionResponse.log_id,
-          data: { status: ActionStatus.declined },
+      rejectActionMutation.mutate(selectedActionResponse.action_id, {
+        onSuccess: () => {
+          setSelectedActionResponse(null);
+          toast.success("Action rejected successfully");
         },
-        {
-          onSuccess: () => setSelectedActionResponse(null),
+        onError: (error: any) => {
+          toast.error(
+            `Failed to reject action: ${error?.error?.error ?? "Unknown error"}`,
+          );
         },
-      );
+      });
     }
   };
 
@@ -101,8 +109,7 @@ const ActionsTable: FC<{
     let className = "rounded-md px-2 py-0.5 text-xs font-medium capitalize ";
 
     switch (status) {
-      case ActionStatus.success:
-      case ActionStatus.approved:
+      case ActionStatus.completed:
         className +=
           "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
         break;
@@ -111,7 +118,7 @@ const ActionsTable: FC<{
           "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
         break;
       case ActionStatus.failed:
-      case ActionStatus.declined:
+      case ActionStatus.rejected:
         className +=
           "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
         break;
@@ -166,7 +173,7 @@ const ActionsTable: FC<{
             ) : (
               props.actions.map((action) => (
                 <TableRow
-                  key={action.log_id}
+                  key={action.action_id}
                   className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40"
                   onClick={() => setViewedActionResponse(action)}
                 >
@@ -178,8 +185,8 @@ const ActionsTable: FC<{
                   </TableCell>
                   <TableCell>{getBadge(action.status)}</TableCell>
                   <TableCell className="ellipsis">
-                    {action.message.slice(0, 20)}
-                    {action.message.length > 20 && "..."}
+                    {action.reason?.slice(0, 20)}
+                    {action.reason && action.reason.length > 20 && "..."}
                   </TableCell>
                   <TableCell className="text-right">
                     {action.status === ActionStatus.awaiting_approval && (
@@ -221,18 +228,18 @@ const ActionsTable: FC<{
             <Button
               variant="outline"
               onClick={handleDecline}
-              disabled={updateActionResponseMutation.isPending}
+              disabled={rejectActionMutation.isPending}
             >
-              {updateActionResponseMutation.isPending && (
+              {rejectActionMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               Decline
             </Button>
             <Button
               onClick={handleApprove}
-              disabled={updateActionResponseMutation.isPending}
+              disabled={approveActionMutation.isPending}
             >
-              {updateActionResponseMutation.isPending && (
+              {approveActionMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               Approve
@@ -262,14 +269,14 @@ const ActionsTable: FC<{
                 {(
                   [
                     ...Object.entries(viewedActionResponse.action_params),
-                    ["message", viewedActionResponse.message],
+                    ["reason", viewedActionResponse.reason],
                   ] as [string, any][]
                 ).map(([key, value]) => (
                   <div key={key} className="flex flex-col text-sm">
                     <label className="font-medium text-gray-600 capitalize dark:text-gray-300">
                       {key.replace(/_/g, " ")}
                     </label>
-                    {key === "message" ? (
+                    {key === "reason" ? (
                       <textarea
                         name=""
                         id=""
@@ -502,6 +509,8 @@ const ModeratorPage: FC = () => {
     [ModeratorStatus.pending]: "text-yellow-500",
   }[status];
 
+  console.log(moderatorStatsQuery.data);
+
   return (
     <>
       <CustomToaster position="top-center" />
@@ -532,13 +541,30 @@ const ModeratorPage: FC = () => {
                   onClick={() =>
                     deleteModeratorMutation
                       .mutateAsync(moderatorId)
-                      .then(() => navigate("/moderators"))
+                      .then(() => {
+                        // Remove all queries related to this moderator
+                        queryClient.removeQueries({
+                          queryKey: queryKeys.moderator(moderatorId),
+                        });
+                        queryClient.removeQueries({
+                          queryKey: queryKeys.moderatorStats(moderatorId),
+                        });
+                        queryClient.removeQueries({
+                          queryKey: queryKeys.moderatorActions(moderatorId, {}),
+                        });
+                        // Invalidate the moderators list
+                        queryClient.invalidateQueries({
+                          queryKey: queryKeys.moderators(),
+                        });
+                        // Navigate to moderators page
+                        navigate("/moderators");
+                      })
                       .catch((err) => {
-                        const error = err.error?.error;
+                        const error = err.error;
                         if (error) {
-                          toast(error);
+                          toast.error(error);
                         } else {
-                          toast("An unexpected error occured");
+                          toast.error("An unexpected error occurred");
                           console.error(err);
                         }
                       })
@@ -599,12 +625,10 @@ const ModeratorPage: FC = () => {
         </div>
 
         <StatsCards
-          totalMessages={moderatorStatsQuery.data?.total_messages ?? 0}
-          totalActionResponses={moderatorStatsQuery.data?.total_actions ?? 0}
+          totalMessages={moderatorStatsQuery.data?.evaluations_count ?? 0}
+          totalActionResponses={moderatorStatsQuery.data?.actions_count ?? 0}
         />
-        <MessagesChart
-          chartData={moderatorStatsQuery.data?.message_chart ?? []}
-        />
+        <MessagesChart chartData={moderatorStatsQuery.data?.bar_chart ?? []} />
 
         <div className="mb-4 flex h-8 w-full gap-1">
           <Popover>

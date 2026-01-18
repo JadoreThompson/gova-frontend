@@ -1,4 +1,5 @@
-import { type FC, useMemo } from "react";
+import type { BarChartData } from "@/openapi";
+import { type FC } from "react";
 import {
   Bar,
   BarChart,
@@ -10,32 +11,17 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import type { MessageChartData } from "@/openapi";
 
-const MessagesChart: FC<{ chartData: MessageChartData[] }> = ({
-  chartData,
-}) => {
-  const flattenedData = useMemo(() => {
-    return chartData.map((entry) => ({
-      date: entry.date,
-      ...entry.counts,
-    }));
-  }, [chartData]);
-
-  const platforms = useMemo(() => {
-    if (flattenedData.length === 0) return [];
-    return Object.keys(flattenedData[0]).filter((k) => k !== "date");
-  }, [flattenedData]);
-
+const MessagesChart: FC<{ chartData: BarChartData[] }> = ({ chartData }) => {
   return (
     <Card className="mb-8">
       <CardHeader>
-        <CardTitle>Messages Processed (Last 6 Weeks)</CardTitle>
+        <CardTitle>Activity Overview (Last 6 Weeks)</CardTitle>
       </CardHeader>
       <CardContent className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={flattenedData}
+            data={chartData}
             barGap={4}
             margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
           >
@@ -70,29 +56,20 @@ const MessagesChart: FC<{ chartData: MessageChartData[] }> = ({
               wrapperStyle={{ fontSize: "12px", paddingBottom: "8px" }}
             />
 
-            {platforms.map((platform) => {
-              let color = "#9CA3AF";
-
-              if (platform.toLowerCase().includes("discord")) color = "#5865F2";
-              else if (platform.toLowerCase().includes("telegram"))
-                color = "#229ED9";
-              else if (platform.toLowerCase().includes("slack"))
-                color = "#ECB22E";
-
-              return (
-                <Bar
-                  key={platform}
-                  dataKey={platform}
-                  stackId="a"
-                  fill={color}
-                  radius={
-                    platform === platforms[platforms.length - 1]
-                      ? [6, 6, 0, 0]
-                      : [0, 0, 0, 0]
-                  }
-                />
-              );
-            })}
+            <Bar
+              dataKey="evaluations_count"
+              name="Evaluations"
+              stackId="a"
+              fill="#3B82F6"
+              radius={[0, 0, 0, 0]}
+            />
+            <Bar
+              dataKey="actions_count"
+              name="Actions"
+              stackId="a"
+              fill="#10B981"
+              radius={[6, 6, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

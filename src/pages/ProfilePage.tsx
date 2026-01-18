@@ -1,5 +1,6 @@
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import MessagePlatformImg from "@/components/message-platform-image";
+import CustomToaster from "@/components/toaster";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,6 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,8 +38,6 @@ import { VerifyActionAction } from "@/openapi";
 import { Loader2 } from "lucide-react";
 import { type FormEvent } from "react";
 
-type UsernameStep = "enter-username" | "verify-code";
-
 interface ChangeUsernameCardProps {
   initialUsername: string;
 }
@@ -38,9 +45,9 @@ interface ChangeUsernameCardProps {
 const ChangeUsernameCard: FC<ChangeUsernameCardProps> = ({
   initialUsername,
 }) => {
-  const [step, setStep] = useState<UsernameStep>("enter-username");
   const [username, setUsername] = useState(initialUsername);
   const [code, setCode] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const meQuery = useMeQuery();
   const changeUsernameMutation = useChangeUsernameMutation();
@@ -65,7 +72,7 @@ const ChangeUsernameCard: FC<ChangeUsernameCardProps> = ({
       .mutateAsync({ username })
       .then(() => {
         toast.info("A verification code has been sent to your email.");
-        setStep("verify-code");
+        setIsModalOpen(true);
       })
       .catch((err) => {
         const message =
@@ -87,106 +94,112 @@ const ChangeUsernameCard: FC<ChangeUsernameCardProps> = ({
       .then(() => {
         toast.success("Your username has been changed successfully!");
         setCode("");
-        setStep("enter-username");
-        meQuery.refetch(); // Refetch user data to update the whole profile page
+        setIsModalOpen(false);
+        meQuery.refetch();
       })
       .catch(() => {
         toast.error("Invalid or expired verification code.");
       });
   };
 
-  if (step === "verify-code") {
-    return (
+  const handleModalClose = () => {
+    if (!verifyActionMutation.isPending) {
+      setIsModalOpen(false);
+      setCode("");
+    }
+  };
+
+  return (
+    <>
       <Card>
-        <form onSubmit={handleCodeSubmit}>
-          <CardHeader className="mb-1">
-            <CardTitle className="mb-1">Verify Username Change</CardTitle>
-            <CardDescription>
-              Enter the code sent to your email to confirm the change.
-            </CardDescription>
+        <form onSubmit={handleUsernameSubmit}>
+          <CardHeader className="mb-3">
+            <CardTitle>Username</CardTitle>
+            <CardDescription>This is your public display name.</CardDescription>
           </CardHeader>
           <CardContent className="mb-3">
             <Input
-              id="code"
-              name="code"
-              placeholder="Enter your verification code"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              disabled={verifyActionMutation.isPending}
-              className="mb-2"
-              required
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={changeUsernameMutation.isPending}
             />
-            <Button
-              variant="link"
-              type="button"
-              onClick={() => setStep("enter-username")}
-              className="h-auto !p-0"
-            >
-              Use a different username?
-            </Button>
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={verifyActionMutation.isPending}>
-              {verifyActionMutation.isPending ? (
+            <Button
+              type="submit"
+              disabled={
+                changeUsernameMutation.isPending || username === initialUsername
+              }
+            >
+              {changeUsernameMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
+                  Saving...
                 </>
               ) : (
-                "Confirm Change"
+                "Save Changes"
               )}
             </Button>
           </CardFooter>
         </form>
       </Card>
-    );
-  }
 
-  return (
-    <Card>
-      <form onSubmit={handleUsernameSubmit} className="">
-        <CardHeader className="mb-3">
-          <CardTitle>Username</CardTitle>
-          <CardDescription>This is your public display name.</CardDescription>
-        </CardHeader>
-        <CardContent className="mb-3">
-          <Input
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            disabled={changeUsernameMutation.isPending}
-          />
-        </CardContent>
-        <CardFooter>
-          <Button
-            type="submit"
-            disabled={
-              changeUsernameMutation.isPending || username === initialUsername
-            }
-          >
-            {changeUsernameMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Changes"
-            )}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+      <Dialog open={isModalOpen} onOpenChange={handleModalClose}>
+        <DialogContent>
+          <form onSubmit={handleCodeSubmit}>
+            <DialogHeader>
+              <DialogTitle>Verify Username Change</DialogTitle>
+              <DialogDescription>
+                Enter the verification code sent to your email to confirm the
+                change.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="my-4">
+              <Input
+                id="code"
+                name="code"
+                placeholder="Enter your verification code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                disabled={verifyActionMutation.isPending}
+                required
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleModalClose}
+                disabled={verifyActionMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={verifyActionMutation.isPending}>
+                {verifyActionMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  "Confirm Change"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
-type PasswordStep = "enter-password" | "verify-code";
-
 const ChangePasswordCard: FC = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<PasswordStep>("enter-password");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [code, setCode] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const changePasswordMutation = useChangePasswordMutation();
   const verifyActionMutation = useVerifyActionMutation();
@@ -208,7 +221,7 @@ const ChangePasswordCard: FC = () => {
       .mutateAsync({ password })
       .then(() => {
         toast.info("A verification code has been sent to your email.");
-        setStep("verify-code");
+        setIsModalOpen(true);
       })
       .catch((err) => {
         const message =
@@ -230,6 +243,7 @@ const ChangePasswordCard: FC = () => {
       .mutateAsync({ code, action: VerifyActionAction.change_password })
       .then(() => {
         toast.success("Password changed successfully! You will be logged out.");
+        setIsModalOpen(false);
         setTimeout(() => {
           logoutMutation.mutateAsync().finally(() => {
             navigate("/login", { replace: true });
@@ -239,107 +253,115 @@ const ChangePasswordCard: FC = () => {
       .catch(() => toast.error("Invalid or expired verification code."));
   };
 
-  if (step === "verify-code") {
-    return (
+  const handleModalClose = () => {
+    if (!verifyActionMutation.isPending && !logoutMutation.isPending) {
+      setIsModalOpen(false);
+      setCode("");
+    }
+  };
+
+  return (
+    <>
       <Card>
-        <form onSubmit={handleCodeSubmit}>
-          <CardHeader className="mb-1">
-            <CardTitle className="mb-1">Verify Password Change</CardTitle>
+        <form onSubmit={handlePasswordSubmit}>
+          <CardHeader className="mb-3">
+            <CardTitle>Change Password</CardTitle>
             <CardDescription>
-              Enter the code sent to your email to confirm the change. After
-              saving, you'll be logged out.
+              Enter a new password. After saving, you'll be logged out.
             </CardDescription>
           </CardHeader>
-          <CardContent className="mb-3">
-            <Input
-              id="code"
-              name="code"
-              placeholder="Enter your verification code"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              disabled={
-                verifyActionMutation.isPending || logoutMutation.isPending
-              }
-              className="mb-2"
-              required
-            />
-
-            <Button
-              variant="link"
-              type="button"
-              onClick={() => setStep("enter-password")}
-              className="h-auto !p-0"
-            >
-              Use a different password?
-            </Button>
+          <CardContent className="mb-3 grid gap-6">
+            <div className="grid gap-3">
+              <Label htmlFor="new-password">New password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={changePasswordMutation.isPending}
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="confirm-password">Confirm new password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={changePasswordMutation.isPending}
+              />
+            </div>
           </CardContent>
           <CardFooter>
-            <Button
-              type="submit"
-              disabled={
-                verifyActionMutation.isPending || logoutMutation.isPending
-              }
-            >
-              {verifyActionMutation.isPending ? (
+            <Button type="submit" disabled={changePasswordMutation.isPending}>
+              {changePasswordMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
+                  Saving...
                 </>
               ) : (
-                "Confirm"
+                "Save Password"
               )}
             </Button>
           </CardFooter>
         </form>
       </Card>
-    );
-  }
 
-  return (
-    <Card>
-      <form onSubmit={handlePasswordSubmit}>
-        <CardHeader className="mb-3">
-          <CardTitle>Change Password</CardTitle>
-          <CardDescription>
-            Enter a new password. After saving, you'll be logged out.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="mb-3 grid gap-6">
-          <div className="grid gap-3">
-            <Label htmlFor="new-password">New password</Label>
-            <Input
-              id="new-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={changePasswordMutation.isPending}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="confirm-password">Confirm new password</Label>
-            <Input
-              id="confirm-password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={changePasswordMutation.isPending}
-            />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" disabled={changePasswordMutation.isPending}>
-            {changePasswordMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Password"
-            )}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+      <Dialog open={isModalOpen} onOpenChange={handleModalClose}>
+        <DialogContent>
+          <form onSubmit={handleCodeSubmit}>
+            <DialogHeader>
+              <DialogTitle>Verify Password Change</DialogTitle>
+              <DialogDescription>
+                Enter the verification code sent to your email to confirm the
+                change. After confirming, you'll be logged out.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="my-4">
+              <Input
+                id="code"
+                name="code"
+                placeholder="Enter your verification code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                disabled={
+                  verifyActionMutation.isPending || logoutMutation.isPending
+                }
+                required
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleModalClose}
+                disabled={
+                  verifyActionMutation.isPending || logoutMutation.isPending
+                }
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={
+                  verifyActionMutation.isPending || logoutMutation.isPending
+                }
+              >
+                {verifyActionMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  "Confirm"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
@@ -347,112 +369,115 @@ const ProfilePage: FC = () => {
   const meQuery = useMeQuery();
 
   return (
-    <DashboardLayout>
-      <div className="mx-auto mt-8 flex max-w-5xl flex-col gap-6">
-        {meQuery.isPending ? (
-          <div className="flex h-60 items-center justify-center">
-            Loading...
-          </div>
-        ) : meQuery.isError || !meQuery.data ? (
-          <div className="text-destructive flex h-60 items-center justify-center">
-            Failed to load profile data.
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-col items-center gap-2 border-b pb-6">
-              <div className="h-20 w-20 overflow-hidden rounded-full border shadow">
-                <img
-                  src={`https://ui-avatars.com/api/?name=${meQuery.data.username}`}
-                  alt="Profile"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="flex items-center justify-center gap-3">
-                <h2 className="text-xl font-semibold">
-                  {meQuery.data.username}
-                </h2>
-                <PricingTierBadge tier={meQuery.data.pricing_tier} />
-              </div>
+    <>
+      <CustomToaster position="top-center" />
+      <DashboardLayout>
+        <div className="mx-auto mt-8 flex max-w-5xl flex-col gap-6">
+          {meQuery.isPending ? (
+            <div className="flex h-60 items-center justify-center">
+              Loading...
             </div>
+          ) : meQuery.isError || !meQuery.data ? (
+            <div className="text-destructive flex h-60 items-center justify-center">
+              Failed to load profile data.
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col items-center gap-2 border-b pb-6">
+                <div className="h-20 w-20 overflow-hidden rounded-full border shadow">
+                  <img
+                    src={`https://ui-avatars.com/api/?name=${meQuery.data.username}`}
+                    alt="Profile"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="flex items-center justify-center gap-3">
+                  <h2 className="text-xl font-semibold">
+                    {meQuery.data.username}
+                  </h2>
+                  <PricingTierBadge tier={meQuery.data.pricing_tier} />
+                </div>
+              </div>
 
-            <Tabs defaultValue="general" className="w-full">
-              <TabsList className="flex w-full">
-                <TabsTrigger
-                  value="general"
-                  className="flex-1 focus:!outline-none"
-                >
-                  General
-                </TabsTrigger>
-                <TabsTrigger
-                  value="security"
-                  className="flex-1 focus:!outline-none"
-                >
-                  Security
-                </TabsTrigger>
-              </TabsList>
+              <Tabs defaultValue="general" className="w-full">
+                <TabsList className="flex w-full">
+                  <TabsTrigger
+                    value="general"
+                    className="flex-1 focus:!outline-none"
+                  >
+                    General
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="security"
+                    className="flex-1 focus:!outline-none"
+                  >
+                    Security
+                  </TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="general" className="mt-6 space-y-6">
-                <ChangeUsernameCard initialUsername={meQuery.data.username} />
+                <TabsContent value="general" className="mt-6 space-y-6">
+                  <ChangeUsernameCard initialUsername={meQuery.data.username} />
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Connections</CardTitle>
-                    <CardDescription>
-                      Connect your account to other platforms.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid gap-3">
-                    {Object.values(MessagePlatform).map((platform) => {
-                      const conn = meQuery.data?.connections?.[platform];
-                      return (
-                        <div
-                          key={platform}
-                          className="bg-secondary flex h-10 w-full items-center justify-between rounded-md border px-3"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md">
-                              <MessagePlatformImg platform={platform} />
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Connections</CardTitle>
+                      <CardDescription>
+                        Connect your account to other platforms.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-3">
+                      {Object.values(MessagePlatform).map((platform) => {
+                        const conn = meQuery.data?.connections?.[platform];
+                        return (
+                          <div
+                            key={platform}
+                            className="bg-secondary flex h-10 w-full items-center justify-between rounded-md border px-3"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md">
+                                <MessagePlatformImg platform={platform} />
+                              </div>
+                              <span className="text-sm font-medium capitalize">
+                                {platform}
+                              </span>
                             </div>
-                            <span className="text-sm font-medium capitalize">
-                              {platform}
-                            </span>
-                          </div>
 
-                          {conn ? (
-                            <span className="text-muted-foreground text-sm">
-                              Connected as {conn.username}
-                            </span>
-                          ) : (
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              asChild
-                              className="text-xs"
-                            >
-                              <a
-                                href={OAUTH2_URLS[platform]}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            {conn ? (
+                              <span className="text-muted-foreground text-sm">
+                                Connected as {conn.username}
+                              </span>
+                            ) : (
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                asChild
+                                className="text-xs"
                               >
-                                Connect
-                              </a>
-                            </Button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                                <a
+                                  href={OAUTH2_URLS[platform]}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  Connect
+                                </a>
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-              <TabsContent value="security" className="mt-6">
-                <ChangePasswordCard />
-              </TabsContent>
-            </Tabs>
-          </>
-        )}
-      </div>
-    </DashboardLayout>
+                <TabsContent value="security" className="mt-6">
+                  <ChangePasswordCard />
+                </TabsContent>
+              </Tabs>
+            </>
+          )}
+        </div>
+      </DashboardLayout>
+    </>
   );
 };
 

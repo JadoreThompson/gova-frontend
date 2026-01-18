@@ -365,6 +365,52 @@ export const approveActionActionsActionIdApprovePost = async (
 };
 
 /**
+ * Reject an action that is awaiting approval.
+ * @summary Reject Action
+ */
+export type rejectActionActionsActionIdRejectPostResponse200 = {
+  data: ActionResponse;
+  status: 200;
+};
+
+export type rejectActionActionsActionIdRejectPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type rejectActionActionsActionIdRejectPostResponseSuccess =
+  rejectActionActionsActionIdRejectPostResponse200 & {
+    headers: Headers;
+  };
+export type rejectActionActionsActionIdRejectPostResponseError =
+  rejectActionActionsActionIdRejectPostResponse422 & {
+    headers: Headers;
+  };
+
+export type rejectActionActionsActionIdRejectPostResponse =
+  | rejectActionActionsActionIdRejectPostResponseSuccess
+  | rejectActionActionsActionIdRejectPostResponseError;
+
+export const getRejectActionActionsActionIdRejectPostUrl = (
+  actionId: string,
+) => {
+  return `/actions/${actionId}/reject`;
+};
+
+export const rejectActionActionsActionIdRejectPost = async (
+  actionId: string,
+  options?: RequestInit,
+): Promise<rejectActionActionsActionIdRejectPostResponse> => {
+  return customFetch<rejectActionActionsActionIdRejectPostResponse>(
+    getRejectActionActionsActionIdRejectPostUrl(actionId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+/**
  * @summary Register
  */
 export type registerAuthRegisterPostResponse200 = {

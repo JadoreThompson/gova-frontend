@@ -17,10 +17,7 @@ import {
 } from "@/hooks/queries/connections-hooks";
 import { useCreateModeratorMutation } from "@/hooks/queries/moderator-hooks";
 import { cn } from "@/lib/utils";
-import {
-  MessagePlatform,
-  type ModeratorCreate,
-} from "@/openapi";
+import { MessagePlatform, type ModeratorCreate } from "@/openapi";
 import type { DiscordAction, DiscordConfigBody } from "@/types/discord";
 import {
   Tooltip,
