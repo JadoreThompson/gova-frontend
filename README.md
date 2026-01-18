@@ -16,7 +16,6 @@ Create nuanced, context-aware moderation guidelines tailored to your community's
 - **Context-Aware Rules**: AI understands tone, intent, and community norms
 - **Multi-Guideline Support**: Manage different policies for different communities
 
-
 ### 🤖 Intelligent AI Moderators
 
 Deploy autonomous AI agents that enforce your guidelines across chat platforms with precision and consistency.
@@ -25,7 +24,6 @@ Deploy autonomous AI agents that enforce your guidelines across chat platforms w
 - **Channel-Specific Deployment**: Choose exactly which channels to moderate
 - **Real-Time Processing**: Instant message analysis and action execution
 - **Configurable Actions**: Mute, ban, kick, or custom enforcement actions
-
 
 ### ⚖️ Approval Workflow System
 
@@ -36,7 +34,6 @@ Maintain human oversight with intelligent escalation for sensitive moderation de
 - **One-Click Approval/Denial**: Review and execute actions instantly
 - **Audit Trail**: Complete history of all moderation decisions
 
-
 ### 📊 Moderation Analytics
 
 Track community health and AI performance with comprehensive insights.
@@ -46,7 +43,6 @@ Track community health and AI performance with comprehensive insights.
 - **Trend Visualization**: Identify patterns in community behavior
 - **Historical Data**: Long-term community health tracking
 
-
 ### 🔗 Seamless Platform Integration
 
 Connect your community platforms quickly and securely with OAuth 2.0 authentication.
@@ -55,7 +51,6 @@ Connect your community platforms quickly and securely with OAuth 2.0 authenticat
 - **Multi-Account Support**: Manage connections for multiple platforms
 - **Secure Authentication**: OAuth 2.0 with encrypted credential storage
 - **Easy Connection Management**: Connect or disconnect with one click
-
 
 ---
 
@@ -190,7 +185,7 @@ const createModerator = useCreateModeratorMutation();
 createModerator.mutate({
   name: "Discord Moderator",
   guideline_id: "...",
-  platform: MessagePlatformType.discord,
+  platform: MessagePlatform.discord,
   conf: { ... }
 });
 
@@ -234,7 +229,6 @@ approveAction.mutate({ log_id: "..." });
 2. Review flagged messages and AI-proposed actions
 3. Approve or decline actions with a single click
 4. Monitor the action history and analytics
-
 
 ---
 

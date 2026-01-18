@@ -1,6 +1,6 @@
 import { useLogoutMutation, useMeQuery } from "@/hooks/queries/auth-hooks";
 import { useMeStore } from "@/stores/me-store";
-import { Bot, FileText, LogOut, SendToBack } from "lucide-react";
+import { Bot, LogOut, SendToBack } from "lucide-react";
 import { useEffect, type FC, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -61,7 +61,7 @@ const DashboardSidebar: FC = () => {
   };
 
   const menuItems = [
-    ["Guidelines", "/guidelines", FileText],
+    // ["Guidelines", "/guidelines", FileText],
     ["Moderators", "/moderators", Bot],
     ["Connections", "/connections", SendToBack],
   ] as const;

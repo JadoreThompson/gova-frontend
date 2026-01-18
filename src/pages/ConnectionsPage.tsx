@@ -5,11 +5,11 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useMeQuery } from "@/hooks/queries/auth-hooks";
 import { useDeleteConnectionMutation } from "@/hooks/queries/connections-hooks";
 import { OAUTH2_URLS } from "@/lib/utils/utils";
-import { MessagePlatformType, type UserConnection } from "@/openapi";
+import { MessagePlatform, type UserConnection } from "@/openapi";
 import { Trash } from "lucide-react";
 import { type FC } from "react";
 
-const UnconnectedCard: FC<{ platform: MessagePlatformType }> = (props) => {
+const UnconnectedCard: FC<{ platform: MessagePlatform }> = (props) => {
   return (
     <Card className="relative h-50 w-50">
       <CardContent className="flex items-center justify-center">
@@ -30,9 +30,9 @@ const UnconnectedCard: FC<{ platform: MessagePlatformType }> = (props) => {
 };
 
 const ConnectedCard: FC<{
-  platform: MessagePlatformType;
+  platform: MessagePlatform;
   conn: UserConnection;
-  onDelete: (platform: MessagePlatformType) => void;
+  onDelete: (platform: MessagePlatform) => void;
 }> = (props) => {
   return (
     <Card className="relative h-50 w-50">
@@ -66,7 +66,7 @@ const ConnectionsPage: FC = () => {
   const authMeQuery = useMeQuery();
   const deleteConnetionMutation = useDeleteConnectionMutation();
 
-  const handleOnDelete = async (platform: MessagePlatformType) => {
+  const handleOnDelete = async (platform: MessagePlatform) => {
     deleteConnetionMutation
       .mutateAsync(platform)
       .then(() => authMeQuery.refetch());
@@ -79,7 +79,7 @@ const ConnectionsPage: FC = () => {
           {!authMeQuery.data ? (
             <span>Loading ...</span>
           ) : (
-            Object.values(MessagePlatformType).map((pType) => (
+            Object.values(MessagePlatform).map((pType) => (
               <>
                 {Object.keys(authMeQuery.data?.connections ?? {}).includes(
                   pType,

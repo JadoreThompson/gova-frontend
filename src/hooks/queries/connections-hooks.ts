@@ -5,9 +5,9 @@ import {
   deleteConnectionConnectionsPlatformDelete,
   getDiscordChannelsConnectionsDiscordGuildIdChannelsGet,
   getOwnedDiscordGuildsConnectionsDiscordGuildsGet,
-  MessagePlatformType,
   type Guild,
   type GuildChannel,
+  type MessagePlatform,
 } from "@/openapi";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -26,13 +26,13 @@ export function useDiscordChannelsQuery(guildId: string) {
       handleApi(
         await getDiscordChannelsConnectionsDiscordGuildIdChannelsGet(guildId),
       ),
-    retry: false
+    retry: false,
   });
 }
 
 export function useDeleteConnectionMutation() {
   return useMutation({
-    mutationFn: async (platform: MessagePlatformType) =>
+    mutationFn: async (platform: MessagePlatform) =>
       handleApi(await deleteConnectionConnectionsPlatformDelete(platform)),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: queryKeys.me() }),

@@ -1,12 +1,12 @@
 import discordPNG from "@/assets/discord.png";
-import type { MessagePlatformType } from "@/openapi";
+import type { MessagePlatform } from "@/openapi";
 import type { FC } from "react";
 
 const MessagePlatformImg: FC<{
-  platform: MessagePlatformType;
+  platform: MessagePlatform;
   className?: string;
 }> = (props) => {
-  const getSrc = (value: MessagePlatformType): string => {
+  const getSrc = (value: MessagePlatform): string => {
     switch (value) {
       case "discord":
         return discordPNG;

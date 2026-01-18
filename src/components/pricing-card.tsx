@@ -6,13 +6,13 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { type PricingTierType } from "@/openapi";
+import { type PricingTier } from "@/openapi";
 import { Check } from "lucide-react";
 import { type FC } from "react";
 import { Link, useNavigate } from "react-router";
 
 const PricingTierCard: FC<{
-  pricingTier: PricingTierType;
+  pricingTier: PricingTier;
 }> = (props) => {
   const navigate = useNavigate();
 

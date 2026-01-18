@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLogoutMutation, useMeQuery } from "@/hooks/queries/auth-hooks";
 import { OAUTH2_URLS } from "@/lib/utils/utils";
-import { MessagePlatformType } from "@/openapi";
+import { MessagePlatform } from "@/openapi";
 import { useEffect, useState, type FC } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -402,7 +402,7 @@ const ProfilePage: FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="grid gap-3">
-                    {Object.values(MessagePlatformType).map((platform) => {
+                    {Object.values(MessagePlatform).map((platform) => {
                       const conn = meQuery.data?.connections?.[platform];
                       return (
                         <div

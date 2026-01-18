@@ -1,5 +1,5 @@
 import PricingTierCard from "@/components/pricing-card";
-import { PricingTierType } from "@/openapi";
+import { PricingTier } from "@/openapi";
 import { type FC } from "react";
 
 const PricingPage: FC = () => {
@@ -17,7 +17,7 @@ const PricingPage: FC = () => {
 
         {/* Responsive Pricing Grid */}
         <div className="grid w-full grid-cols-1 gap-6 px-2 sm:grid-cols-2 sm:gap-8 sm:px-0 md:max-w-6xl lg:grid-cols-3">
-          {Object.values(PricingTierType).map((v) => (
+          {Object.values(PricingTier).map((v) => (
             <PricingTierCard key={v} pricingTier={v} />
           ))}
         </div>

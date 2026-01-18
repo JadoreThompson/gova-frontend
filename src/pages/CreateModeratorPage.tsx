@@ -15,15 +15,13 @@ import {
   useDiscordChannelsQuery,
   useOwnedDiscordGuildsQuery,
 } from "@/hooks/queries/connections-hooks";
-import { useGuidelinesQuery } from "@/hooks/queries/guideline-hooks";
 import { useCreateModeratorMutation } from "@/hooks/queries/moderator-hooks";
 import { cn } from "@/lib/utils";
 import {
-  MessagePlatformType,
-  type DiscordConfigBody,
-  type DiscordConfigBodyAllowedActionsItem,
+  MessagePlatform,
   type ModeratorCreate,
 } from "@/openapi";
+import type { DiscordAction, DiscordConfigBody } from "@/types/discord";
 import {
   Tooltip,
   TooltipArrow,
@@ -41,77 +39,49 @@ interface ModeratorCreationStageProps<T> {
 
 const AVAILABLE_ACTIONS = [
   {
-    type: "mute",
-    fields: [
-      { name: "duration", type: "number", label: "Duration ms (Optional)" },
-    ],
+    type: "reply" as const,
+    fields: [],
     defaultRequiresApproval: false,
   },
   {
-    type: "ban",
-    fields: [],
-    defaultRequiresApproval: true,
+    type: "timeout" as const,
+    fields: [{ name: "duration", type: "number", label: "Duration (ms)" }],
+    defaultRequiresApproval: false,
   },
   {
-    type: "kick",
+    type: "kick" as const,
     fields: [],
     defaultRequiresApproval: false,
   },
 ] as const;
 
-const SelectGuidelineCard: FC<ModeratorCreationStageProps<string>> = (
+const EnterGuidelinesCard: FC<ModeratorCreationStageProps<string>> = (
   props,
 ) => {
-  const guidelinesQuery = useGuidelinesQuery({ page: 1 });
-  const [selectedGuidelineId, setSelectedGuidelineId] = useState<
-    string | undefined
-  >();
+  const [guidelines, setGuidelinesText] = useState("");
 
   return (
     <>
-      <h4 className="mb-3 font-semibold">Select Guideline</h4>
+      <h4 className="mb-3 font-semibold">Enter Guidelines</h4>
       <div className="flex w-full flex-col">
-        {guidelinesQuery.isLoading ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-          </div>
-        ) : guidelinesQuery.isError ? (
-          <div>Error fetching guidelines.</div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {guidelinesQuery.data?.data.map((g) => (
-                <Card
-                  key={g.guideline_id}
-                  onClick={() => setSelectedGuidelineId(g.guideline_id)}
-                  className={cn(
-                    "hover:border-primary cursor-pointer p-4 transition-all",
-                    selectedGuidelineId === g.guideline_id &&
-                      "border-primary border-2",
-                  )}
-                >
-                  <CardContent className="p-0">
-                    <h5 className="truncate font-semibold">{g.name}</h5>
-                    <p className="text-muted-foreground line-clamp-2 text-sm">
-                      {g.text}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            <div className="mt-6 flex justify-start">
-              <Button
-                type="button"
-                onClick={() => props.onNext(selectedGuidelineId!)}
-                disabled={!selectedGuidelineId}
-              >
-                Next
-              </Button>
-            </div>
-          </>
-        )}
+        <div className="flex w-full flex-col gap-4">
+          <textarea
+            id="guidelines"
+            placeholder="Enter your moderation guidelines (minimum 10 characters)..."
+            value={guidelines}
+            onChange={(e) => setGuidelinesText(e.target.value)}
+            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring mt-1 min-h-[150px] max-w-2xl rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+          />
+
+          <Button
+            type="button"
+            onClick={() => props.onNext(guidelines)}
+            disabled={guidelines.trim().length < 10}
+            className="w-fit"
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </>
   );
@@ -149,9 +119,9 @@ const SetModeratorNameCard: FC<ModeratorCreationStageProps<string>> = (
   );
 };
 
-const SelectActionsCard: FC<
-  ModeratorCreationStageProps<DiscordConfigBodyAllowedActionsItem[]>
-> = (props) => {
+const SelectActionsCard: FC<ModeratorCreationStageProps<DiscordAction[]>> = (
+  props,
+) => {
   const [allowAll, setAllowAll] = useState(false);
   const [allowedActions, setAllowedActions] = useState<{
     [key: string]: {
@@ -185,6 +155,7 @@ const SelectActionsCard: FC<
     actionType: string,
     checked: boolean,
   ) => {
+    console.log("Action type ", actionType, "checked, ", checked);
     setAllowedActions((prev) => ({
       ...prev,
       [actionType]: {
@@ -216,25 +187,32 @@ const SelectActionsCard: FC<
   };
 
   const finalizeAndSubmit = () => {
-    let finalActions: DiscordConfigBodyAllowedActionsItem[];
+    let finalActions: DiscordAction[];
 
     if (allowAll) {
       finalActions = AVAILABLE_ACTIONS.map((action) => {
-        const collectedParams = action.fields.reduce(
-          (acc, field) => {
-            acc[field.name] = undefined;
-            return acc;
-          },
-          {} as Record<string, unknown>,
-        );
-
-        const baseAction = {
-          type: action.type,
-          requires_approval: false,
-          ...collectedParams,
-        };
-
-        return baseAction;
+        if (action.type === "reply") {
+          return {
+            type: "reply" as const,
+            platform: "discord" as const,
+            requires_approval: false,
+            default_params: null,
+          };
+        } else if (action.type === "timeout") {
+          return {
+            type: "timeout" as const,
+            platform: "discord" as const,
+            requires_approval: false,
+            default_params: { duration: null },
+          };
+        } else {
+          return {
+            type: "kick" as const,
+            platform: "discord" as const,
+            requires_approval: false,
+            default_params: null,
+          };
+        }
       });
     } else {
       finalActions = AVAILABLE_ACTIONS.filter(
@@ -242,33 +220,32 @@ const SelectActionsCard: FC<
       ).map((action) => {
         const config = allowedActions[action.type];
 
-        const collectedParams = Object.entries(config.params).reduce(
-          (acc, [key, value]) => {
-            if (typeof value === "string" && value.trim() !== "") {
-              const fieldDef = action.fields.find((f) => f.name === key);
-              if (fieldDef?.type === "number") {
-                const numVal = parseFloat(value);
-                if (!isNaN(numVal)) {
-                  acc[key] = numVal;
-                  return acc;
-                }
-              }
-              acc[key] = value;
-            } else if (typeof value === "number") {
-              acc[key] = value;
-            }
-            return acc;
-          },
-          {} as Record<string, unknown>,
-        );
-
-        const baseAction = {
-          type: action.type,
-          requires_approval: config.requires_approval,
-          ...collectedParams,
-        };
-
-        return baseAction;
+        if (action.type === "reply") {
+          return {
+            type: "reply" as const,
+            platform: "discord" as const,
+            requires_approval: config.requires_approval,
+            default_params: null,
+          };
+        } else if (action.type === "timeout") {
+          const duration = config.params.duration;
+          return {
+            type: "timeout" as const,
+            platform: "discord" as const,
+            requires_approval: config.requires_approval,
+            default_params: {
+              duration:
+                duration && typeof duration === "number" ? duration : null,
+            },
+          };
+        } else {
+          return {
+            type: "kick" as const,
+            platform: "discord" as const,
+            requires_approval: config.requires_approval,
+            default_params: null,
+          };
+        }
       });
     }
 
@@ -399,6 +376,38 @@ const SelectActionsCard: FC<
   );
 };
 
+const SetGuildSummaryCard: FC<ModeratorCreationStageProps<string>> = (
+  props,
+) => {
+  const [summary, setSummary] = useState("");
+
+  return (
+    <>
+      <h4 className="mb-3 font-semibold">Guild Summary</h4>
+      <div className="flex w-full flex-col">
+        <div className="flex w-full flex-col gap-4">
+          <textarea
+            id="guild-summary"
+            placeholder="Provide a brief summary of your guild/server..."
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring mt-1 min-h-[100px] max-w-2xl rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+          />
+
+          <Button
+            type="button"
+            onClick={() => props.onNext(summary)}
+            disabled={summary.trim().length === 0}
+            className="w-fit"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+};
+
 const SelectChannelsCard: FC<
   ModeratorCreationStageProps<string[]> & {
     guildId: string;
@@ -515,6 +524,7 @@ const SelectChannelsCard: FC<
 
 const SelectGuildCard: FC<ModeratorCreationStageProps<string>> = (props) => {
   const ownedDiscordGuildsQuery = useOwnedDiscordGuildsQuery();
+  console.log(ownedDiscordGuildsQuery.data);
 
   return (
     <>
@@ -576,17 +586,17 @@ const SelectGuildCard: FC<ModeratorCreationStageProps<string>> = (props) => {
   );
 };
 
-const SelectPlatformCard: FC<
-  ModeratorCreationStageProps<MessagePlatformType>
-> = (props) => {
+const SelectPlatformCard: FC<ModeratorCreationStageProps<MessagePlatform>> = (
+  props,
+) => {
   const borderCols = {
-    [MessagePlatformType.discord]: "hover:border-purple-400",
+    [MessagePlatform.discord]: "hover:border-purple-400",
   };
 
   return (
     <>
       <h4 className="mb-3 font-semibold">Select Platform</h4>
-      {Object.values(MessagePlatformType).map((v) => (
+      {Object.values(MessagePlatform).map((v) => (
         <Card
           key={v}
           onClick={() => props.onNext(v)}
@@ -608,31 +618,34 @@ const CreateModeratorPage: FC = () => {
   const navigate = useNavigate();
 
   const [curStage, setCurStage] = useState(1);
-  const [maxStages] = useState(6);
-  const [guidelineId, setGuidelineId] = useState<string | undefined>();
+  const [maxStages] = useState(7);
+  const [guidelines, setGuidelines] = useState<string>("");
   const [moderatorPlatform, setModeratorPlatform] = useState<
-    MessagePlatformType | undefined
+    MessagePlatform | undefined
   >(undefined);
   const [discordConfig, setDiscordConfig] = useState<any>({});
+
   const createModeratorMutation = useCreateModeratorMutation();
 
   const handleCreateModerator = async (name: string) => {
-    if (!guidelineId || !moderatorPlatform) return;
+    if (!guidelines || !moderatorPlatform) return;
 
     const payload: ModeratorCreate = {
       name,
-      guideline_id: guidelineId,
       platform: moderatorPlatform,
       platform_server_id: discordConfig.guild_id,
       conf: {
         ...discordConfig,
-        guild_id: discordConfig.guild_id,
+        guidelines,
       } as DiscordConfigBody,
     };
 
     createModeratorMutation
       .mutateAsync(payload)
-      .then(() => navigate(`/moderators`))
+      .then((response) => {
+        const moderatorId = response.moderator_id;
+        navigate(`/moderators/${moderatorId}`);
+      })
       .catch((err) => {
         console.error(err);
         toast(
@@ -686,9 +699,9 @@ const CreateModeratorPage: FC = () => {
         <div className="mb-3">
           <div className="">
             {curStage === 1 && (
-              <SelectGuidelineCard
+              <EnterGuidelinesCard
                 onNext={(arg: string) => {
-                  setGuidelineId(arg);
+                  setGuidelines(arg);
                   setCurStage((prev) => prev + 1);
                 }}
               />
@@ -696,7 +709,7 @@ const CreateModeratorPage: FC = () => {
 
             {curStage === 2 && (
               <SelectPlatformCard
-                onNext={(arg: MessagePlatformType) => {
+                onNext={(arg: MessagePlatform) => {
                   setModeratorPlatform(arg);
                   setCurStage((prev) => prev + 1);
                 }}
@@ -715,12 +728,24 @@ const CreateModeratorPage: FC = () => {
               />
             )}
 
-            {curStage === 4 && (discordConfig ?? {}).guild_id && (
+            {curStage === 4 && (
+              <SetGuildSummaryCard
+                onNext={(arg: string) => {
+                  setDiscordConfig((prev: DiscordConfigBody) => ({
+                    ...prev,
+                    guild_summary: arg,
+                  }));
+                  setCurStage((prev) => prev + 1);
+                }}
+              />
+            )}
+
+            {curStage === 5 && (discordConfig ?? {}).guild_id && (
               <SelectChannelsCard
                 onNext={(arg: string[]) => {
                   setDiscordConfig((prev: DiscordConfigBody) => ({
                     ...prev,
-                    allowed_channels: arg,
+                    channel_ids: arg,
                   }));
                   setCurStage((prev) => prev + 1);
                 }}
@@ -728,19 +753,19 @@ const CreateModeratorPage: FC = () => {
               />
             )}
 
-            {curStage === 5 && (
+            {curStage === 6 && (
               <SelectActionsCard
-                onNext={(arg: DiscordConfigBodyAllowedActionsItem[]) => {
+                onNext={(arg: DiscordAction[]) => {
                   setDiscordConfig((prev: DiscordConfigBody) => ({
                     ...prev,
-                    allowed_actions: arg,
+                    actions: arg,
                   }));
                   setCurStage((prev) => prev + 1);
                 }}
               />
             )}
 
-            {curStage === 6 && (
+            {curStage === 7 && (
               <SetModeratorNameCard
                 onNext={(arg: string) => {
                   handleCreateModerator(arg);

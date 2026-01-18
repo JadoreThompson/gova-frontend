@@ -5,94 +5,67 @@
  * OpenAPI spec version: 0.1.0
  */
 import { customFetch } from "./lib/custom-fetch";
-export type ActionResponseActionParams = { [key: string]: unknown };
+export type ActionResponsePlatformUserId = string | null;
 
+export type ActionResponseActionParamsAnyOf = { [key: string]: unknown };
+
+export type ActionResponseActionParams = ActionResponseActionParamsAnyOf | null;
+
+export type ActionResponseContext = { [key: string]: unknown };
+
+export type ActionResponseReason = string | null;
+
+export type ActionResponseExecutedAt = string | null;
+
+/**
+ * Response model for action data.
+ */
 export interface ActionResponse {
-  log_id: string;
+  action_id: string;
+  moderator_id: string;
+  platform_user_id: ActionResponsePlatformUserId;
   action_type: string;
   action_params: ActionResponseActionParams;
+  context: ActionResponseContext;
   status: ActionStatus;
+  reason: ActionResponseReason;
   created_at: string;
-  message: string;
+  updated_at: string;
+  executed_at: ActionResponseExecutedAt;
 }
 
 export type ActionStatus = (typeof ActionStatus)[keyof typeof ActionStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ActionStatus = {
-  failed: "failed",
-  success: "success",
-  declined: "declined",
+  completed: "completed",
   awaiting_approval: "awaiting_approval",
-  approved: "approved",
+  failed: "failed",
+  rejected: "rejected",
 } as const;
 
-export type ActionUpdateStatus =
-  (typeof ActionUpdateStatus)[keyof typeof ActionUpdateStatus];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ActionUpdateStatus = {
-  approved: "approved",
-  declined: "declined",
-} as const;
-
-export interface ActionUpdate {
-  status: ActionUpdateStatus;
+/**
+ * Bar chart data point for stats.
+ */
+export interface BarChartData {
+  date: string;
+  evaluations_count: number;
+  actions_count: number;
 }
 
-export interface BanActionDefinition {
-  type?: "ban";
-  requires_approval: boolean;
+/**
+ * Response model for user behavior score.
+ */
+export interface BehaviorScoreResponse {
+  user_id: string;
+  username: string;
+  behaviour_score: number;
 }
 
 export interface ContactForm {
   name: string;
   email: string;
   message: string;
-}
-
-export type DiscordConfigAllowedActionsItem =
-  | MuteActionDefinition
-  | BanActionDefinition
-  | KickActionDefinition;
-
-export interface DiscordConfig {
-  guild_id: number;
-  allowed_channels: number[];
-  allowed_actions: DiscordConfigAllowedActionsItem[];
-}
-
-export type DiscordConfigBodyAllowedActionsItem =
-  | MuteActionDefinition
-  | BanActionDefinition
-  | KickActionDefinition;
-
-export interface DiscordConfigBody {
-  guild_id: string;
-  allowed_channels: string[];
-  allowed_actions: DiscordConfigBodyAllowedActionsItem[];
-}
-
-export interface GuidelineCreate {
-  name: string;
-  text: string;
-}
-
-export interface GuidelineResponse {
-  name: string;
-  text: string;
-  guideline_id: string;
-  created_at: string;
-  topics: string[];
-}
-
-export type GuidelineUpdateName = string | null;
-
-export type GuidelineUpdateText = string | null;
-
-export interface GuidelineUpdate {
-  name?: GuidelineUpdateName;
-  text?: GuidelineUpdateText;
 }
 
 export type GuildIcon = string | null;
@@ -112,49 +85,58 @@ export interface HTTPValidationError {
   detail?: ValidationError[];
 }
 
-export interface KickActionDefinition {
-  type?: "kick";
-  requires_approval: boolean;
-}
-
-export type MessageChartDataCounts = { [key: string]: number };
-
-export interface MessageChartData {
-  date: string;
-  counts: MessageChartDataCounts;
-}
-
-export type MessagePlatformType =
-  (typeof MessagePlatformType)[keyof typeof MessagePlatformType];
+export type MessagePlatform =
+  (typeof MessagePlatform)[keyof typeof MessagePlatform];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const MessagePlatformType = {
+export const MessagePlatform = {
   discord: "discord",
 } as const;
 
+export type ModeratorCreateDescription = string | null;
+
+export type ModeratorCreateConf = { [key: string]: unknown };
+
+/**
+ * Request model for creating a new moderator.
+ */
 export interface ModeratorCreate {
+  /**
+   * @minLength 1
+   * @maxLength 100
+   */
   name: string;
-  guideline_id: string;
-  platform: MessagePlatformType;
+  description?: ModeratorCreateDescription;
+  platform: MessagePlatform;
   platform_server_id: string;
-  conf: DiscordConfigBody;
+  conf: ModeratorCreateConf;
 }
 
+export type ModeratorResponseDescription = string | null;
+
+export type ModeratorResponseConf = { [key: string]: unknown };
+
+/**
+ * Response model for moderator data.
+ */
 export interface ModeratorResponse {
-  name: string;
-  guideline_id: string;
   moderator_id: string;
-  platform: MessagePlatformType;
+  name: string;
+  description: ModeratorResponseDescription;
+  platform: MessagePlatform;
   platform_server_id: string;
-  conf: DiscordConfig;
+  conf: ModeratorResponseConf;
   status: ModeratorStatus;
   created_at: string;
 }
 
+/**
+ * Stats response for a moderator.
+ */
 export interface ModeratorStats {
-  total_messages: number;
-  total_actions: number;
-  message_chart: MessageChartData[];
+  evaluations_count: number;
+  actions_count: number;
+  bar_chart: BarChartData[];
 }
 
 export type ModeratorStatus =
@@ -167,16 +149,21 @@ export const ModeratorStatus = {
   online: "online",
 } as const;
 
-/**
- * Duration in milliseconds to mute the user.
- */
-export type MuteActionDefinitionDuration = number | null;
+export type ModeratorUpdateName = string | null;
 
-export interface MuteActionDefinition {
-  type?: "mute";
-  requires_approval: boolean;
-  /** Duration in milliseconds to mute the user. */
-  duration?: MuteActionDefinitionDuration;
+export type ModeratorUpdateDescription = string | null;
+
+export type ModeratorUpdateConfAnyOf = { [key: string]: unknown };
+
+export type ModeratorUpdateConf = ModeratorUpdateConfAnyOf | null;
+
+/**
+ * Request model for updating a moderator.
+ */
+export interface ModeratorUpdate {
+  name?: ModeratorUpdateName;
+  description?: ModeratorUpdateDescription;
+  conf?: ModeratorUpdateConf;
 }
 
 export interface PaginatedResponseActionResponse {
@@ -186,11 +173,11 @@ export interface PaginatedResponseActionResponse {
   data: ActionResponse[];
 }
 
-export interface PaginatedResponseGuidelineResponse {
+export interface PaginatedResponseBehaviorScoreResponse {
   page: number;
   size: number;
   has_next: boolean;
-  data: GuidelineResponse[];
+  data: BehaviorScoreResponse[];
 }
 
 export interface PaginatedResponseModeratorResponse {
@@ -200,14 +187,12 @@ export interface PaginatedResponseModeratorResponse {
   data: ModeratorResponse[];
 }
 
-export type PricingTierType =
-  (typeof PricingTierType)[keyof typeof PricingTierType];
+export type PricingTier = (typeof PricingTier)[keyof typeof PricingTier];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const PricingTierType = {
+export const PricingTier = {
   free: "free",
   pro: "pro",
-  enterprise: "enterprise",
 } as const;
 
 export interface UpdatePassword {
@@ -243,7 +228,7 @@ export type UserMeConnections = { [key: string]: UserConnection };
 
 export interface UserMe {
   username: string;
-  pricing_tier: PricingTierType;
+  pricing_tier: PricingTier;
   connections: UserMeConnections;
 }
 
@@ -277,71 +262,104 @@ export type DiscordOauthCallbackAuthDiscordOauthGetParams = {
   code: string;
 };
 
-export type ListGuidelinesGuidelinesGetParams = {
-  /**
-   * @minimum 1
-   */
-  page: number;
-  search?: string | null;
+export type DiscordOauthBotCallbackAuthDiscordOauthBotGetParams = {
+  code: string;
 };
 
 export type ListModeratorsModeratorsGetParams = {
-  name?: string | null;
+  /**
+   * @minimum 0
+   */
+  skip?: number;
   /**
    * @minimum 1
+   * @maximum 100
    */
-  page: number;
+  limit?: number;
+  name?: string | null;
 };
+
+export type GetModeratorStatsModeratorsModeratorIdStatsGetParams = {
+  timeframe?: GetModeratorStatsModeratorsModeratorIdStatsGetTimeframe;
+};
+
+export type GetModeratorStatsModeratorsModeratorIdStatsGetTimeframe =
+  (typeof GetModeratorStatsModeratorsModeratorIdStatsGetTimeframe)[keyof typeof GetModeratorStatsModeratorsModeratorIdStatsGetTimeframe];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GetModeratorStatsModeratorsModeratorIdStatsGetTimeframe = {
+  "1w": "1w",
+  "1m": "1m",
+  "1y": "1y",
+} as const;
 
 export type ListModeratorActionsModeratorsModeratorIdActionsGetParams = {
   /**
-   * @minimum 1
+   * @minimum 0
    */
-  page?: number;
+  skip?: number;
+  /**
+   * @minimum 1
+   * @maximum 100
+   */
+  limit?: number;
+};
+
+export type ListBehaviorScoresModeratorsModeratorIdScoresGetParams = {
+  /**
+   * @minimum 0
+   */
+  skip?: number;
+  /**
+   * @minimum 1
+   * @maximum 100
+   */
+  limit?: number;
+  order?: "asc" | "desc" | null;
 };
 
 /**
- * @summary Update Action Status
+ * Approve and execute an action that is awaiting approval.
+ * @summary Approve Action
  */
-export type updateActionStatusActionsLogIdPatchResponse200 = {
+export type approveActionActionsActionIdApprovePostResponse200 = {
   data: ActionResponse;
   status: 200;
 };
 
-export type updateActionStatusActionsLogIdPatchResponse422 = {
+export type approveActionActionsActionIdApprovePostResponse422 = {
   data: HTTPValidationError;
   status: 422;
 };
 
-export type updateActionStatusActionsLogIdPatchResponseSuccess =
-  updateActionStatusActionsLogIdPatchResponse200 & {
+export type approveActionActionsActionIdApprovePostResponseSuccess =
+  approveActionActionsActionIdApprovePostResponse200 & {
     headers: Headers;
   };
-export type updateActionStatusActionsLogIdPatchResponseError =
-  updateActionStatusActionsLogIdPatchResponse422 & {
+export type approveActionActionsActionIdApprovePostResponseError =
+  approveActionActionsActionIdApprovePostResponse422 & {
     headers: Headers;
   };
 
-export type updateActionStatusActionsLogIdPatchResponse =
-  | updateActionStatusActionsLogIdPatchResponseSuccess
-  | updateActionStatusActionsLogIdPatchResponseError;
+export type approveActionActionsActionIdApprovePostResponse =
+  | approveActionActionsActionIdApprovePostResponseSuccess
+  | approveActionActionsActionIdApprovePostResponseError;
 
-export const getUpdateActionStatusActionsLogIdPatchUrl = (logId: string) => {
-  return `/actions/${logId}`;
+export const getApproveActionActionsActionIdApprovePostUrl = (
+  actionId: string,
+) => {
+  return `/actions/${actionId}/approve`;
 };
 
-export const updateActionStatusActionsLogIdPatch = async (
-  logId: string,
-  actionUpdate: ActionUpdate,
+export const approveActionActionsActionIdApprovePost = async (
+  actionId: string,
   options?: RequestInit,
-): Promise<updateActionStatusActionsLogIdPatchResponse> => {
-  return customFetch<updateActionStatusActionsLogIdPatchResponse>(
-    getUpdateActionStatusActionsLogIdPatchUrl(logId),
+): Promise<approveActionActionsActionIdApprovePostResponse> => {
+  return customFetch<approveActionActionsActionIdApprovePostResponse>(
+    getApproveActionActionsActionIdApprovePostUrl(actionId),
     {
       ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(actionUpdate),
+      method: "POST",
     },
   );
 };
@@ -624,6 +642,64 @@ export const discordOauthCallbackAuthDiscordOauthGet = async (
 };
 
 /**
+ * Handle Discord bot OAuth callback to add bot to guild.
+ * @summary Discord Oauth Bot Callback
+ */
+export type discordOauthBotCallbackAuthDiscordOauthBotGetResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type discordOauthBotCallbackAuthDiscordOauthBotGetResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type discordOauthBotCallbackAuthDiscordOauthBotGetResponseSuccess =
+  discordOauthBotCallbackAuthDiscordOauthBotGetResponse200 & {
+    headers: Headers;
+  };
+export type discordOauthBotCallbackAuthDiscordOauthBotGetResponseError =
+  discordOauthBotCallbackAuthDiscordOauthBotGetResponse422 & {
+    headers: Headers;
+  };
+
+export type discordOauthBotCallbackAuthDiscordOauthBotGetResponse =
+  | discordOauthBotCallbackAuthDiscordOauthBotGetResponseSuccess
+  | discordOauthBotCallbackAuthDiscordOauthBotGetResponseError;
+
+export const getDiscordOauthBotCallbackAuthDiscordOauthBotGetUrl = (
+  params: DiscordOauthBotCallbackAuthDiscordOauthBotGetParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/auth/discord/oauth/bot?${stringifiedParams}`
+    : `/auth/discord/oauth/bot`;
+};
+
+export const discordOauthBotCallbackAuthDiscordOauthBotGet = async (
+  params: DiscordOauthBotCallbackAuthDiscordOauthBotGetParams,
+  options?: RequestInit,
+): Promise<discordOauthBotCallbackAuthDiscordOauthBotGetResponse> => {
+  return customFetch<discordOauthBotCallbackAuthDiscordOauthBotGetResponse>(
+    getDiscordOauthBotCallbackAuthDiscordOauthBotGetUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
  * @summary Change Username
  */
 export type changeUsernameAuthChangeUsernamePostResponse202 = {
@@ -863,13 +939,13 @@ export type deleteConnectionConnectionsPlatformDeleteResponse =
   | deleteConnectionConnectionsPlatformDeleteResponseError;
 
 export const getDeleteConnectionConnectionsPlatformDeleteUrl = (
-  platform: MessagePlatformType,
+  platform: MessagePlatform,
 ) => {
   return `/connections/${platform}`;
 };
 
 export const deleteConnectionConnectionsPlatformDelete = async (
-  platform: MessagePlatformType,
+  platform: MessagePlatform,
   options?: RequestInit,
 ): Promise<deleteConnectionConnectionsPlatformDeleteResponse> => {
   return customFetch<deleteConnectionConnectionsPlatformDeleteResponse>(
@@ -882,246 +958,7 @@ export const deleteConnectionConnectionsPlatformDelete = async (
 };
 
 /**
- * @summary Create Guideline
- */
-export type createGuidelineGuidelinesPostResponse200 = {
-  data: GuidelineResponse;
-  status: 200;
-};
-
-export type createGuidelineGuidelinesPostResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type createGuidelineGuidelinesPostResponseSuccess =
-  createGuidelineGuidelinesPostResponse200 & {
-    headers: Headers;
-  };
-export type createGuidelineGuidelinesPostResponseError =
-  createGuidelineGuidelinesPostResponse422 & {
-    headers: Headers;
-  };
-
-export type createGuidelineGuidelinesPostResponse =
-  | createGuidelineGuidelinesPostResponseSuccess
-  | createGuidelineGuidelinesPostResponseError;
-
-export const getCreateGuidelineGuidelinesPostUrl = () => {
-  return `/guidelines/`;
-};
-
-export const createGuidelineGuidelinesPost = async (
-  guidelineCreate: GuidelineCreate,
-  options?: RequestInit,
-): Promise<createGuidelineGuidelinesPostResponse> => {
-  return customFetch<createGuidelineGuidelinesPostResponse>(
-    getCreateGuidelineGuidelinesPostUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(guidelineCreate),
-    },
-  );
-};
-
-/**
- * @summary List Guidelines
- */
-export type listGuidelinesGuidelinesGetResponse200 = {
-  data: PaginatedResponseGuidelineResponse;
-  status: 200;
-};
-
-export type listGuidelinesGuidelinesGetResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type listGuidelinesGuidelinesGetResponseSuccess =
-  listGuidelinesGuidelinesGetResponse200 & {
-    headers: Headers;
-  };
-export type listGuidelinesGuidelinesGetResponseError =
-  listGuidelinesGuidelinesGetResponse422 & {
-    headers: Headers;
-  };
-
-export type listGuidelinesGuidelinesGetResponse =
-  | listGuidelinesGuidelinesGetResponseSuccess
-  | listGuidelinesGuidelinesGetResponseError;
-
-export const getListGuidelinesGuidelinesGetUrl = (
-  params: ListGuidelinesGuidelinesGetParams,
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/guidelines/?${stringifiedParams}`
-    : `/guidelines/`;
-};
-
-export const listGuidelinesGuidelinesGet = async (
-  params: ListGuidelinesGuidelinesGetParams,
-  options?: RequestInit,
-): Promise<listGuidelinesGuidelinesGetResponse> => {
-  return customFetch<listGuidelinesGuidelinesGetResponse>(
-    getListGuidelinesGuidelinesGetUrl(params),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
-
-/**
- * @summary Get Guideline
- */
-export type getGuidelineGuidelinesGuidelineIdGetResponse200 = {
-  data: GuidelineResponse;
-  status: 200;
-};
-
-export type getGuidelineGuidelinesGuidelineIdGetResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type getGuidelineGuidelinesGuidelineIdGetResponseSuccess =
-  getGuidelineGuidelinesGuidelineIdGetResponse200 & {
-    headers: Headers;
-  };
-export type getGuidelineGuidelinesGuidelineIdGetResponseError =
-  getGuidelineGuidelinesGuidelineIdGetResponse422 & {
-    headers: Headers;
-  };
-
-export type getGuidelineGuidelinesGuidelineIdGetResponse =
-  | getGuidelineGuidelinesGuidelineIdGetResponseSuccess
-  | getGuidelineGuidelinesGuidelineIdGetResponseError;
-
-export const getGetGuidelineGuidelinesGuidelineIdGetUrl = (
-  guidelineId: string,
-) => {
-  return `/guidelines/${guidelineId}`;
-};
-
-export const getGuidelineGuidelinesGuidelineIdGet = async (
-  guidelineId: string,
-  options?: RequestInit,
-): Promise<getGuidelineGuidelinesGuidelineIdGetResponse> => {
-  return customFetch<getGuidelineGuidelinesGuidelineIdGetResponse>(
-    getGetGuidelineGuidelinesGuidelineIdGetUrl(guidelineId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
-
-/**
- * @summary Update Guideline
- */
-export type updateGuidelineGuidelinesGuidelineIdPutResponse200 = {
-  data: GuidelineResponse;
-  status: 200;
-};
-
-export type updateGuidelineGuidelinesGuidelineIdPutResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type updateGuidelineGuidelinesGuidelineIdPutResponseSuccess =
-  updateGuidelineGuidelinesGuidelineIdPutResponse200 & {
-    headers: Headers;
-  };
-export type updateGuidelineGuidelinesGuidelineIdPutResponseError =
-  updateGuidelineGuidelinesGuidelineIdPutResponse422 & {
-    headers: Headers;
-  };
-
-export type updateGuidelineGuidelinesGuidelineIdPutResponse =
-  | updateGuidelineGuidelinesGuidelineIdPutResponseSuccess
-  | updateGuidelineGuidelinesGuidelineIdPutResponseError;
-
-export const getUpdateGuidelineGuidelinesGuidelineIdPutUrl = (
-  guidelineId: string,
-) => {
-  return `/guidelines/${guidelineId}`;
-};
-
-export const updateGuidelineGuidelinesGuidelineIdPut = async (
-  guidelineId: string,
-  guidelineUpdate: GuidelineUpdate,
-  options?: RequestInit,
-): Promise<updateGuidelineGuidelinesGuidelineIdPutResponse> => {
-  return customFetch<updateGuidelineGuidelinesGuidelineIdPutResponse>(
-    getUpdateGuidelineGuidelinesGuidelineIdPutUrl(guidelineId),
-    {
-      ...options,
-      method: "PUT",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(guidelineUpdate),
-    },
-  );
-};
-
-/**
- * @summary Delete Guideline
- */
-export type deleteGuidelineGuidelinesGuidelineIdDeleteResponse200 = {
-  data: unknown;
-  status: 200;
-};
-
-export type deleteGuidelineGuidelinesGuidelineIdDeleteResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type deleteGuidelineGuidelinesGuidelineIdDeleteResponseSuccess =
-  deleteGuidelineGuidelinesGuidelineIdDeleteResponse200 & {
-    headers: Headers;
-  };
-export type deleteGuidelineGuidelinesGuidelineIdDeleteResponseError =
-  deleteGuidelineGuidelinesGuidelineIdDeleteResponse422 & {
-    headers: Headers;
-  };
-
-export type deleteGuidelineGuidelinesGuidelineIdDeleteResponse =
-  | deleteGuidelineGuidelinesGuidelineIdDeleteResponseSuccess
-  | deleteGuidelineGuidelinesGuidelineIdDeleteResponseError;
-
-export const getDeleteGuidelineGuidelinesGuidelineIdDeleteUrl = (
-  guidelineId: string,
-) => {
-  return `/guidelines/${guidelineId}`;
-};
-
-export const deleteGuidelineGuidelinesGuidelineIdDelete = async (
-  guidelineId: string,
-  options?: RequestInit,
-): Promise<deleteGuidelineGuidelinesGuidelineIdDeleteResponse> => {
-  return customFetch<deleteGuidelineGuidelinesGuidelineIdDeleteResponse>(
-    getDeleteGuidelineGuidelinesGuidelineIdDeleteUrl(guidelineId),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
-
-/**
+ * Create a new moderator for the authenticated user.
  * @summary Create Moderator
  */
 export type createModeratorModeratorsPostResponse200 = {
@@ -1167,6 +1004,7 @@ export const createModeratorModeratorsPost = async (
 };
 
 /**
+ * List moderators with filtering and pagination.
  * @summary List Moderators
  */
 export type listModeratorsModeratorsGetResponse200 = {
@@ -1193,7 +1031,7 @@ export type listModeratorsModeratorsGetResponse =
   | listModeratorsModeratorsGetResponseError;
 
 export const getListModeratorsModeratorsGetUrl = (
-  params: ListModeratorsModeratorsGetParams,
+  params?: ListModeratorsModeratorsGetParams,
 ) => {
   const normalizedParams = new URLSearchParams();
 
@@ -1211,7 +1049,7 @@ export const getListModeratorsModeratorsGetUrl = (
 };
 
 export const listModeratorsModeratorsGet = async (
-  params: ListModeratorsModeratorsGetParams,
+  params?: ListModeratorsModeratorsGetParams,
   options?: RequestInit,
 ): Promise<listModeratorsModeratorsGetResponse> => {
   return customFetch<listModeratorsModeratorsGetResponse>(
@@ -1224,96 +1062,7 @@ export const listModeratorsModeratorsGet = async (
 };
 
 /**
- * @summary Start Moderator
- */
-export type startModeratorModeratorsModeratorIdStartPostResponse202 = {
-  data: unknown;
-  status: 202;
-};
-
-export type startModeratorModeratorsModeratorIdStartPostResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type startModeratorModeratorsModeratorIdStartPostResponseSuccess =
-  startModeratorModeratorsModeratorIdStartPostResponse202 & {
-    headers: Headers;
-  };
-export type startModeratorModeratorsModeratorIdStartPostResponseError =
-  startModeratorModeratorsModeratorIdStartPostResponse422 & {
-    headers: Headers;
-  };
-
-export type startModeratorModeratorsModeratorIdStartPostResponse =
-  | startModeratorModeratorsModeratorIdStartPostResponseSuccess
-  | startModeratorModeratorsModeratorIdStartPostResponseError;
-
-export const getStartModeratorModeratorsModeratorIdStartPostUrl = (
-  moderatorId: string,
-) => {
-  return `/moderators/${moderatorId}/start`;
-};
-
-export const startModeratorModeratorsModeratorIdStartPost = async (
-  moderatorId: string,
-  options?: RequestInit,
-): Promise<startModeratorModeratorsModeratorIdStartPostResponse> => {
-  return customFetch<startModeratorModeratorsModeratorIdStartPostResponse>(
-    getStartModeratorModeratorsModeratorIdStartPostUrl(moderatorId),
-    {
-      ...options,
-      method: "POST",
-    },
-  );
-};
-
-/**
- * @summary Stop Moderator
- */
-export type stopModeratorModeratorsModeratorIdStopPostResponse202 = {
-  data: unknown;
-  status: 202;
-};
-
-export type stopModeratorModeratorsModeratorIdStopPostResponse422 = {
-  data: HTTPValidationError;
-  status: 422;
-};
-
-export type stopModeratorModeratorsModeratorIdStopPostResponseSuccess =
-  stopModeratorModeratorsModeratorIdStopPostResponse202 & {
-    headers: Headers;
-  };
-export type stopModeratorModeratorsModeratorIdStopPostResponseError =
-  stopModeratorModeratorsModeratorIdStopPostResponse422 & {
-    headers: Headers;
-  };
-
-export type stopModeratorModeratorsModeratorIdStopPostResponse =
-  | stopModeratorModeratorsModeratorIdStopPostResponseSuccess
-  | stopModeratorModeratorsModeratorIdStopPostResponseError;
-
-export const getStopModeratorModeratorsModeratorIdStopPostUrl = (
-  moderatorId: string,
-) => {
-  return `/moderators/${moderatorId}/stop`;
-};
-
-export const stopModeratorModeratorsModeratorIdStopPost = async (
-  moderatorId: string,
-  options?: RequestInit,
-): Promise<stopModeratorModeratorsModeratorIdStopPostResponse> => {
-  return customFetch<stopModeratorModeratorsModeratorIdStopPostResponse>(
-    getStopModeratorModeratorsModeratorIdStopPostUrl(moderatorId),
-    {
-      ...options,
-      method: "POST",
-    },
-  );
-};
-
-/**
+ * Get a moderator by ID.
  * @summary Get Moderator
  */
 export type getModeratorModeratorsModeratorIdGetResponse200 = {
@@ -1359,11 +1108,61 @@ export const getModeratorModeratorsModeratorIdGet = async (
 };
 
 /**
+ * Update a moderator's name, description, or configuration.
+ * @summary Update Moderator
+ */
+export type updateModeratorModeratorsModeratorIdPatchResponse200 = {
+  data: ModeratorResponse;
+  status: 200;
+};
+
+export type updateModeratorModeratorsModeratorIdPatchResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type updateModeratorModeratorsModeratorIdPatchResponseSuccess =
+  updateModeratorModeratorsModeratorIdPatchResponse200 & {
+    headers: Headers;
+  };
+export type updateModeratorModeratorsModeratorIdPatchResponseError =
+  updateModeratorModeratorsModeratorIdPatchResponse422 & {
+    headers: Headers;
+  };
+
+export type updateModeratorModeratorsModeratorIdPatchResponse =
+  | updateModeratorModeratorsModeratorIdPatchResponseSuccess
+  | updateModeratorModeratorsModeratorIdPatchResponseError;
+
+export const getUpdateModeratorModeratorsModeratorIdPatchUrl = (
+  moderatorId: string,
+) => {
+  return `/moderators/${moderatorId}`;
+};
+
+export const updateModeratorModeratorsModeratorIdPatch = async (
+  moderatorId: string,
+  moderatorUpdate: ModeratorUpdate,
+  options?: RequestInit,
+): Promise<updateModeratorModeratorsModeratorIdPatchResponse> => {
+  return customFetch<updateModeratorModeratorsModeratorIdPatchResponse>(
+    getUpdateModeratorModeratorsModeratorIdPatchUrl(moderatorId),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(moderatorUpdate),
+    },
+  );
+};
+
+/**
+ * Delete a moderator. Only allowed if moderator is offline.
  * @summary Delete Moderator
  */
-export type deleteModeratorModeratorsModeratorIdDeleteResponse200 = {
-  data: unknown;
-  status: 200;
+export type deleteModeratorModeratorsModeratorIdDeleteResponse204 = {
+  data: void;
+  status: 204;
 };
 
 export type deleteModeratorModeratorsModeratorIdDeleteResponse422 = {
@@ -1372,7 +1171,7 @@ export type deleteModeratorModeratorsModeratorIdDeleteResponse422 = {
 };
 
 export type deleteModeratorModeratorsModeratorIdDeleteResponseSuccess =
-  deleteModeratorModeratorsModeratorIdDeleteResponse200 & {
+  deleteModeratorModeratorsModeratorIdDeleteResponse204 & {
     headers: Headers;
   };
 export type deleteModeratorModeratorsModeratorIdDeleteResponseError =
@@ -1404,6 +1203,7 @@ export const deleteModeratorModeratorsModeratorIdDelete = async (
 };
 
 /**
+ * Get moderator statistics for a given timeframe.
  * @summary Get Moderator Stats
  */
 export type getModeratorStatsModeratorsModeratorIdStatsGetResponse200 = {
@@ -1431,16 +1231,30 @@ export type getModeratorStatsModeratorsModeratorIdStatsGetResponse =
 
 export const getGetModeratorStatsModeratorsModeratorIdStatsGetUrl = (
   moderatorId: string,
+  params?: GetModeratorStatsModeratorsModeratorIdStatsGetParams,
 ) => {
-  return `/moderators/${moderatorId}/stats`;
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/moderators/${moderatorId}/stats?${stringifiedParams}`
+    : `/moderators/${moderatorId}/stats`;
 };
 
 export const getModeratorStatsModeratorsModeratorIdStatsGet = async (
   moderatorId: string,
+  params?: GetModeratorStatsModeratorsModeratorIdStatsGetParams,
   options?: RequestInit,
 ): Promise<getModeratorStatsModeratorsModeratorIdStatsGetResponse> => {
   return customFetch<getModeratorStatsModeratorsModeratorIdStatsGetResponse>(
-    getGetModeratorStatsModeratorsModeratorIdStatsGetUrl(moderatorId),
+    getGetModeratorStatsModeratorsModeratorIdStatsGetUrl(moderatorId, params),
     {
       ...options,
       method: "GET",
@@ -1449,6 +1263,7 @@ export const getModeratorStatsModeratorsModeratorIdStatsGet = async (
 };
 
 /**
+ * List actions for a moderator with filtering and pagination.
  * @summary List Moderator Actions
  */
 export type listModeratorActionsModeratorsModeratorIdActionsGetResponse200 = {
@@ -1511,6 +1326,211 @@ export const listModeratorActionsModeratorsModeratorIdActionsGet = async (
 };
 
 /**
+ * Start a moderator.
+ * @summary Start Moderator
+ */
+export type startModeratorModeratorsModeratorIdStartPostResponse202 = {
+  data: unknown;
+  status: 202;
+};
+
+export type startModeratorModeratorsModeratorIdStartPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type startModeratorModeratorsModeratorIdStartPostResponseSuccess =
+  startModeratorModeratorsModeratorIdStartPostResponse202 & {
+    headers: Headers;
+  };
+export type startModeratorModeratorsModeratorIdStartPostResponseError =
+  startModeratorModeratorsModeratorIdStartPostResponse422 & {
+    headers: Headers;
+  };
+
+export type startModeratorModeratorsModeratorIdStartPostResponse =
+  | startModeratorModeratorsModeratorIdStartPostResponseSuccess
+  | startModeratorModeratorsModeratorIdStartPostResponseError;
+
+export const getStartModeratorModeratorsModeratorIdStartPostUrl = (
+  moderatorId: string,
+) => {
+  return `/moderators/${moderatorId}/start`;
+};
+
+export const startModeratorModeratorsModeratorIdStartPost = async (
+  moderatorId: string,
+  options?: RequestInit,
+): Promise<startModeratorModeratorsModeratorIdStartPostResponse> => {
+  return customFetch<startModeratorModeratorsModeratorIdStartPostResponse>(
+    getStartModeratorModeratorsModeratorIdStartPostUrl(moderatorId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+/**
+ * Stop a running moderator.
+ * @summary Stop Moderator
+ */
+export type stopModeratorModeratorsModeratorIdStopPostResponse202 = {
+  data: unknown;
+  status: 202;
+};
+
+export type stopModeratorModeratorsModeratorIdStopPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type stopModeratorModeratorsModeratorIdStopPostResponseSuccess =
+  stopModeratorModeratorsModeratorIdStopPostResponse202 & {
+    headers: Headers;
+  };
+export type stopModeratorModeratorsModeratorIdStopPostResponseError =
+  stopModeratorModeratorsModeratorIdStopPostResponse422 & {
+    headers: Headers;
+  };
+
+export type stopModeratorModeratorsModeratorIdStopPostResponse =
+  | stopModeratorModeratorsModeratorIdStopPostResponseSuccess
+  | stopModeratorModeratorsModeratorIdStopPostResponseError;
+
+export const getStopModeratorModeratorsModeratorIdStopPostUrl = (
+  moderatorId: string,
+) => {
+  return `/moderators/${moderatorId}/stop`;
+};
+
+export const stopModeratorModeratorsModeratorIdStopPost = async (
+  moderatorId: string,
+  options?: RequestInit,
+): Promise<stopModeratorModeratorsModeratorIdStopPostResponse> => {
+  return customFetch<stopModeratorModeratorsModeratorIdStopPostResponse>(
+    getStopModeratorModeratorsModeratorIdStopPostUrl(moderatorId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+/**
+ * List behavior scores for all users in a moderator's guild with pagination.
+ * @summary List Behavior Scores
+ */
+export type listBehaviorScoresModeratorsModeratorIdScoresGetResponse200 = {
+  data: PaginatedResponseBehaviorScoreResponse;
+  status: 200;
+};
+
+export type listBehaviorScoresModeratorsModeratorIdScoresGetResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type listBehaviorScoresModeratorsModeratorIdScoresGetResponseSuccess =
+  listBehaviorScoresModeratorsModeratorIdScoresGetResponse200 & {
+    headers: Headers;
+  };
+export type listBehaviorScoresModeratorsModeratorIdScoresGetResponseError =
+  listBehaviorScoresModeratorsModeratorIdScoresGetResponse422 & {
+    headers: Headers;
+  };
+
+export type listBehaviorScoresModeratorsModeratorIdScoresGetResponse =
+  | listBehaviorScoresModeratorsModeratorIdScoresGetResponseSuccess
+  | listBehaviorScoresModeratorsModeratorIdScoresGetResponseError;
+
+export const getListBehaviorScoresModeratorsModeratorIdScoresGetUrl = (
+  moderatorId: string,
+  params?: ListBehaviorScoresModeratorsModeratorIdScoresGetParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/moderators/${moderatorId}/scores?${stringifiedParams}`
+    : `/moderators/${moderatorId}/scores`;
+};
+
+export const listBehaviorScoresModeratorsModeratorIdScoresGet = async (
+  moderatorId: string,
+  params?: ListBehaviorScoresModeratorsModeratorIdScoresGetParams,
+  options?: RequestInit,
+): Promise<listBehaviorScoresModeratorsModeratorIdScoresGetResponse> => {
+  return customFetch<listBehaviorScoresModeratorsModeratorIdScoresGetResponse>(
+    getListBehaviorScoresModeratorsModeratorIdScoresGetUrl(moderatorId, params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * Get behavior score for a specific user in a moderator's guild.
+ * @summary Get User Behavior Score
+ */
+export type getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetResponse200 =
+  {
+    data: BehaviorScoreResponse;
+    status: 200;
+  };
+
+export type getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetResponse422 =
+  {
+    data: HTTPValidationError;
+    status: 422;
+  };
+
+export type getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetResponseSuccess =
+  getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetResponse200 & {
+    headers: Headers;
+  };
+export type getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetResponseError =
+  getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetResponse422 & {
+    headers: Headers;
+  };
+
+export type getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetResponse =
+  | getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetResponseSuccess
+  | getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetResponseError;
+
+export const getGetUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetUrl = (
+  moderatorId: string,
+  userId: string,
+) => {
+  return `/moderators/${moderatorId}/scores/${userId}`;
+};
+
+export const getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGet = async (
+  moderatorId: string,
+  userId: string,
+  options?: RequestInit,
+): Promise<getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetResponse> => {
+  return customFetch<getUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetResponse>(
+    getGetUserBehaviorScoreModeratorsModeratorIdScoresUserIdGetUrl(
+      moderatorId,
+      userId,
+    ),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
  * Generate a Stripe Checkout link for a given user and pricing tier.
  * @summary Get Payment Link
  */
@@ -1551,12 +1571,23 @@ export type stripeWebhookPaymentsStripeWebhookPostResponse200 = {
   status: 200;
 };
 
+export type stripeWebhookPaymentsStripeWebhookPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
 export type stripeWebhookPaymentsStripeWebhookPostResponseSuccess =
   stripeWebhookPaymentsStripeWebhookPostResponse200 & {
     headers: Headers;
   };
+export type stripeWebhookPaymentsStripeWebhookPostResponseError =
+  stripeWebhookPaymentsStripeWebhookPostResponse422 & {
+    headers: Headers;
+  };
+
 export type stripeWebhookPaymentsStripeWebhookPostResponse =
-  stripeWebhookPaymentsStripeWebhookPostResponseSuccess;
+  | stripeWebhookPaymentsStripeWebhookPostResponseSuccess
+  | stripeWebhookPaymentsStripeWebhookPostResponseError;
 
 export const getStripeWebhookPaymentsStripeWebhookPostUrl = () => {
   return `/payments/stripe/webhook`;

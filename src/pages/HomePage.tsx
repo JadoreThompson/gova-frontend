@@ -58,9 +58,9 @@ const HeroSection: FC = () => (
         <Button size="lg">Get Started for Free</Button>
       </Link>
       <Link to="/contact-us">
-      <Button size="lg" variant="outline">
-        Request a Demo
-      </Button>
+        <Button size="lg" variant="outline">
+          Request a Demo
+        </Button>
       </Link>
     </div>
   </section>

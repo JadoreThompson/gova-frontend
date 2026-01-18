@@ -3,7 +3,6 @@ import ConfirmEmailPage from "./pages/ConfirmEmailPage";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import ContactUsPage from "./pages/ContactUsPage";
 import CreateModeratorPage from "./pages/CreateModeratorPage";
-import GuidelinesPage from "./pages/GuidelinesPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ModeratorPage from "./pages/ModeratorPage";
@@ -23,7 +22,6 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/guidelines" element={<GuidelinesPage />} />
           <Route path="/moderators" element={<ModeratorsPage />} />
           <Route path="/moderators/:moderatorId" element={<ModeratorPage />} />
           <Route path="/moderators/create" element={<CreateModeratorPage />} />
