@@ -1,5 +1,8 @@
 import SiteLogo from "@/components/site-logo";
-import { discordOauthCallbackAuthDiscordOauthGet } from "@/openapi";
+import {
+  discordOauthBotCallbackAuthDiscordOauthBotGet,
+  discordOauthCallbackAuthDiscordOauthGet,
+} from "@/openapi";
 import { type FC, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
@@ -10,36 +13,59 @@ const DiscordOAuthCallbackPage: FC = () => {
 
   useEffect(() => {
     const code = searchParams.get("code");
+    const type = searchParams.get("type");
 
-    // If no code is present, redirect to /moderators
-    if (!code) {
+    // If no code or type is present, redirect to /moderators
+    if (!code || !type) {
       navigate("/moderators");
       return;
     }
 
-    // Call the Discord OAuth endpoint with the code
+    // Validate type parameter
+    if (type !== "user" && type !== "bot") {
+      navigate("/moderators");
+      return;
+    }
+
+    // Call the appropriate Discord OAuth endpoint based on type
     const handleOAuthCallback = async () => {
       try {
-        const response = await discordOauthCallbackAuthDiscordOauthGet({
-          code,
-        });
+        if (type === "user") {
+          // Handle user OAuth flow
+          const response = await discordOauthCallbackAuthDiscordOauthGet({
+            code,
+          });
 
-        // On success (204), navigate to /connections
-        if (response.status === 204) {
-          navigate("/connections");
+          // On success (204), navigate to /connections
+          if (response.status === 204) {
+            navigate("/connections");
+          }
+        } else if (type === "bot") {
+          // Handle bot OAuth flow
+          await discordOauthBotCallbackAuthDiscordOauthBotGet({
+            code,
+          });
+
+          // On success or failure, redirect to /moderators
+          navigate("/moderators");
         }
       } catch (err) {
-        // On error, show error message and redirect after a delay
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to connect Discord account";
-        setError(errorMessage);
+        if (type === "user") {
+          // For user OAuth, show error message and redirect after a delay
+          const errorMessage =
+            err instanceof Error
+              ? err.message
+              : "Failed to connect Discord account";
+          setError(errorMessage);
 
-        // Redirect to /connections after 3 seconds
-        setTimeout(() => {
-          navigate("/connections");
-        }, 3000);
+          // Redirect to /connections after 3 seconds
+          setTimeout(() => {
+            navigate("/connections");
+          }, 3000);
+        } else {
+          // For bot OAuth, redirect to /moderators immediately
+          navigate("/moderators");
+        }
       }
     };
 
