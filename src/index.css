@@ -298,6 +298,20 @@ button:focus-visible {
   }
 }
 
+@keyframes pulseScale {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@utility animate-pulse-scale {
+  animation: pulseScale 2s ease-in-out infinite;
+}
 
 .scrollbar-hide {
   scrollbar-width: none;

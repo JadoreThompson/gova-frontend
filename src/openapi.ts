@@ -633,9 +633,9 @@ export const getMeAuthMeGet = async (
 /**
  * @summary Discord Oauth Callback
  */
-export type discordOauthCallbackAuthDiscordOauthGetResponse200 = {
-  data: unknown;
-  status: 200;
+export type discordOauthCallbackAuthDiscordOauthGetResponse204 = {
+  data: void;
+  status: 204;
 };
 
 export type discordOauthCallbackAuthDiscordOauthGetResponse422 = {
@@ -644,7 +644,7 @@ export type discordOauthCallbackAuthDiscordOauthGetResponse422 = {
 };
 
 export type discordOauthCallbackAuthDiscordOauthGetResponseSuccess =
-  discordOauthCallbackAuthDiscordOauthGetResponse200 & {
+  discordOauthCallbackAuthDiscordOauthGetResponse204 & {
     headers: Headers;
   };
 export type discordOauthCallbackAuthDiscordOauthGetResponseError =

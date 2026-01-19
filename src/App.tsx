@@ -3,6 +3,7 @@ import ConfirmEmailPage from "./pages/ConfirmEmailPage";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import ContactUsPage from "./pages/ContactUsPage";
 import CreateModeratorPage from "./pages/CreateModeratorPage";
+import DiscordOAuthCallbackPage from "./pages/DiscordOAuthCallbackPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ModeratorPage from "./pages/ModeratorPage";
@@ -28,6 +29,10 @@ function App() {
           <Route path="/connections" element={<ConnectionsPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />
           <Route path="/confirm-email" element={<ConfirmEmailPage />} />
+          <Route
+            path="/auth/discord/oauth"
+            element={<DiscordOAuthCallbackPage />}
+          />
           <Route path="/500" element={<Page500 />} />
         </Routes>
       </BrowserRouter>
