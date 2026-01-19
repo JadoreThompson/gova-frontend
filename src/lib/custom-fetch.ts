@@ -56,7 +56,8 @@ export const customFetch = async <T>(
     const errorText = await rsp.json();
     throw { status: rsp.status, error: errorText };
   }
-  const data = await getBody<T>(rsp);
+
+  const data = rsp.status != 204 ? await getBody<T>(rsp) : null;
 
   return { status: rsp.status, data, headers: rsp.headers } as T;
 };
