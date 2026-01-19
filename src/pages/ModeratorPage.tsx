@@ -560,7 +560,7 @@ const ModeratorPage: FC = () => {
                         navigate("/moderators");
                       })
                       .catch((err) => {
-                        const error = err.error;
+                        const error = err.error?.error;
                         if (error) {
                           toast.error(error);
                         } else {
