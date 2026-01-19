@@ -1,5 +1,4 @@
 import {
-  type ListGuidelinesGuidelinesGetParams,
   type ListModeratorActionsModeratorsModeratorIdActionsGetParams,
   type ListModeratorsModeratorsGetParams,
 } from "@/openapi";
@@ -13,12 +12,6 @@ export const queryKeys = {
   discordGuilds: () => ["connections", "guilds"] as const,
   discordGuildChannels: () =>
     [...queryKeys.discordGuilds(), "channels"] as const,
-
-  // Guidelines
-  guidelines: (params?: ListGuidelinesGuidelinesGetParams) =>
-    ["guidelines", params] as const,
-  guideline: (guidelineId: string) =>
-    [...queryKeys.guidelines(), guidelineId] as const,
 
   // Moderators
   moderators: (params?: ListModeratorsModeratorsGetParams) =>

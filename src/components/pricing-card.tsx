@@ -48,7 +48,7 @@ const PricingTierCard: FC<{
 
   // Determine tier-based configuration
   let tierConfig: {
-    planType: "free" | "pro" | "enterprise";
+    planType: "free" | "pro";
     title: string;
     description: string;
     price: string;
@@ -82,32 +82,13 @@ const PricingTierCard: FC<{
         ],
       };
       break;
-    case "enterprise":
-      tierConfig = {
-        planType: "enterprise",
-        title: "Enterprise Plan",
-        description: "All features for large organizations",
-        price: "Contact us",
-        features: [
-          "Unlimited messages moderated",
-          "All moderation tools",
-          "Dedicated support",
-        ],
-      };
-      break;
     default:
       throw new Error(`Unknown pricing tier: ${props.pricingTier}`);
   }
 
   // Compute CTA
   let cta = null;
-  if (tierConfig.planType === "enterprise") {
-    cta = (
-      <Link to="/contact-us" className="w-full">
-        <Button className="w-full">Contact Us</Button>
-      </Link>
-    );
-  } else if (tierConfig.planType === "pro") {
+  if (tierConfig.planType === "pro") {
     cta = (
       <Button onClick={sendToPaymentLink} className="w-full">
         Get Started
@@ -148,9 +129,7 @@ const PricingTierCard: FC<{
           <p className="text-muted-foreground mb-3">{tierConfig.description}</p>
           <div className="border-b pb-5">
             <span className="mr-1 text-3xl font-bold">{tierConfig.price}</span>
-            {tierConfig.planType !== "enterprise" && (
-              <span className="text-muted-foreground text-sm">/month</span>
-            )}
+            <span className="text-muted-foreground text-sm">/month</span>
           </div>
         </CardHeader>
 

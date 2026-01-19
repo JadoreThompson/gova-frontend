@@ -194,7 +194,9 @@ const HowItWorksSection: FC = () => {
 const AnalyticsDemoSection: FC = () => {
   const actions: ActionResponse[] = [
     {
-      log_id: "8e8d0839-613f-450f-bbc2-3478455b3a8c",
+      action_id: "8e8d0839-613f-450f-bbc2-3478455b3a8c",
+      moderator_id: "mod-123",
+      platform_user_id: "954075156215636000",
       action_type: "mute",
       action_params: {
         type: "mute",
@@ -203,12 +205,19 @@ const AnalyticsDemoSection: FC = () => {
         duration: 3600000,
         requires_approval: true,
       },
-      status: "awaiting_approval",
+      context: {
+        message: "Bitches in this server",
+      },
+      status: ActionStatus.awaiting_approval,
+      reason: "Use of profanity and disrespectful language.",
       created_at: "2025-11-07T12:12:55.273200+00:00",
-      message: "Bitches in this server",
+      updated_at: "2025-11-07T12:12:55.273200+00:00",
+      executed_at: null,
     },
     {
-      log_id: "5d19b42e-0db2-4d13-ab52-a4f813407d54",
+      action_id: "5d19b42e-0db2-4d13-ab52-a4f813407d54",
+      moderator_id: "mod-123",
+      platform_user_id: "954075156215636000",
       action_type: "mute",
       action_params: {
         type: "mute",
@@ -217,12 +226,19 @@ const AnalyticsDemoSection: FC = () => {
         duration: 3600000,
         requires_approval: true,
       },
-      status: "awaiting_approval",
+      context: {
+        message: "You're a faggot",
+      },
+      status: ActionStatus.awaiting_approval,
+      reason: "Use of profanity and disrespectful language.",
       created_at: "2025-11-07T12:12:44.046285+00:00",
-      message: "You're a faggot",
+      updated_at: "2025-11-07T12:12:44.046285+00:00",
+      executed_at: null,
     },
     {
-      log_id: "123217b8-5d75-4d8c-8466-a67d7d3dcef0",
+      action_id: "123217b8-5d75-4d8c-8466-a67d7d3dcef0",
+      moderator_id: "mod-123",
+      platform_user_id: "954075156215636000",
       action_type: "mute",
       action_params: {
         type: "mute",
@@ -231,9 +247,14 @@ const AnalyticsDemoSection: FC = () => {
         duration: 300000,
         requires_approval: true,
       },
-      status: "awaiting_approval",
+      context: {
+        message: "Fuck you",
+      },
+      status: ActionStatus.awaiting_approval,
+      reason: "Use of profanity and disrespectful language.",
       created_at: "2025-11-07T12:12:40.674488+00:00",
-      message: "Fuck you",
+      updated_at: "2025-11-07T12:12:40.674488+00:00",
+      executed_at: null,
     },
   ];
 
@@ -241,8 +262,7 @@ const AnalyticsDemoSection: FC = () => {
     let className = "rounded-md px-2 py-0.5 text-xs font-medium capitalize ";
 
     switch (status) {
-      case ActionStatus.success:
-      case ActionStatus.approved:
+      case ActionStatus.completed:
         className +=
           "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
         break;
@@ -251,7 +271,7 @@ const AnalyticsDemoSection: FC = () => {
           "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
         break;
       case ActionStatus.failed:
-      case ActionStatus.declined:
+      case ActionStatus.rejected:
         className +=
           "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
         break;
@@ -302,31 +322,34 @@ const AnalyticsDemoSection: FC = () => {
             </TableHeader>
 
             <TableBody>
-              {actions.map((action) => (
-                <TableRow
-                  key={action.log_id}
-                  className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40"
-                >
-                  <TableCell className="capitalize">
-                    {action.action_type}
-                  </TableCell>
-                  <TableCell>
-                    {dayjs(action.created_at).format("YYYY-MM-DD HH:mm")}
-                  </TableCell>
-                  <TableCell>{getBadge(action.status)}</TableCell>
-                  <TableCell className="ellipsis">
-                    {action.message.slice(0, 20)}
-                    {action.message.length > 20 && "..."}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {action.status === ActionStatus.awaiting_approval && (
-                      <Button variant="outline" size="sm">
-                        Review
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {actions.map((action) => {
+                const message = (action.context as { message?: string })?.message || "";
+                return (
+                  <TableRow
+                    key={action.action_id}
+                    className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40"
+                  >
+                    <TableCell className="capitalize">
+                      {action.action_type}
+                    </TableCell>
+                    <TableCell>
+                      {dayjs(action.created_at).format("YYYY-MM-DD HH:mm")}
+                    </TableCell>
+                    <TableCell>{getBadge(action.status)}</TableCell>
+                    <TableCell className="ellipsis">
+                      {message.slice(0, 20)}
+                      {message.length > 20 && "..."}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {action.status === ActionStatus.awaiting_approval && (
+                        <Button variant="outline" size="sm">
+                          Review
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
