@@ -3,7 +3,7 @@ import { create } from "zustand";
 
 export interface MeStoreProps {
   data?: UserMe;
-  setData: (value: UserMe) => void;
+  setData: (value?: UserMe) => void;
 }
 
 export const useMeStore = create<MeStoreProps>()((set) => ({

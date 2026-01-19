@@ -1,4 +1,5 @@
 import { useLogoutMutation, useMeQuery } from "@/hooks/queries/auth-hooks";
+import { queryClient } from "@/lib/query/query-client";
 import { useMeStore } from "@/stores/me-store";
 import { Bot, LogOut, SendToBack } from "lucide-react";
 import { useEffect, type FC, type ReactNode } from "react";
@@ -49,7 +50,11 @@ const DashboardSidebar: FC = () => {
     try {
       logoutMutation
         .mutateAsync()
-        .then(() => navigate("/login", { replace: true }))
+        .then(() => {
+          setMe(undefined);
+          queryClient.clear();
+          navigate("/login", { replace: true });
+        })
         .catch((err) =>
           toast.info(
             `Error logging out: ${err?.error?.error ?? "Something went wrong. Please try again later."}`,
