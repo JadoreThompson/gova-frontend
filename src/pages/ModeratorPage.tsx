@@ -164,7 +164,7 @@ const ActionsTable: FC<{
             ) : props.actions.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   className="text-muted-foreground py-10 text-center"
                 >
                   No actions found for the selected filters.
