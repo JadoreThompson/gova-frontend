@@ -2,6 +2,7 @@ import DashboardLayout from "@/components/layouts/dashboard-layout";
 import MessagesChart from "@/components/messages-chart";
 import PaginationControls from "@/components/pagination-controls";
 import CustomToaster from "@/components/toaster";
+import UpdateModeratorPanel from "@/components/update-moderator-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -55,6 +56,7 @@ import {
   CirclePlus,
   EllipsisVertical,
   Loader2,
+  Pencil,
   Trash,
   TriangleAlert,
 } from "lucide-react";
@@ -361,6 +363,7 @@ const ModeratorPage: FC = () => {
     ModeratorStatus.offline,
   );
   const [showDeleteModerator, setShowDeleteModerator] = useState(false);
+  const [showUpdatePanel, setShowUpdatePanel] = useState(false);
 
   const abortControllerRef = useRef(new AbortController());
   const pollingPromiseRef = useRef<Promise<void> | undefined>(undefined);
@@ -618,6 +621,13 @@ const ModeratorPage: FC = () => {
               <PopoverContent className="w-50 p-1">
                 <div className="flex flex-col">
                   <div
+                    onClick={() => setShowUpdatePanel(true)}
+                    className="hover:bg-secondary flex cursor-pointer items-center justify-start gap-3 rounded-sm p-1"
+                  >
+                    <Pencil size="10" className="text-blue-500" />
+                    <span className="text-xs">Edit Moderator</span>
+                  </div>
+                  <div
                     onClick={() => setShowDeleteModerator(true)}
                     className="hover:bg-secondary flex cursor-pointer items-center justify-start gap-3 rounded-sm p-1"
                   >
@@ -675,6 +685,14 @@ const ModeratorPage: FC = () => {
           />
         </div>
       </DashboardLayout>
+
+      {moderatorQuery.data && (
+        <UpdateModeratorPanel
+          open={showUpdatePanel}
+          onOpenChange={setShowUpdatePanel}
+          moderator={moderatorQuery.data}
+        />
+      )}
     </>
   );
 };

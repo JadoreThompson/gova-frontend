@@ -10,9 +10,11 @@ import {
   listModeratorsModeratorsGet,
   startModeratorModeratorsModeratorIdStartPost,
   stopModeratorModeratorsModeratorIdStopPost,
+  updateModeratorModeratorsModeratorIdPatch,
   type ListModeratorActionsModeratorsModeratorIdActionsGetParams,
   type ListModeratorsModeratorsGetParams,
   type ModeratorCreate,
+  type ModeratorUpdate,
 } from "@/openapi";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -152,6 +154,31 @@ export function useDeletModeratorMutation() {
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.moderatorStats(moderatorId),
+      });
+    },
+  });
+}
+
+/**
+ * Updates a moderator's name, description, or configuration.
+ * On success, invalidates the moderator cache.
+ */
+export function useUpdateModeratorMutation() {
+  return useMutation({
+    mutationFn: async ({
+      moderatorId,
+      data,
+    }: {
+      moderatorId: string;
+      data: ModeratorUpdate;
+    }) =>
+      handleApi(
+        await updateModeratorModeratorsModeratorIdPatch(moderatorId, data),
+      ),
+    onSuccess: (_data, { moderatorId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.moderators() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.moderator(moderatorId),
       });
     },
   });
