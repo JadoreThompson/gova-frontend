@@ -266,12 +266,18 @@ const ActionsTable: FC<{
             {viewedActionResponse?.action_params &&
             Object.keys(viewedActionResponse.action_params).length > 0 ? (
               <form className="space-y-3">
-                {(
-                  [
+                {(() => {
+                  const arr = [
                     ...Object.entries(viewedActionResponse.action_params),
                     ["reason", viewedActionResponse.reason],
-                  ] as [string, any][]
-                ).map(([key, value]) => (
+                  ] as [string, any][];
+
+                  if (viewedActionResponse.error_msg) {
+                    arr.push(["error", viewedActionResponse.error_msg]);
+                  }
+
+                  return arr;
+                })().map(([key, value]) => (
                   <div key={key} className="flex flex-col text-sm">
                     <label className="font-medium text-gray-600 capitalize dark:text-gray-300">
                       {key.replace(/_/g, " ")}

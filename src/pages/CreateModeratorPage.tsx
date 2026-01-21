@@ -116,6 +116,51 @@ const SetModeratorNameCard: FC<ModeratorCreationStageProps<string>> = (
   );
 };
 
+const EnterInstructionsCard: FC<ModeratorCreationStageProps<string | null>> = (
+  props,
+) => {
+  const [instructions, setInstructions] = useState("");
+
+  return (
+    <>
+      <h4 className="mb-3 font-semibold">Custom Instructions (Optional)</h4>
+      <p className="text-muted-foreground mb-3 text-sm">
+        Provide custom instructions to tailor the agent's behavior. This is
+        optional.
+      </p>
+      <div className="flex w-full flex-col">
+        <div className="flex w-full flex-col gap-4">
+          <textarea
+            id="instructions"
+            placeholder="Enter custom instructions for the moderator agent..."
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring mt-1 min-h-[150px] max-w-2xl rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+          />
+
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => props.onNext(null)}
+              className="w-fit"
+            >
+              Skip
+            </Button>
+            <Button
+              type="button"
+              onClick={() => props.onNext(instructions.trim() || null)}
+              className="w-fit"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
 const SelectActionsCard: FC<ModeratorCreationStageProps<DiscordAction[]>> = (
   props,
 ) => {
@@ -615,7 +660,7 @@ const CreateModeratorPage: FC = () => {
   const navigate = useNavigate();
 
   const [curStage, setCurStage] = useState(1);
-  const [maxStages] = useState(7);
+  const [maxStages] = useState(8);
   const [guidelines, setGuidelines] = useState<string>("");
   const [moderatorPlatform, setModeratorPlatform] = useState<
     MessagePlatform | undefined
@@ -763,6 +808,18 @@ const CreateModeratorPage: FC = () => {
             )}
 
             {curStage === 7 && (
+              <EnterInstructionsCard
+                onNext={(arg: string | null) => {
+                  setDiscordConfig((prev: DiscordConfigBody) => ({
+                    ...prev,
+                    instructions: arg,
+                  }));
+                  setCurStage((prev) => prev + 1);
+                }}
+              />
+            )}
+
+            {curStage === 8 && (
               <SetModeratorNameCard
                 onNext={(arg: string) => {
                   handleCreateModerator(arg);

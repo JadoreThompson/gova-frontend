@@ -15,6 +15,8 @@ export type ActionResponseContext = { [key: string]: unknown };
 
 export type ActionResponseReason = string | null;
 
+export type ActionResponseErrorMsg = string | null;
+
 export type ActionResponseExecutedAt = string | null;
 
 /**
@@ -29,6 +31,7 @@ export interface ActionResponse {
   context: ActionResponseContext;
   status: ActionStatus;
   reason: ActionResponseReason;
+  error_msg: ActionResponseErrorMsg;
   created_at: string;
   updated_at: string;
   executed_at: ActionResponseExecutedAt;

@@ -49,5 +49,6 @@ export interface DiscordConfigBody {
   guild_summary: string;
   guidelines: string;
   actions: DiscordAction[];
+  instructions?: string | null;
   [key: string]: unknown;
 }
