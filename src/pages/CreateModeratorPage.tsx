@@ -56,7 +56,14 @@ const AVAILABLE_ACTIONS = [
   },
   {
     type: "timeout" as const,
-    fields: [{ name: "duration", type: "number", label: "Duration (ms)" }],
+    fields: [
+      {
+        name: "duration",
+        type: "number",
+        label: "Duration (seconds)",
+        parser: (val: string) => Number.parseInt(val, 10),
+      },
+    ],
     defaultRequiresApproval: false,
   },
   {
@@ -672,7 +679,7 @@ const CreateModeratorPage: FC = () => {
             type: "timeout" as const,
             platform: "discord" as const,
             requires_approval: false,
-            default_params: { duration: null },
+            default_params: null,
           };
         } else {
           return {
@@ -698,15 +705,30 @@ const CreateModeratorPage: FC = () => {
           default_params: null,
         };
       } else if (action.type === "timeout") {
-        const duration = config.params.duration;
+        const durationRaw = config.params.duration;
+        const timeoutAction = AVAILABLE_ACTIONS.find(
+          (a) => a.type === "timeout",
+        );
+        const durationField = timeoutAction?.fields[0];
+        const parser = durationField?.parser;
+
+        let duration: number | null = null;
+        if (durationRaw && parser) {
+          try {
+            duration = parser(String(durationRaw));
+            if (isNaN(duration)) {
+              duration = null;
+            }
+          } catch {
+            duration = null;
+          }
+        }
+
         return {
           type: "timeout" as const,
           platform: "discord" as const,
           requires_approval: config.requires_approval,
-          default_params: {
-            duration:
-              duration && typeof duration === "number" ? duration : null,
-          },
+          default_params: duration !== null ? { duration } : null,
         };
       } else {
         return {
