@@ -401,35 +401,35 @@ const ActionsField: FC<ConfigFieldProps<ActionsState>> = (props) => {
 };
 
 const UpdateModeratorPanel: FC<UpdateModeratorPanelProps> = (props) => {
-  const config = props.moderator.conf as DiscordConfigBody | undefined;
+  const config = props.moderator.conf as DiscordConfigBody;
 
   const [name, setName] = useState(props.moderator.name);
-  const [guidelines, setGuidelines] = useState(config?.guidelines ?? "");
-  const [guildSummary, setGuildSummary] = useState(config?.guild_summary ?? "");
-  const [instructions, setInstructions] = useState(config?.instructions ?? "");
+  const [guidelines, setGuidelines] = useState(config.guidelines);
+  const [guildSummary, setGuildSummary] = useState(config.guild_summary ?? "");
+  const [instructions, setInstructions] = useState(config.instructions ?? "");
   const [actionsState, setActionsState] = useState<ActionsState>(
-    config?.actions ? actionsToState(config.actions) : getInitialActionsState(),
+    config.actions ? actionsToState(config.actions) : getInitialActionsState(),
   );
 
   const updateModeratorMutation = useUpdateModeratorMutation();
 
   useEffect(() => {
     if (props.open) {
-      const conf = props.moderator.conf as DiscordConfigBody | undefined;
+      const conf = props.moderator.conf as DiscordConfigBody;
       setName(props.moderator.name);
-      setGuidelines(conf?.guidelines ?? "");
-      setGuildSummary(conf?.guild_summary ?? "");
-      setInstructions(conf?.instructions ?? "");
+      setGuidelines(conf.guidelines);
+      setGuildSummary(conf.guild_summary ?? "");
+      setInstructions(conf.instructions ?? "");
       setActionsState(
-        conf?.actions ? actionsToState(conf.actions) : getInitialActionsState(),
+        conf.actions ? actionsToState(conf.actions) : getInitialActionsState(),
       );
     }
   }, [props.open, props.moderator]);
 
   const handleSubmit = () => {
     const updatedConfig: DiscordConfigBody = {
-      guild_id: config?.guild_id ?? "",
-      channel_ids: config?.channel_ids ?? [],
+      guild_id: String(config.guild_id),
+      channel_ids: config.channel_ids.map((id) => String(id)),
       guild_summary: guildSummary,
       guidelines,
       actions: stateToActions(actionsState),
