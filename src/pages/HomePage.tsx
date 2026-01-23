@@ -213,6 +213,7 @@ const AnalyticsDemoSection: FC = () => {
       created_at: "2025-11-07T12:12:55.273200+00:00",
       updated_at: "2025-11-07T12:12:55.273200+00:00",
       executed_at: null,
+      error_msg: null,
     },
     {
       action_id: "5d19b42e-0db2-4d13-ab52-a4f813407d54",
@@ -234,6 +235,7 @@ const AnalyticsDemoSection: FC = () => {
       created_at: "2025-11-07T12:12:44.046285+00:00",
       updated_at: "2025-11-07T12:12:44.046285+00:00",
       executed_at: null,
+      error_msg: null,
     },
     {
       action_id: "123217b8-5d75-4d8c-8466-a67d7d3dcef0",
@@ -255,6 +257,7 @@ const AnalyticsDemoSection: FC = () => {
       created_at: "2025-11-07T12:12:40.674488+00:00",
       updated_at: "2025-11-07T12:12:40.674488+00:00",
       executed_at: null,
+      error_msg: null,
     },
   ];
 
@@ -323,7 +326,8 @@ const AnalyticsDemoSection: FC = () => {
 
             <TableBody>
               {actions.map((action) => {
-                const message = (action.context as { message?: string })?.message || "";
+                const message =
+                  (action.context as { message?: string })?.message || "";
                 return (
                   <TableRow
                     key={action.action_id}
