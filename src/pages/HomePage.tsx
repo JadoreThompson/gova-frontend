@@ -41,8 +41,38 @@ type Feature = {
   description: string;
 };
 
+// const HeroSection: FC = () => (
+//   <section className="container mx-auto flex flex-col items-center justify-center px-4 py-20 text-center md:py-32 lg:py-40">
+//     <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
+//       Intelligent Chat Moderation, <br className="hidden md:inline" />
+//       <span className="from-primary bg-gradient-to-r to-blue-400 bg-clip-text text-transparent">
+//         On Your Terms.
+//       </span>
+//     </h1>
+//     <p className="text-muted-foreground mx-auto mt-6 max-w-[700px] text-lg md:text-xl">
+//       Gova empowers you to create safer online communities. Define your rules,
+//       configure automated actions, and let our AI handle the toxicity, 24/7.
+//     </p>
+//     <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+//       <Link to="/login">
+//         <Button size="lg">Get Started for Free</Button>
+//       </Link>
+//       <Link to="/contact-us">
+//         <Button size="lg" variant="outline">
+//           Request a Demo
+//         </Button>
+//       </Link>
+//     </div>
+//   </section>
+// );
+
 const HeroSection: FC = () => (
-  <section className="container mx-auto flex flex-col items-center justify-center px-4 py-20 text-center md:py-32 lg:py-40">
+  <section className="relative container mx-auto flex flex-col items-center justify-center overflow-hidden px-4 py-20 text-center md:py-32 lg:py-40">
+    <div
+      className="pointer-events-none absolute h-[700px] w-[700px] translate-y-full rounded-full bg-blue-500/60 shadow-[0_0_1000px_500px_rgba(59,130,246,0.4)]"
+      aria-hidden="true"
+    />
+
     <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
       Intelligent Chat Moderation, <br className="hidden md:inline" />
       <span className="from-primary bg-gradient-to-r to-blue-400 bg-clip-text text-transparent">
