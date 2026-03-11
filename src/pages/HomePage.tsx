@@ -1,3 +1,6 @@
+import Kick from "@/assets/kick.png";
+import Discord from "@/assets/new-discord.png";
+import Twitch from "@/assets/twitch.svg";
 import MainLayout from "@/components/layouts/main-layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +32,7 @@ import {
 } from "lucide-react";
 import React, { type FC, type HTMLAttributes } from "react";
 import { Link } from "react-router";
+
 interface IconProps extends HTMLAttributes<SVGElement> {
   children?: never;
   color?: string;
@@ -41,49 +45,87 @@ type Feature = {
   description: string;
 };
 
-// const HeroSection: FC = () => (
-//   <section className="container mx-auto flex flex-col items-center justify-center px-4 py-20 text-center md:py-32 lg:py-40">
-//     <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
-//       Intelligent Chat Moderation, <br className="hidden md:inline" />
-//       <span className="from-primary bg-gradient-to-r to-blue-400 bg-clip-text text-transparent">
-//         On Your Terms.
-//       </span>
-//     </h1>
-//     <p className="text-muted-foreground mx-auto mt-6 max-w-[700px] text-lg md:text-xl">
-//       Gova empowers you to create safer online communities. Define your rules,
-//       configure automated actions, and let our AI handle the toxicity, 24/7.
-//     </p>
-//     <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-//       <Link to="/login">
-//         <Button size="lg">Get Started for Free</Button>
-//       </Link>
-//       <Link to="/contact-us">
-//         <Button size="lg" variant="outline">
-//           Request a Demo
-//         </Button>
-//       </Link>
-//     </div>
-//   </section>
-// );
-
 const HeroSection: FC = () => (
   <section className="relative container mx-auto flex flex-col items-center justify-center overflow-hidden px-4 py-20 text-center md:py-32 lg:py-40">
+    {/* Blue glow at bottom */}
     <div
-      className="pointer-events-none absolute h-[700px] w-[700px] translate-y-full rounded-full bg-blue-500/60 shadow-[0_0_1000px_500px_rgba(59,130,246,0.4)]"
+      className="pointer-events-none absolute h-[700px] w-[700px] translate-y-full rounded-full bg-blue-500/60 shadow-[0_0_700px_350px_rgba(59,130,246,0.4)]"
       aria-hidden="true"
     />
 
-    <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
+    {/* Sprinkled platform logos around content */}
+    <img
+      src={Twitch}
+      className="absolute top-[10%] left-[5%] h-16 -rotate-12 opacity-80"
+      alt=""
+    />
+    <img
+      src={Discord}
+      className="absolute top-[15%] right-[8%] h-20 rotate-12 opacity-70"
+      alt=""
+    />
+    <img
+      src={Kick}
+      className="absolute bottom-[20%] left-[10%] h-14 rotate-45 opacity-60"
+      alt=""
+    />
+    <img
+      src={Twitch}
+      className="absolute right-[5%] bottom-[25%] h-18 -rotate-6 opacity-75"
+      alt=""
+    />
+    <img
+      src={Discord}
+      className="absolute top-[40%] left-[15%] h-12 -rotate-20 opacity-50"
+      alt=""
+    />
+    <img
+      src={Kick}
+      className="absolute top-[50%] right-[12%] h-16 rotate-25 opacity-65"
+      alt=""
+    />
+    <img
+      src={Twitch}
+      className="absolute top-[60%] left-[3%] h-10 rotate-8 opacity-40"
+      alt=""
+    />
+    <img
+      src={Discord}
+      className="absolute right-[15%] bottom-[10%] h-14 -rotate-30 opacity-55"
+      alt=""
+    />
+    <img
+      src={Kick}
+      className="absolute top-[25%] left-[20%] h-12 rotate-18 opacity-45"
+      alt=""
+    />
+    <img
+      src={Twitch}
+      className="absolute right-[18%] bottom-[35%] h-11 -rotate-15 opacity-50"
+      alt=""
+    />
+    <img
+      src={Discord}
+      className="absolute top-[70%] right-[25%] h-13 rotate-35 opacity-40"
+      alt=""
+    />
+    <img
+      src={Kick}
+      className="absolute top-[5%] left-[30%] h-9 -rotate-8 opacity-60"
+      alt=""
+    />
+
+    <h1 className="relative z-10 text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
       Intelligent Chat Moderation, <br className="hidden md:inline" />
       <span className="from-primary bg-gradient-to-r to-blue-400 bg-clip-text text-transparent">
         On Your Terms.
       </span>
     </h1>
-    <p className="text-muted-foreground mx-auto mt-6 max-w-[700px] text-lg md:text-xl">
+    <p className="text-muted-foreground relative z-10 mx-auto mt-6 max-w-[700px] text-lg md:text-xl">
       Gova empowers you to create safer online communities. Define your rules,
       configure automated actions, and let our AI handle the toxicity, 24/7.
     </p>
-    <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+    <div className="relative z-10 mt-8 flex flex-col gap-4 sm:flex-row">
       <Link to="/login">
         <Button size="lg">Get Started for Free</Button>
       </Link>
