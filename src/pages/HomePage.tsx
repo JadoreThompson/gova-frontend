@@ -177,7 +177,7 @@ const FeaturesSection: FC = () => {
           management.
         </p>
       </div>
-      <div className="grid gap-4 lg:mx-auto lg:w-200 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:mx-auto lg:w-200">
         {features.map((feature) => (
           <Card
             key={feature.title}
@@ -244,21 +244,28 @@ const HowItWorksSection: FC = () => {
         </div>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           {steps.map((step) => (
-            <Card key={step.title} className="flex flex-col">
-              <CardHeader>
-                <div className="bg-primary/10 text-primary mb-4 flex h-12 w-12 items-center justify-center rounded-lg">
-                  <step.icon className="h-6 w-6" />
-                </div>
-                <CardTitle className="text-lg font-semibold">
-                  {step.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  {step.description}
-                </p>
-              </CardContent>
-            </Card>
+            <>
+              <Card
+                key={step.title}
+                className="flex flex-col gap-1 border-0 bg-transparent"
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-center">
+                    <div className="text-primary mb-1 flex h-12 w-12 items-center justify-center rounded-full bg-blue-400/20">
+                      <step.icon className="h-6 w-6 text-blue-500" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-center text-lg font-semibold">
+                    {step.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground text-center text-sm">
+                    {step.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </>
           ))}
         </div>
       </div>
