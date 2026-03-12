@@ -49,7 +49,7 @@ const HeroSection: FC = () => (
   <section className="relative container mx-auto flex flex-col items-center justify-center overflow-hidden px-4 py-20 text-center md:py-32 lg:py-40">
     {/* Blue glow at bottom */}
     <div
-      className="pointer-events-none absolute h-[700px] w-[700px] translate-y-full rounded-full bg-blue-500/60 shadow-[0_0_700px_350px_rgba(59,130,246,0.4)]"
+      className="pointer-events-none absolute h-[700px] w-[700px] -translate-y-full rounded-full bg-blue-500/60 shadow-[0_0_700px_350px_rgba(59,130,246,0.4)]"
       aria-hidden="true"
     />
 
@@ -150,7 +150,7 @@ const FeaturesSection: FC = () => {
       icon: Gavel,
       title: "Automated Enforcement",
       description:
-        "Trigger custom actions—from warnings to bans—based on rule severity. Full control over duration and reasoning.",
+        "Trigger custom actions. From warnings to bans based on rule severity. Full control over duration and reasoning.",
     },
     {
       icon: CheckCircle,
@@ -177,11 +177,14 @@ const FeaturesSection: FC = () => {
           management.
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 lg:mx-auto lg:w-200 sm:grid-cols-2">
         {features.map((feature) => (
-          <Card key={feature.title} className="flex flex-col">
-            <CardHeader>
-              <div className="bg-primary/10 text-primary mb-4 flex h-12 w-12 items-center justify-center rounded-lg">
+          <Card
+            key={feature.title}
+            className="m-0 flex flex-col gap-2 border-0"
+          >
+            <CardHeader className="">
+              <div className="text-primary mb-1 flex h-12 w-12 items-center justify-center rounded-lg">
                 <feature.icon className="h-6 w-6" />
               </div>
               <CardTitle className="text-lg font-semibold">
