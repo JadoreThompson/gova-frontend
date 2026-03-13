@@ -24,10 +24,9 @@ import {
   BarChart3,
   BookOpen,
   CheckCircle,
-  Cpu,
   Gavel,
-  GitBranch,
   SlidersHorizontal,
+  Webhook,
   Zap,
 } from "lucide-react";
 import React, { type FC, type HTMLAttributes } from "react";
@@ -206,7 +205,7 @@ const FeaturesSection: FC = () => {
 const HowItWorksSection: FC = () => {
   const steps = [
     {
-      icon: GitBranch,
+      icon: Webhook,
       title: "Connect Your Stack",
       description:
         "Integrate in minutes with our SDKs and webhooks. Compatible with Discord and other platforms coming soon.",
@@ -216,12 +215,6 @@ const HowItWorksSection: FC = () => {
       title: "Craft Your Policy",
       description:
         "Visually build your moderation policy. From simple keyword blocks to complex, context-aware rules.",
-    },
-    {
-      icon: Cpu,
-      title: "Automate Enforcement",
-      description:
-        "Decide the AI's response to violations: from silent warnings to automated timeouts with optional human review.",
     },
     {
       icon: Zap,
@@ -242,30 +235,40 @@ const HowItWorksSection: FC = () => {
             A simple, four-step process to automate your chat moderation.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+
+        <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 md:mx-auto md:grid md:w-fit md:grid-cols-3 md:overflow-visible">
           {steps.map((step) => (
-            <>
-              <Card
-                key={step.title}
-                className="flex flex-col gap-1 border-0 bg-transparent"
-              >
-                <CardHeader>
-                  <div className="flex items-center justify-center">
-                    <div className="text-primary mb-1 flex h-12 w-12 items-center justify-center rounded-full bg-blue-400/20">
-                      <step.icon className="h-6 w-6 text-blue-500" />
-                    </div>
+            <div
+              key={step.title}
+              className="bg-secondary border-stone-650 flex h-100 w-[280px] flex-none snap-start items-center justify-center rounded-xl border p-2"
+            >
+              <Card className="flex h-full w-full flex-col gap-1 overflow-hidden rounded-lg p-0">
+                <CardHeader
+                  className="block h-5/8 rounded-lg border-b px-4 pt-5 pb-4"
+                  style={{
+                    background:
+                      "linear-gradient(to bottom, hsl(var(--muted)/0.3) 0%, hsl(var(--muted)/0.7) 100%)",
+                    boxShadow:
+                      "inset 0 2px 6px rgba(0,0,0,0.12), inset 0 1px 2px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.06)",
+                    borderBottom: "1px solid hsl(var(--border)/0.8)",
+                    borderTop: "1px solid rgba(0,0,0,0.06)",
+                  }}
+                >
+                  <div className="flex h-full w-full items-center justify-center">
+                    <step.icon size={70} />
                   </div>
-                  <CardTitle className="text-center text-lg font-semibold">
+                </CardHeader>
+
+                <CardContent>
+                  <CardTitle className="pt-3 text-center text-lg font-semibold">
                     {step.title}
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
                   <p className="text-muted-foreground text-center text-sm">
                     {step.description}
                   </p>
                 </CardContent>
               </Card>
-            </>
+            </div>
           ))}
         </div>
       </div>
