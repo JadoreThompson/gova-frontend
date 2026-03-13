@@ -236,11 +236,13 @@ const HowItWorksSection: FC = () => {
           </p>
         </div>
 
-        <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 md:mx-auto md:grid md:w-fit md:grid-cols-3 md:overflow-visible">
+        <div className="relative flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 md:mx-auto md:grid md:w-fit md:grid-cols-3 md:overflow-visible">
+          <div className="absolute top-1/2 left-1/2 z-0 h-1 w-4 -translate-x-1/2 -translate-y-1/2 rounded-lg bg-blue-500/60 shadow-[0_0_700px_300px_rgba(59,130,246,0.15)]" />
+
           {steps.map((step) => (
             <div
               key={step.title}
-              className="bg-secondary border-stone-650 flex h-100 w-[280px] flex-none snap-start items-center justify-center rounded-xl border p-2"
+              className="bg-secondary border-stone-650 z-1 flex h-100 w-[280px] flex-none snap-start items-center justify-center rounded-xl border p-2"
             >
               <Card className="flex h-full w-full flex-col gap-1 overflow-hidden rounded-lg p-0">
                 <CardHeader
@@ -476,6 +478,7 @@ const HomePage: FC = () => {
       <FeaturesSection />
       <HowItWorksSection />
       <AnalyticsDemoSection />
+      <div className="mb-70 h-1 w-full bg-transparent" />
       {/* <PricingSection /> */}
     </MainLayout>
   );

@@ -75,7 +75,6 @@ const Header: FC = () => {
                   Log In
                 </Button>
               </Link>
-              {/* <a href="/login" className="w-full"></a> */}
               <Link to="/register" className="w-full">
                 <Button className="w-full">Sign Up</Button>
               </Link>
@@ -86,7 +85,6 @@ const Header: FC = () => {
     </header>
   );
 };
-
 const Footer: FC = () => {
   const footerLinks = {
     Product: NAV_LINKS.slice(0, 2),
@@ -94,35 +92,35 @@ const Footer: FC = () => {
   };
 
   return (
-    <footer className="bg-background border-t">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4 lg:grid-cols-5">
-          <div className="lg:col-span-2">
-            <SiteLogo className="h-20 w-20" />
-            <p className="text-muted-foreground max-w-xs">
-              AI-powered chat moderation for safer online communities.
-            </p>
+    <footer className="bg-background relative h-75 w-full border-t">
+      <div className="absolute top-6/8 left-1/2 z-0 rounded-full bg-blue-500/60 shadow-[0_0_500px_250px_rgba(59,130,246,0.7)]" />
+
+      {/* Full-width background */}
+      <div className="bg-background absolute left-0 z-10 h-full w-full py-12">
+        <div className="container mx-auto px-4">
+          <div className="mx-auto grid grid-cols-1 gap-4 px-20 md:grid-cols-8">
+            {Object.entries(footerLinks).map(([title, links]) => (
+              <div key={title}>
+                <h6 className="mb-2 font-semibold">{title}</h6>
+                <ul className="space-y-1">
+                  {links.map(([title, link]) => (
+                    <li key={title}>
+                      <a
+                        href={link}
+                        className="text-muted-foreground hover:text-foreground text-sm"
+                      >
+                        {title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-          {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
-              <h4 className="mb-4 font-semibold">{title}</h4>
-              <ul className="space-y-3">
-                {links.map(([title, link]) => (
-                  <li key={title}>
-                    <a
-                      href={link}
-                      className="text-muted-foreground hover:text-foreground text-sm"
-                    >
-                      {title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <div className="text-muted-foreground mt-12 border-t pt-8 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} Gova. All rights reserved.</p>
+
+          <div className="text-muted-foreground mt-12 border-t pt-8 text-center text-sm">
+            <p>&copy; {new Date().getFullYear()} Gova. All rights reserved.</p>
+          </div>
         </div>
       </div>
     </footer>
