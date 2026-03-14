@@ -14,77 +14,162 @@ const NAV_LINKS = [
   ["Contact Us", "/contact-us"],
 ] as const;
 
+// const Header: FC = () => {
+//   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+//   return (
+//     // <header className="bg-background/95 sticky top-0 z-50 w-full border-b backdrop-blur-sm">
+//     <header className="fixed top-4 z-50 w-full px-5">
+//       <div className="bg-background/50 container mx-auto flex h-16 items-center justify-between rounded-lg px-4 backdrop-blur-md sm:bg-transparent sm:backdrop-blur-none md:px-6">
+//         <Link to="/">
+//           <SiteLogo className="h-15 w-15" />
+//         </Link>
+
+//         <nav className="bg-background/80 hidden items-center gap-6 rounded-lg border-x-1 border-t-2 border-b-0 text-sm font-medium backdrop-blur-md md:flex md:px-4 md:py-4">
+//           {NAV_LINKS.map(([title, link]) => (
+//             <a
+//               key={title}
+//               href={link}
+//               className="text-muted-foreground hover:text-foreground rounded-lg transition-colors"
+//             >
+//               {title}
+//             </a>
+//           ))}
+//         </nav>
+
+//         <div className="hidden items-center gap-4 md:flex">
+//           <Link to="/login">
+//             <Button>Launch</Button>
+//           </Link>
+//         </div>
+
+//         <div className="md:hidden">
+//           <Button
+//             variant="ghost"
+//             size="icon"
+//             onClick={() => setIsMenuOpen(!isMenuOpen)}
+//           >
+//             {isMenuOpen ? (
+//               <X className="h-6 w-6" />
+//             ) : (
+//               <Menu className="h-6 w-6" />
+//             )}
+//           </Button>
+//         </div>
+//       </div>
+//       {isMenuOpen && (
+//         <div className="bg-background border-t md:hidden">
+//           <nav className="flex flex-col items-center gap-4 p-4">
+//             {NAV_LINKS.map(([title, link]) => (
+//               <a
+//                 key={title}
+//                 href={link}
+//                 onClick={() => setIsMenuOpen(false)}
+//                 className="text-muted-foreground hover:text-foreground w-full py-2 text-center"
+//               >
+//                 {title}
+//               </a>
+//             ))}
+//             <div className="mt-4 flex w-full flex-col gap-2">
+//               <Link to="/login" className="w-full">
+//                 <Button variant="ghost" className="w-full">
+//                   Log In
+//                 </Button>
+//               </Link>
+//               <Link to="/register" className="w-full">
+//                 <Button className="w-full">Sign Up</Button>
+//               </Link>
+//             </div>
+//           </nav>
+//         </div>
+//       )}
+//     </header>
+//   );
+// };
+
 const Header: FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="bg-background/95 sticky top-0 z-50 w-full border-b backdrop-blur-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <Link to="/">
-          <SiteLogo className="h-15 w-15" />
-        </Link>
-
-        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-          {NAV_LINKS.map(([title, link]) => (
-            <a
-              key={title}
-              href={link}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {title}
-            </a>
-          ))}
-        </nav>
-
-        <div className="hidden items-center gap-4 md:flex">
-          <Link to="/login">
-            <Button>Launch</Button>
-          </Link>
-        </div>
-
-        <div className="md:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+    <header className="fixed top-4 z-50 w-full px-5">
+      <div className="container mx-auto">
+        <div className="bg-background/50 overflow-hidden rounded-2xl border border-white/10 backdrop-blur-md">
+          <div
+            className={`flex h-16 items-center justify-between px-4 md:px-6 ${
+              isMenuOpen ? "rounded-b-none" : ""
+            } sm:bg-transparent sm:backdrop-blur-none`}
           >
-            {isMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </Button>
-        </div>
-      </div>
-      {isMenuOpen && (
-        <div className="bg-background border-t md:hidden">
-          <nav className="flex flex-col items-center gap-4 p-4">
-            {NAV_LINKS.map(([title, link]) => (
-              <a
-                key={title}
-                href={link}
-                onClick={() => setIsMenuOpen(false)}
-                className="text-muted-foreground hover:text-foreground w-full py-2 text-center"
-              >
-                {title}
-              </a>
-            ))}
-            <div className="mt-4 flex w-full flex-col gap-2">
-              <Link to="/login" className="w-full">
-                <Button variant="ghost" className="w-full">
-                  Log In
-                </Button>
-              </Link>
-              <Link to="/register" className="w-full">
-                <Button className="w-full">Sign Up</Button>
+            <Link to="/">
+              <SiteLogo className="h-15 w-15" />
+            </Link>
+
+            <nav className="bg-background/80 hidden items-center gap-6 rounded-lg border-x border-t-2 border-b-0 text-sm font-medium backdrop-blur-md md:flex md:px-4 md:py-4">
+              {NAV_LINKS.map(([title, link]) => (
+                <a
+                  key={title}
+                  href={link}
+                  className="text-muted-foreground hover:text-foreground rounded-lg transition-colors"
+                >
+                  {title}
+                </a>
+              ))}
+            </nav>
+
+            <div className="hidden items-center gap-4 md:flex">
+              <Link to="/login">
+                <Button>Launch</Button>
               </Link>
             </div>
-          </nav>
+
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="!bg-transparent"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
+                {isMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {isMenuOpen && (
+            <div className="border-white/10 md:hidden">
+              <nav className="flex flex-col gap-2 p-4">
+                {NAV_LINKS.map(([title, link]) => (
+                  <a
+                    key={title}
+                    href={link}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-muted-foreground hover:text-foreground w-full rounded-lg px-4 py-3 transition-colors"
+                  >
+                    {title}
+                  </a>
+                ))}
+
+                <div className="mt-2 flex w-full flex-col gap-2">
+                  <Link to="/login" className="w-full">
+                    <Button variant="ghost" className="w-full !bg-transparent">
+                      Log In
+                    </Button>
+                  </Link>
+                  <Link to="/register" className="w-full">
+                    <Button className="w-full">Sign Up</Button>
+                  </Link>
+                </div>
+              </nav>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </header>
   );
 };
+
 const Footer: FC = () => {
   const footerLinks = {
     Product: NAV_LINKS.slice(0, 2),

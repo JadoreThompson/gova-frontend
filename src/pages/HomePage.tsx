@@ -45,82 +45,82 @@ type Feature = {
 };
 
 const HeroSection: FC = () => (
-  <section className="relative container mx-auto flex flex-col items-center justify-center overflow-hidden px-4 py-20 text-center md:py-32 lg:py-40">
+  <section className="relative container flex h-screen w-full max-w-screen flex-col items-center justify-center overflow-hidden py-20 text-center md:py-32">
     {/* Blue glow at bottom */}
     <div
-      className="pointer-events-none absolute h-[700px] w-[700px] -translate-y-full rounded-full bg-blue-500/60 shadow-[0_0_700px_350px_rgba(59,130,246,0.4)]"
+      className="pointer-events-none absolute top-0 h-[100px] w-[100px] -translate-y-full rounded-full bg-blue-500/60 shadow-[0_0_300px_150px_rgba(59,130,246,0.4)] md:h-[700px] md:w-[700px] md:-translate-y-[125%] md:shadow-[0_0_900px_450px_rgba(59,130,246,0.4)]"
       aria-hidden="true"
     />
 
     {/* Sprinkled platform logos around content */}
     <img
       src={Twitch}
-      className="absolute top-[10%] left-[5%] h-16 -rotate-12 opacity-80"
+      className="absolute top-[10%] left-[5%] h-12 -rotate-12 opacity-80 md:h-16"
       alt=""
     />
     <img
       src={Discord}
-      className="absolute top-[15%] right-[8%] h-20 rotate-12 opacity-70"
+      className="absolute top-[15%] right-[8%] h-16 rotate-12 opacity-70 md:h-20"
       alt=""
     />
     <img
       src={Kick}
-      className="absolute bottom-[20%] left-[10%] h-14 rotate-45 opacity-60"
+      className="absolute bottom-[20%] left-[10%] h-10 rotate-45 opacity-60 md:h-14"
       alt=""
     />
     <img
       src={Twitch}
-      className="absolute right-[5%] bottom-[25%] h-18 -rotate-6 opacity-75"
+      className="absolute right-[5%] bottom-[25%] h-14 -rotate-6 opacity-75 md:h-18"
       alt=""
     />
     <img
       src={Discord}
-      className="absolute top-[40%] left-[15%] h-12 -rotate-20 opacity-50"
+      className="absolute top-[40%] left-[15%] h-8 -rotate-20 opacity-50 md:h-12"
       alt=""
     />
     <img
       src={Kick}
-      className="absolute top-[50%] right-[12%] h-16 rotate-25 opacity-65"
+      className="absolute top-[50%] right-[12%] h-12 rotate-25 opacity-65 md:h-16"
       alt=""
     />
     <img
       src={Twitch}
-      className="absolute top-[60%] left-[3%] h-10 rotate-8 opacity-40"
+      className="absolute top-[60%] left-[3%] h-6 rotate-8 opacity-40 md:h-10"
       alt=""
     />
     <img
       src={Discord}
-      className="absolute right-[15%] bottom-[10%] h-14 -rotate-30 opacity-55"
+      className="absolute right-[15%] bottom-[10%] h-10 -rotate-30 opacity-55 md:h-14"
       alt=""
     />
     <img
       src={Kick}
-      className="absolute top-[25%] left-[20%] h-12 rotate-18 opacity-45"
+      className="absolute top-[25%] left-[20%] h-9 rotate-18 opacity-45 md:h-12"
       alt=""
     />
     <img
       src={Twitch}
-      className="absolute right-[18%] bottom-[35%] h-11 -rotate-15 opacity-50"
+      className="absolute right-[18%] bottom-[35%] h-7 -rotate-15 opacity-50 md:h-11"
       alt=""
     />
     <img
       src={Discord}
-      className="absolute top-[70%] right-[25%] h-13 rotate-35 opacity-40"
+      className="absolute top-[70%] right-[25%] h-9 rotate-35 opacity-40 md:h-13"
       alt=""
     />
     <img
       src={Kick}
-      className="absolute top-[5%] left-[30%] h-9 -rotate-8 opacity-60"
+      className="absolute top-[5%] left-[30%] h-5 -rotate-8 opacity-60 md:h-9"
       alt=""
     />
 
-    <h1 className="relative z-10 text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
+    <h1 className="relative z-10 !text-3xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
       Intelligent Chat Moderation, <br className="hidden md:inline" />
       <span className="from-primary bg-gradient-to-r to-blue-400 bg-clip-text text-transparent">
         On Your Terms.
       </span>
     </h1>
-    <p className="text-muted-foreground relative z-10 mx-auto mt-6 max-w-[700px] text-lg md:text-xl">
+    <p className="text-muted-foreground text-md relative z-10 mx-auto mt-6 max-w-[700px] md:text-xl">
       Gova empowers you to create safer online communities. Define your rules,
       configure automated actions, and let our AI handle the toxicity, 24/7.
     </p>
@@ -129,7 +129,11 @@ const HeroSection: FC = () => (
         <Button size="lg">Get Started for Free</Button>
       </Link>
       <Link to="/contact-us">
-        <Button size="lg" variant="outline">
+        <Button
+          size="lg"
+          variant="outline"
+          className="!bg-transparent backdrop-blur-md"
+        >
           Request a Demo
         </Button>
       </Link>
