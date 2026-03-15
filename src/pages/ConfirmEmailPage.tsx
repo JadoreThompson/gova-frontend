@@ -86,39 +86,147 @@ const ConfirmEmailPage: FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-neutral-900">
-      <div className="w-full max-w-md rounded-lg border bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-800">
-        <h2 className="mb-6 text-center text-2xl font-semibold">
-          Confirm Your Email
-        </h2>
-        <p className="mb-4 text-center text-sm text-gray-600 dark:text-gray-300">
-          Enter the verification code sent to your email address.
-        </p>
+    <div className="bg-background relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8">
+      {/* Rising sun glow */}
+      <div
+        className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[120%] rounded-full"
+        style={{
+          width: "600px",
+          height: "600px",
+          boxShadow:
+            "0 0 120px 80px rgba(59,130,246,0.3), 0 0 300px 180px rgba(59,130,246,0.18), 0 0 500px 300px rgba(59,130,246,0.08)",
+        }}
+        aria-hidden="true"
+      />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium" htmlFor="code">
-              Verification Code
-            </label>
-            <Input
-              id="code"
-              placeholder="Paste your code here"
-              value={tokenInput}
-              onChange={(e) => setTokenInput(e.target.value)}
+      {/* Horizon shimmer */}
+      <div
+        className="pointer-events-none absolute right-0 bottom-0 left-0 h-px"
+        style={{
+          background:
+            "linear-gradient(to right, transparent 0%, rgba(59,130,246,0) 20%, rgba(99,179,246,0.6) 50%, rgba(59,130,246,0) 80%, transparent 100%)",
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Card */}
+      <div className="relative z-10 w-full max-w-[420px]">
+        <div
+          className="relative rounded-2xl border px-10 py-10"
+          style={{
+            background: "oklch(0.205 0 0)",
+            borderColor: "rgba(255,255,255,0.08)",
+            boxShadow:
+              "inset 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.08), 0 32px 64px -12px rgba(0,0,0,0.7), 0 16px 32px -8px rgba(0,0,0,0.5), 0 0 80px -20px rgba(59,130,246,0.15)",
+          }}
+        >
+          {/* Bottom shimmer accent */}
+          <div
+            className="pointer-events-none absolute right-0 bottom-0 left-0 h-px rounded-b-2xl"
+            style={{
+              background:
+                "linear-gradient(to right, transparent 0%, rgba(99,102,241,0.4) 30%, rgba(99,102,241,0.8) 50%, rgba(99,102,241,0.4) 70%, transparent 100%)",
+            }}
+            aria-hidden="true"
+          />
+
+          {/* Heading */}
+          <h2
+            className="mb-1 text-center text-2xl font-semibold tracking-tight whitespace-nowrap text-white"
+            style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+          >
+            Confirm Your Email
+          </h2>
+          <p className="text-muted-foreground mb-7 text-center text-sm">
+            Enter the verification code sent to your email address.
+          </p>
+
+          <div
+            className="mb-7 h-px"
+            style={{
+              background:
+                "linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent)",
+            }}
+          />
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label
+                className="text-muted-foreground mb-1.5 block text-xs font-semibold tracking-widest"
+                htmlFor="code"
+              >
+                Verification Code
+              </label>
+              <Input
+                id="code"
+                placeholder="Paste your code here"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                disabled={verifyEmailMutation.isPending}
+                required
+                className="bg-background placeholder:text-muted-foreground/40 focus-visible:ring-0"
+              />
+            </div>
+
+            {errorMessage && (
+              <p
+                className="rounded-lg border px-3.5 py-2.5 text-sm"
+                style={{
+                  background: "rgba(239,68,68,0.1)",
+                  borderColor: "rgba(239,68,68,0.25)",
+                  color: "#fca5a5",
+                }}
+              >
+                {errorMessage}
+              </p>
+            )}
+
+            {resendMessage && (
+              <p
+                className="rounded-lg border px-3.5 py-2.5 text-sm"
+                style={{
+                  background: "rgba(16,185,129,0.1)",
+                  borderColor: "rgba(16,185,129,0.25)",
+                  color: "#6ee7b7",
+                }}
+              >
+                {resendMessage}
+              </p>
+            )}
+
+            <Button
+              type="submit"
+              className="relative w-full overflow-hidden font-semibold text-white"
               disabled={verifyEmailMutation.isPending}
-              required
-              className="mt-1"
-            />
-          </div>
+              style={{
+                background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                boxShadow:
+                  "inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 12px rgba(59,130,246,0.4), 0 1px 3px rgba(0,0,0,0.3)",
+                border: "none",
+              }}
+            >
+              {/* Inner shine */}
+              <span
+                className="pointer-events-none absolute inset-x-0 top-0 h-px"
+                style={{
+                  background:
+                    "linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent)",
+                }}
+                aria-hidden="true"
+              />
+              {verifyEmailMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verifying…
+                </>
+              ) : (
+                "Confirm Email"
+              )}
+            </Button>
+          </form>
 
-          {errorMessage && (
-            <p className="text-sm text-red-500">{errorMessage}</p>
-          )}
-          {resendMessage && (
-            <p className="text-sm text-green-600">{resendMessage}</p>
-          )}
-
-          <div className="text-sm">
+          <p className="text-muted-foreground mt-6 text-center text-sm">
             Didn't receive a code?{" "}
             <Button
               variant="link"
@@ -127,31 +235,16 @@ const ConfirmEmailPage: FC = () => {
               disabled={
                 resendCooldown > 0 || requestEmailVerificationMutation.isPending
               }
-              className="disabled:text-muted-foreground h-auto p-1 font-medium disabled:cursor-not-allowed"
+              className="text-muted-foreground disabled:text-muted-foreground/50 h-auto !bg-transparent p-0 text-sm font-medium transition-colors hover:text-blue-300 disabled:cursor-not-allowed"
             >
               {requestEmailVerificationMutation.isPending
-                ? "Sending..."
+                ? "Sending…"
                 : resendCooldown > 0
                   ? `Resend again in ${resendCooldown}s`
                   : "Resend email"}
             </Button>
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={verifyEmailMutation.isPending}
-          >
-            {verifyEmailMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Verifying...
-              </>
-            ) : (
-              "Confirm Email"
-            )}
-          </Button>
-        </form>
+          </p>
+        </div>
       </div>
     </div>
   );
