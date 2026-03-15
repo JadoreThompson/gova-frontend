@@ -8,9 +8,9 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ModeratorPage from "./pages/ModeratorPage";
 import ModeratorsPage from "./pages/ModeratorsPage";
+import Page500 from "./pages/page500";
 import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
-import Page500 from "./pages/page500";
 
 function App() {
   return (
