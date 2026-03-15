@@ -1,10 +1,6 @@
 # Gova - AI-Powered Chat Moderation Platform
 
-**Build safer online communities with intelligent, automated moderation.**
-
 Gova empowers community managers to deploy AI-powered moderators across Discord, Slack, YouTube, and other platforms. Define your community guidelines, configure automated enforcement actions, and let AI handle toxic behavior 24/7 - with full human oversight when needed.
-
----
 
 ## 🌟 Key Features
 
@@ -52,8 +48,6 @@ Connect your community platforms quickly and securely with OAuth 2.0 authenticat
 - **Secure Authentication**: OAuth 2.0 with encrypted credential storage
 - **Easy Connection Management**: Connect or disconnect with one click
 
----
-
 ## 🛠️ Technology Stack
 
 ### Frontend Framework
@@ -87,8 +81,6 @@ Connect your community platforms quickly and securely with OAuth 2.0 authenticat
 - **ESLint 9** - Modern linting with flat config
 - **Prettier** - Opinionated code formatting
 - **TypeScript ESLint** - Type-aware linting rules
-
----
 
 ## 🚀 Getting Started
 
@@ -156,8 +148,6 @@ docker-compose -f docker/dev-compose.yaml up
 docker-compose -f docker/prod-compose.yaml up
 ```
 
----
-
 ## 🔌 API Integration
 
 The frontend communicates with the Gova backend API using automatically generated TypeScript clients and React Query hooks.
@@ -194,8 +184,6 @@ const approveAction = useApproveActionMutation();
 approveAction.mutate({ log_id: "..." });
 ```
 
----
-
 ## 📱 Core User Flows
 
 ### 1. Creating a Guideline
@@ -230,8 +218,6 @@ approveAction.mutate({ log_id: "..." });
 3. Approve or decline actions with a single click
 4. Monitor the action history and analytics
 
----
-
 ## 🎨 Available Scripts
 
 - `npm run dev` - Start development server with hot reload
@@ -239,8 +225,6 @@ approveAction.mutate({ log_id: "..." });
 - `npm run preview` - Preview production build locally
 - `npm run lint` - Run ESLint for code quality
 - `npm run orval:openapi` - Generate API client from OpenAPI spec
-
----
 
 ## 🔒 Security Features
 
@@ -250,8 +234,6 @@ approveAction.mutate({ log_id: "..." });
 - **Human Oversight** - Manual approval workflow for sensitive actions
 - **Audit Logging** - Complete history of all moderation decisions
 
----
-
 ## 🌐 Supported Platforms
 
 | Platform | Status         | Features                                   |
@@ -260,8 +242,6 @@ approveAction.mutate({ log_id: "..." });
 | Slack    | 🚧 Coming Soon | Workspace integration planned              |
 | Telegram | 🚧 Coming Soon | Group chat moderation planned              |
 | YouTube  | 🚧 Coming Soon | Comment moderation planned                 |
-
----
 
 ## 📄 License
 
