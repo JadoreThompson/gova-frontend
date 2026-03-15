@@ -115,13 +115,13 @@ const HeroSection: FC = () => (
       alt=""
     />
 
-    <h1 className="relative z-10 !text-3xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
+    <h1 className="relative z-10 text-3xl font-extrabold tracking-tighter sm:text-5xl">
       Intelligent Chat Moderation, <br className="hidden md:inline" />
       <span className="from-primary bg-gradient-to-r to-blue-400 bg-clip-text text-transparent">
         On Your Terms.
       </span>
     </h1>
-    <p className="text-muted-foreground text-md relative z-10 mx-auto mt-6 max-w-[700px] md:text-xl">
+    <p className="text-muted-foreground relative z-10 mx-auto mt-6 max-w-[700px] text-sm md:text-xl">
       Gova empowers you to create safer online communities. Define your rules,
       configure automated actions, and let our AI handle the toxicity, 24/7.
     </p>
