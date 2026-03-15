@@ -1,4 +1,4 @@
-import MainLayout from "@/components/layouts/main-layout";
+import Layout from "@/components/layouts/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,9 +88,9 @@ const ContactUsPage: FC = () => {
   };
 
   return (
-    <MainLayout>
+    <Layout>
       <div className="overflow-hidden">
-        <div className=" inset-0 flex flex-col items-center justify-center overflow-y-auto rounded-md  p-4 sm:m-4 sm:p-6 md:p-10 lg:m-8">
+        <div className="inset-0 flex flex-col items-center justify-center overflow-y-auto rounded-md p-4 sm:m-4 sm:p-6 md:p-10 lg:m-8">
           <h2 className="mb-3 text-center text-2xl font-bold sm:text-3xl md:text-4xl">
             Contact Us
           </h2>
@@ -174,7 +174,7 @@ const ContactUsPage: FC = () => {
           </div>
         </div>
       </div>
-    </MainLayout>
+    </Layout>
   );
 };
 

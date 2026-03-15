@@ -14,86 +14,13 @@ const NAV_LINKS = [
   ["Contact Us", "/contact-us"],
 ] as const;
 
-// const Header: FC = () => {
-//   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-//   return (
-//     // <header className="bg-background/95 sticky top-0 z-50 w-full border-b backdrop-blur-sm">
-//     <header className="fixed top-4 z-50 w-full px-5">
-//       <div className="bg-background/50 container mx-auto flex h-16 items-center justify-between rounded-lg px-4 backdrop-blur-md sm:bg-transparent sm:backdrop-blur-none md:px-6">
-//         <Link to="/">
-//           <SiteLogo className="h-15 w-15" />
-//         </Link>
-
-//         <nav className="bg-background/80 hidden items-center gap-6 rounded-lg border-x-1 border-t-2 border-b-0 text-sm font-medium backdrop-blur-md md:flex md:px-4 md:py-4">
-//           {NAV_LINKS.map(([title, link]) => (
-//             <a
-//               key={title}
-//               href={link}
-//               className="text-muted-foreground hover:text-foreground rounded-lg transition-colors"
-//             >
-//               {title}
-//             </a>
-//           ))}
-//         </nav>
-
-//         <div className="hidden items-center gap-4 md:flex">
-//           <Link to="/login">
-//             <Button>Launch</Button>
-//           </Link>
-//         </div>
-
-//         <div className="md:hidden">
-//           <Button
-//             variant="ghost"
-//             size="icon"
-//             onClick={() => setIsMenuOpen(!isMenuOpen)}
-//           >
-//             {isMenuOpen ? (
-//               <X className="h-6 w-6" />
-//             ) : (
-//               <Menu className="h-6 w-6" />
-//             )}
-//           </Button>
-//         </div>
-//       </div>
-//       {isMenuOpen && (
-//         <div className="bg-background border-t md:hidden">
-//           <nav className="flex flex-col items-center gap-4 p-4">
-//             {NAV_LINKS.map(([title, link]) => (
-//               <a
-//                 key={title}
-//                 href={link}
-//                 onClick={() => setIsMenuOpen(false)}
-//                 className="text-muted-foreground hover:text-foreground w-full py-2 text-center"
-//               >
-//                 {title}
-//               </a>
-//             ))}
-//             <div className="mt-4 flex w-full flex-col gap-2">
-//               <Link to="/login" className="w-full">
-//                 <Button variant="ghost" className="w-full">
-//                   Log In
-//                 </Button>
-//               </Link>
-//               <Link to="/register" className="w-full">
-//                 <Button className="w-full">Sign Up</Button>
-//               </Link>
-//             </div>
-//           </nav>
-//         </div>
-//       )}
-//     </header>
-//   );
-// };
-
 const Header: FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <header className="fixed top-4 z-50 w-full px-5">
       <div className="container mx-auto">
-        <div className="bg-background/50 overflow-hidden rounded-2xl border border-white/10 backdrop-blur-md">
+        <div className="bg-background/50 overflow-hidden rounded-2xl border border-white/10 backdrop-blur-md sm:border-0 sm:bg-transparent sm:backdrop-blur-none">
           <div
             className={`flex h-16 items-center justify-between px-4 md:px-6 ${
               isMenuOpen ? "rounded-b-none" : ""
@@ -181,9 +108,9 @@ const Footer: FC = () => {
       <div className="absolute top-6/8 left-1/2 z-0 rounded-full bg-blue-500/60 shadow-[0_0_500px_250px_rgba(59,130,246,0.7)]" />
 
       {/* Full-width background */}
-      <div className="bg-background absolute left-0 z-10 h-full w-full py-12">
+      <div className="bg-background absolute z-10 h-full w-full py-12">
         <div className="container mx-auto px-4">
-          <div className="mx-auto grid grid-cols-1 gap-4 px-20 md:grid-cols-8">
+          <div className="mx-auto mb-15 grid grid-cols-2 gap-4 px-4 md:grid-cols-8 md:px-20">
             {Object.entries(footerLinks).map(([title, links]) => (
               <div key={title}>
                 <h6 className="mb-2 font-semibold">{title}</h6>
@@ -203,7 +130,7 @@ const Footer: FC = () => {
             ))}
           </div>
 
-          <div className="text-muted-foreground mt-12 border-t pt-8 text-center text-sm">
+          <div className="text-muted-foreground border-t pt-8 text-center text-sm">
             <p>&copy; {new Date().getFullYear()} Gova. All rights reserved.</p>
           </div>
         </div>
@@ -212,20 +139,20 @@ const Footer: FC = () => {
   );
 };
 
-const MainLayout: FC<MainLayoutProps> = ({ children }) => {
-  const { hash } = useLocation();
+const Layout: FC<MainLayoutProps> = ({ children }) => {
+  const location = useLocation();
 
   useEffect(() => {
-    if (hash) {
-      const el = document.querySelector(hash);
+    if (location.hash) {
+      const el = document.querySelector(location.hash);
       if (el) {
         el.scrollIntoView({ behavior: "smooth" });
       }
     }
-  }, [hash]);
+  }, [location.hash]);
 
   return (
-    <div className="bg-background text-foreground min-h-screen antialiased">
+    <div className="">
       <Header />
       <main>{children}</main>
       <Footer />
@@ -233,4 +160,4 @@ const MainLayout: FC<MainLayoutProps> = ({ children }) => {
   );
 };
 
-export default MainLayout;
+export default Layout;
