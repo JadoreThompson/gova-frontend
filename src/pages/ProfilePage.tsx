@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLogoutMutation, useMeQuery } from "@/hooks/queries/auth-hooks";
 import { OAUTH2_URLS } from "@/lib/utils/utils";
 import { MessagePlatform } from "@/openapi";
@@ -35,7 +34,7 @@ import {
   useVerifyActionMutation,
 } from "@/hooks/queries/auth-hooks";
 import { VerifyActionAction } from "@/openapi";
-import { Loader2 } from "lucide-react";
+import { Loader2, Shield, User } from "lucide-react";
 import { type FormEvent } from "react";
 
 interface ChangeUsernameCardProps {
@@ -365,17 +364,26 @@ const ChangePasswordCard: FC = () => {
   );
 };
 
+type TabId = "general" | "security";
+
 const ProfilePage: FC = () => {
+  const [activeTab, setActiveTab] = useState<TabId>("general");
+
   const meQuery = useMeQuery();
+
+  const tabs: { id: TabId; label: string; icon: typeof User }[] = [
+    { id: "general", label: "General", icon: User },
+    { id: "security", label: "Security", icon: Shield },
+  ];
 
   return (
     <>
       <CustomToaster position="top-center" />
       <DashboardLayout>
-        <div className="mx-auto mt-8 flex max-w-5xl flex-col gap-6">
+        <div className="mx-auto mt-8 flex max-w-6xl flex-col gap-6 px-4">
           {meQuery.isPending ? (
             <div className="flex h-60 items-center justify-center">
-              Loading...
+              <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : meQuery.isError || !meQuery.data ? (
             <div className="text-destructive flex h-60 items-center justify-center">
@@ -383,96 +391,116 @@ const ProfilePage: FC = () => {
             </div>
           ) : (
             <>
-              <div className="flex flex-col items-center gap-2 border-b pb-6">
-                <div className="h-20 w-20 overflow-hidden rounded-full border shadow">
+              {/* Profile Header */}
+              <div className="flex flex-col items-center gap-3 border-b pb-6">
+                <div className="h-20 w-20 overflow-hidden rounded-full border shadow-sm">
                   <img
-                    src={`https://ui-avatars.com/api/?name=${meQuery.data.username}`}
+                    src={`https://ui-avatars.com/api/?name=${meQuery.data.username}&background=random`}
                     alt="Profile"
                     className="h-full w-full object-cover"
                   />
                 </div>
                 <div className="flex items-center justify-center gap-3">
-                  <h2 className="text-xl font-semibold">
+                  <h2 className="text-2xl font-semibold">
                     {meQuery.data.username}
                   </h2>
                   <PricingTierBadge tier={meQuery.data.pricing_tier} />
                 </div>
               </div>
 
-              <Tabs defaultValue="general" className="w-full">
-                <TabsList className="flex w-full">
-                  <TabsTrigger
-                    value="general"
-                    className="flex-1 focus:!outline-none"
-                  >
-                    General
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="security"
-                    className="flex-1 focus:!outline-none"
-                  >
-                    Security
-                  </TabsTrigger>
-                </TabsList>
+              {/* Sidebar + Content Layout */}
+              <div className="flex flex-col gap-6 lg:flex-row">
+                {/* Sidebar Navigation */}
+                <aside className="lg:w-56">
+                  <nav className="bg-secondary/30 flex flex-row gap-2 overflow-x-auto rounded-lg border p-2 lg:flex-col lg:overflow-x-visible">
+                    {tabs.map((tab) => {
+                      const Icon = tab.icon;
+                      const isActive = activeTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveTab(tab.id)}
+                          className={`flex min-w-fit items-center gap-3 rounded-md px-4 py-3 text-sm font-medium transition-colors lg:w-full ${
+                            isActive
+                              ? "bg-background shadow-sm"
+                              : "hover:bg-background/50"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4 flex-shrink-0" />
+                          <span className="whitespace-nowrap">{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </nav>
+                </aside>
 
-                <TabsContent value="general" className="mt-6 space-y-6">
-                  <ChangeUsernameCard initialUsername={meQuery.data.username} />
+                {/* Content Area */}
+                <div className="flex-1 overflow-hidden">
+                  {activeTab === "general" && (
+                    <div className="space-y-6">
+                      <ChangeUsernameCard
+                        initialUsername={meQuery.data.username}
+                      />
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Connections</CardTitle>
-                      <CardDescription>
-                        Connect your account to other platforms.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-3">
-                      {Object.values(MessagePlatform).map((platform) => {
-                        const conn = meQuery.data?.connections?.[platform];
-                        return (
-                          <div
-                            key={platform}
-                            className="bg-secondary flex h-10 w-full items-center justify-between rounded-md border px-3"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md">
-                                <MessagePlatformImg platform={platform} />
-                              </div>
-                              <span className="text-sm font-medium capitalize">
-                                {platform}
-                              </span>
-                            </div>
-
-                            {conn ? (
-                              <span className="text-muted-foreground text-sm">
-                                Connected as {conn.username}
-                              </span>
-                            ) : (
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                asChild
-                                className="text-xs"
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Connections</CardTitle>
+                          <CardDescription>
+                            Connect your account to other platforms.
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-3">
+                          {Object.values(MessagePlatform).map((platform) => {
+                            const conn = meQuery.data?.connections?.[platform];
+                            return (
+                              <div
+                                key={platform}
+                                className="bg-secondary flex h-10 w-full items-center justify-between overflow-hidden rounded-md border px-3"
                               >
-                                <a
-                                  href={OAUTH2_URLS[platform]}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  Connect
-                                </a>
-                              </Button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                                <div className="flex min-w-0 items-center gap-3">
+                                  <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-md">
+                                    <MessagePlatformImg platform={platform} />
+                                  </div>
+                                  <span className="truncate text-sm font-medium capitalize">
+                                    {platform}
+                                  </span>
+                                </div>
 
-                <TabsContent value="security" className="mt-6">
-                  <ChangePasswordCard />
-                </TabsContent>
-              </Tabs>
+                                {conn ? (
+                                  <span className="text-muted-foreground truncate text-sm">
+                                    Connected as {conn.username}
+                                  </span>
+                                ) : (
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    asChild
+                                    className="flex-shrink-0 text-xs"
+                                  >
+                                    <a
+                                      href={OAUTH2_URLS[platform]}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      Connect
+                                    </a>
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+
+                  {activeTab === "security" && (
+                    <div className="space-y-6">
+                      <ChangePasswordCard />
+                    </div>
+                  )}
+                </div>
+              </div>
             </>
           )}
         </div>

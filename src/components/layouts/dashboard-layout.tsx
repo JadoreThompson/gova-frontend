@@ -5,7 +5,6 @@ import { Bot, LogOut, SendToBack } from "lucide-react";
 import { useEffect, type FC, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
-import AuthGuard from "../auth-guard";
 import SiteLogo from "../site-logo";
 import { Button } from "../ui/button";
 import {
@@ -66,13 +65,12 @@ const DashboardSidebar: FC = () => {
   };
 
   const menuItems = [
-    // ["Guidelines", "/guidelines", FileText],
     ["Moderators", "/moderators", Bot],
     ["Connections", "/connections", SendToBack],
   ] as const;
 
   return (
-    <Sidebar className="border-transparent pt-12 pb-3">
+    <Sidebar className="border-transparent pt-12">
       <SidebarHeader className="bg-background px-3">
         <Link
           to={"/profile"}
@@ -139,26 +137,21 @@ const DashboardLayout: FC<{
   children: ReactNode;
 }> = (props) => {
   return (
-    <AuthGuard>
+    <>
+      {/* <AuthGuard> */}
       <SidebarProvider>
-        <div className="flex min-h-screen w-full">
+        <Header />
+        <div className="flex h-screen w-full">
           <DashboardSidebar />
-          <div className="flex flex-1 flex-col pb-5">
-            <Header />
-            <div className="pt-12">
-              <div
-                className="w-full rounded-l-lg border-y-2 border-l-2 bg-neutral-100 p-4 dark:bg-neutral-900"
-                style={{
-                  minHeight: "calc(100vh - 5rem)",
-                }}
-              >
-                <main>{props.children}</main>
-              </div>
+          <div className="flex flex-1 pt-12 pr-1 pb-1">
+            <div className="bg-secondary border-grey-300 h-full w-full overflow-auto rounded-md border-1 p-3">
+              <main>{props.children}</main>
             </div>
           </div>
         </div>
       </SidebarProvider>
-    </AuthGuard>
+      {/* </AuthGuard> */}
+    </>
   );
 };
 
