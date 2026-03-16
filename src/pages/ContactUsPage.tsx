@@ -89,7 +89,7 @@ const ContactUsPage: FC = () => {
 
   return (
     <Layout>
-      <div className="overflow-hidden">
+      <div className="flex min-h-screen items-center justify-center overflow-hidden">
         <div className="inset-0 flex flex-col items-center justify-center overflow-y-auto rounded-md p-4 sm:m-4 sm:p-6 md:p-10 lg:m-8">
           <h2 className="mb-3 text-center text-2xl font-bold sm:text-3xl md:text-4xl">
             Contact Us

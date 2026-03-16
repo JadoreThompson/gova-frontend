@@ -483,7 +483,7 @@ const HomePage: FC = () => {
       <FeaturesSection />
       <HowItWorksSection />
       <AnalyticsDemoSection />
-      <div className="mb-70 h-1 w-full bg-transparent" />
+      <div className="h-1 w-full bg-transparent" />
     </Layout>
   );
 };

@@ -104,7 +104,7 @@ const Footer: FC = () => {
   };
 
   return (
-    <footer className="bg-background relative h-75 w-full border-t">
+    <footer className="bg-background relative mt-70 h-75 w-full border-t">
       <div className="absolute top-6/8 left-1/2 z-0 rounded-full bg-blue-500/60 shadow-[0_0_500px_250px_rgba(59,130,246,0.7)]" />
 
       {/* Full-width background */}
