@@ -63,6 +63,11 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 120, 120, 0.4) transparent;
+}
+
 a {
   font-weight: 500;
   text-decoration: inherit;

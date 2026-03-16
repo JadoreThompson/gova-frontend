@@ -99,7 +99,7 @@ const EnterGuidelinesCard: FC<StageProps<string>> = (props) => {
             placeholder="Enter your moderation guidelines (minimum 10 characters)..."
             value={props.value}
             onChange={(e) => props.setValue(e.target.value)}
-            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring mt-1 min-h-[150px] max-w-2xl rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="bg-secondary border-input ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring mt-1 min-h-[150px] max-w-2xl rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
           />
 
           <Button
@@ -894,4 +894,5 @@ const CreateModeratorPage: FC = () => {
     </>
   );
 };
+
 export default CreateModeratorPage;

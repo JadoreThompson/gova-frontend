@@ -5,6 +5,7 @@ import { Bot, LogOut, SendToBack } from "lucide-react";
 import { useEffect, type FC, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
+import AuthGuard from "../auth-guard";
 import SiteLogo from "../site-logo";
 import { Button } from "../ui/button";
 import {
@@ -138,19 +139,19 @@ const DashboardLayout: FC<{
 }> = (props) => {
   return (
     <>
-      {/* <AuthGuard> */}
-      <SidebarProvider>
-        <Header />
-        <div className="flex h-screen w-full">
-          <DashboardSidebar />
-          <div className="flex flex-1 pt-12 pr-1 pb-1">
-            <div className="bg-secondary border-grey-300 h-full w-full overflow-auto rounded-md border-1 p-3">
-              <main>{props.children}</main>
+      <AuthGuard>
+        <SidebarProvider>
+          <Header />
+          <div className="flex h-screen w-full">
+            <DashboardSidebar />
+            <div className="flex flex-1 pt-12 pr-1 pb-1">
+              <div className="border-grey-300 bg-card h-full w-full overflow-auto rounded-md border-1 p-3">
+                <main>{props.children}</main>
+              </div>
             </div>
           </div>
-        </div>
-      </SidebarProvider>
-      {/* </AuthGuard> */}
+        </SidebarProvider>
+      </AuthGuard>
     </>
   );
 };

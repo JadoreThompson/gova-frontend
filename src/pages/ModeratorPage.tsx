@@ -2,7 +2,6 @@ import DashboardLayout from "@/components/layouts/dashboard-layout";
 import MessagesChart from "@/components/messages-chart";
 import PaginationControls from "@/components/pagination-controls";
 import CustomToaster from "@/components/toaster";
-import UpdateModeratorPanel from "@/components/update-moderator-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -28,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import UpdateModeratorPanel from "@/components/update-moderator-panel";
 import {
   useApproveActionMutation,
   useRejectActionMutation,
