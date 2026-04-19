@@ -2,7 +2,6 @@ import Kick from "@/assets/kick.png";
 import Discord from "@/assets/new-discord.png";
 import Twitch from "@/assets/twitch.svg";
 import Layout from "@/components/layouts/layout";
-import PricingTierCard from "@/components/pricing-card";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ActionStatus, PricingTier, type ActionResponse } from "@/openapi";
+import { ActionStatus, type ActionResponse } from "@/openapi";
 import dayjs from "dayjs";
 import {
   BarChart3,
@@ -450,28 +449,6 @@ const AnalyticsDemoSection: FC = () => {
           </Table>
         </CardContent>
       </Card>
-    </section>
-  );
-};
-
-const PricingSection: FC = () => {
-  return (
-    <section id="pricing" className="py-16 md:py-24">
-      <div className="container mx-auto px-4">
-        <div className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Fair & Simple Pricing
-          </h2>
-          <p className="text-muted-foreground mt-4 text-lg">
-            Choose a plan that scales with your community's needs.
-          </p>
-        </div>
-        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-3">
-          {Object.values(PricingTier).map((v) => (
-            <PricingTierCard key={v} pricingTier={v as PricingTier} />
-          ))}
-        </div>
-      </div>
     </section>
   );
 };
