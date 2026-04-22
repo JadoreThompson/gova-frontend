@@ -71,6 +71,10 @@ export interface ContactForm {
   message: string;
 }
 
+export interface ForgotPassword {
+  email: string;
+}
+
 export type GuildIcon = string | null;
 
 export interface Guild {
@@ -197,6 +201,11 @@ export const PricingTier = {
   free: "free",
   pro: "pro",
 } as const;
+
+export interface ResetPassword {
+  code: string;
+  password: string;
+}
 
 export interface UpdatePassword {
   password: string;
@@ -500,6 +509,96 @@ export const loginAuthLoginPost = async (
 };
 
 /**
+ * @summary Forgot Password
+ */
+export type forgotPasswordAuthForgotPasswordPostResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type forgotPasswordAuthForgotPasswordPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type forgotPasswordAuthForgotPasswordPostResponseSuccess =
+  forgotPasswordAuthForgotPasswordPostResponse200 & {
+    headers: Headers;
+  };
+export type forgotPasswordAuthForgotPasswordPostResponseError =
+  forgotPasswordAuthForgotPasswordPostResponse422 & {
+    headers: Headers;
+  };
+
+export type forgotPasswordAuthForgotPasswordPostResponse =
+  | forgotPasswordAuthForgotPasswordPostResponseSuccess
+  | forgotPasswordAuthForgotPasswordPostResponseError;
+
+export const getForgotPasswordAuthForgotPasswordPostUrl = () => {
+  return `/auth/forgot-password`;
+};
+
+export const forgotPasswordAuthForgotPasswordPost = async (
+  forgotPassword: ForgotPassword,
+  options?: RequestInit,
+): Promise<forgotPasswordAuthForgotPasswordPostResponse> => {
+  return customFetch<forgotPasswordAuthForgotPasswordPostResponse>(
+    getForgotPasswordAuthForgotPasswordPostUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(forgotPassword),
+    },
+  );
+};
+
+/**
+ * @summary Reset Password
+ */
+export type resetPasswordAuthResetPasswordPostResponse200 = {
+  data: unknown;
+  status: 200;
+};
+
+export type resetPasswordAuthResetPasswordPostResponse422 = {
+  data: HTTPValidationError;
+  status: 422;
+};
+
+export type resetPasswordAuthResetPasswordPostResponseSuccess =
+  resetPasswordAuthResetPasswordPostResponse200 & {
+    headers: Headers;
+  };
+export type resetPasswordAuthResetPasswordPostResponseError =
+  resetPasswordAuthResetPasswordPostResponse422 & {
+    headers: Headers;
+  };
+
+export type resetPasswordAuthResetPasswordPostResponse =
+  | resetPasswordAuthResetPasswordPostResponseSuccess
+  | resetPasswordAuthResetPasswordPostResponseError;
+
+export const getResetPasswordAuthResetPasswordPostUrl = () => {
+  return `/auth/reset-password`;
+};
+
+export const resetPasswordAuthResetPasswordPost = async (
+  resetPassword: ResetPassword,
+  options?: RequestInit,
+): Promise<resetPasswordAuthResetPasswordPostResponse> => {
+  return customFetch<resetPasswordAuthResetPasswordPostResponse>(
+    getResetPasswordAuthResetPasswordPostUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(resetPassword),
+    },
+  );
+};
+
+/**
  * @summary Request Email Verification
  */
 export type requestEmailVerificationAuthRequestEmailVerificationPostResponse200 =
@@ -694,9 +793,9 @@ export const discordOauthCallbackAuthDiscordOauthGet = async (
  * Handle Discord bot OAuth callback to add bot to guild.
  * @summary Discord Oauth Bot Callback
  */
-export type discordOauthBotCallbackAuthDiscordOauthBotGetResponse200 = {
-  data: unknown;
-  status: 200;
+export type discordOauthBotCallbackAuthDiscordOauthBotGetResponse204 = {
+  data: void;
+  status: 204;
 };
 
 export type discordOauthBotCallbackAuthDiscordOauthBotGetResponse422 = {
@@ -705,7 +804,7 @@ export type discordOauthBotCallbackAuthDiscordOauthBotGetResponse422 = {
 };
 
 export type discordOauthBotCallbackAuthDiscordOauthBotGetResponseSuccess =
-  discordOauthBotCallbackAuthDiscordOauthBotGetResponse200 & {
+  discordOauthBotCallbackAuthDiscordOauthBotGetResponse204 & {
     headers: Headers;
   };
 export type discordOauthBotCallbackAuthDiscordOauthBotGetResponseError =

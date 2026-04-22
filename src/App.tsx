@@ -4,6 +4,7 @@ import ConnectionsPage from "./pages/ConnectionsPage";
 import ContactUsPage from "./pages/ContactUsPage";
 import CreateModeratorPage from "./pages/CreateModeratorPage";
 import DiscordOAuthCallbackPage from "./pages/DiscordOAuthCallbackPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ModeratorPage from "./pages/ModeratorPage";
@@ -11,6 +12,7 @@ import ModeratorsPage from "./pages/ModeratorsPage";
 import Page500 from "./pages/page500";
 import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function App() {
   return (
@@ -19,7 +21,6 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/*" element={<Navigate to="/login" />} />
-          {/* <Route path="/pricing" element={<PricingPage />} /> */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />
@@ -29,6 +30,8 @@ function App() {
           <Route path="/connections" element={<ConnectionsPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />
           <Route path="/confirm-email" element={<ConfirmEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route
             path="/auth/discord/oauth"
             element={<DiscordOAuthCallbackPage />}

@@ -1,9 +1,10 @@
+import { PasswordInput } from "@/components/password-input";
+import { PasswordRequirements } from "@/components/password-requirements";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRegisterMutation } from "@/hooks/queries/auth-hooks";
 import { useRedirectAuthenticated } from "@/hooks/redirect-authenticated";
-import { cn } from "@/lib/utils";
-import { Check, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useRef, useState, type FC, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { z } from "zod";
@@ -29,14 +30,12 @@ const RegisterPage: FC = () => {
   const navigate = useNavigate();
   const registerMutation = useRegisterMutation();
 
-  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
   });
   const [errorMessage, setErrorMessage] = useState<string>("");
-
   const [passwordChecks, setPasswordChecks] = useState({
     length: false,
     uppercase: false,
@@ -187,74 +186,14 @@ const RegisterPage: FC = () => {
               />
             </div>
 
-            <div className="bg-input/30 border-input flex rounded-md border-1">
-              <Input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="border-0 !bg-transparent focus-visible:ring-0"
-              />
-
-              <Button
-                type="button"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                variant={"ghost"}
-                className="text-muted-foreground hover:text-foreground aspect-square !bg-transparent !p-1 hover:!bg-transparent focus:!outline-none"
-                onMouseUp={() => setShowPassword(!showPassword)}
-                onBlur={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" color="red" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
+            <PasswordInput
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
 
             {/* Password Requirements */}
-            <div>
-              <ul>
-                <li
-                  className={cn(
-                    "flex items-center justify-start gap-3",
-                    passwordChecks.length
-                      ? "text-green-500"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  <Check color={passwordChecks.length ? "green" : "gray"} />
-                  <span>At least 8 characters</span>
-                </li>
-                <li
-                  className={cn(
-                    "flex items-center justify-start gap-3",
-                    passwordChecks.uppercase
-                      ? "text-green-500"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  <Check color={passwordChecks.uppercase ? "green" : "gray"} />
-                  <span className="!text-muted-foreground">
-                    2 uppercase characters
-                  </span>
-                </li>
-                <li
-                  className={cn(
-                    "flex items-center justify-start gap-3",
-                    passwordChecks.special
-                      ? "text-green-500"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  <Check color={passwordChecks.special ? "green" : "gray"} />
-                  <span>2 special characters</span>
-                </li>
-              </ul>
-            </div>
+            <PasswordRequirements {...passwordChecks} />
 
             {errorMessage && (
               <p

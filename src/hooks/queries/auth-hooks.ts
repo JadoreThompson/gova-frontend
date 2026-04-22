@@ -4,13 +4,16 @@ import { handleApi } from "@/lib/utils/base";
 import {
   changePasswordAuthChangePasswordPost,
   changeUsernameAuthChangeUsernamePost,
+  forgotPasswordAuthForgotPasswordPost,
   getMeAuthMeGet,
   loginAuthLoginPost,
   logoutAuthLogoutPost,
   registerAuthRegisterPost,
   requestEmailVerificationAuthRequestEmailVerificationPost,
+  resetPasswordAuthResetPasswordPost,
   verifyActionAuthVerifyActionPost,
   verifyEmailAuthVerifyEmailPost,
+  type ForgotPassword,
   type UpdatePassword,
   type UpdateUsername,
   type UserCreate,
@@ -134,5 +137,19 @@ export function useVerifyActionMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.me() });
     },
+  });
+}
+
+export function useForgotPasswordMutation() {
+  return useMutation({
+    mutationFn: async (data: ForgotPassword) =>
+      handleApi(await forgotPasswordAuthForgotPasswordPost(data)),
+  });
+}
+
+export function useResetPasswordMutation() {
+  return useMutation({
+    mutationFn: async (data: { code: string; password: string }) =>
+      handleApi(await resetPasswordAuthResetPasswordPost(data)),
   });
 }

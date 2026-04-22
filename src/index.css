@@ -117,6 +117,19 @@ h6 {
   letter-spacing: 0.02em;
 }
 
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: inherit;
+  caret-color: inherit;
+
+  /* Keep same background as normal input */
+  -webkit-box-shadow: 0 0 0 1000px transparent inset;
+  box-shadow: 0 0 0 1000px transparent inset;
+
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 button {
   padding: 0.6em 1.2em;
   font-weight: 500;

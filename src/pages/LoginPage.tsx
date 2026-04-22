@@ -1,25 +1,24 @@
+import { PasswordInput } from "@/components/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLoginMutation } from "@/hooks/queries/auth-hooks";
 import { useRedirectAuthenticated } from "@/hooks/redirect-authenticated";
-import { Eye, EyeOff } from "lucide-react";
 import { useRef, useState, type FC } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 
 const LoginPage: FC = () => {
   useRedirectAuthenticated({ to: "/moderators" });
 
-  const [showPassword, setShowPassword] = useState(false);
-
   const navigate = useNavigate();
   const location = useLocation();
-  const queryParamsRef = useRef(new URLSearchParams(location.search));
   const loginMutation = useLoginMutation();
 
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
+
+  const queryParamsRef = useRef(new URLSearchParams(location.search));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -110,16 +109,16 @@ const LoginPage: FC = () => {
             <div>
               <label
                 className="text-muted-foreground mb-1.5 block text-xs font-semibold tracking-widest"
-                htmlFor="username"
+                htmlFor="email"
               >
-                Username
+                Email
               </label>
               <Input
-                id="username"
-                name="username"
+                id="email"
+                name="email"
                 type="text"
-                placeholder="your_username"
-                value={formData.username}
+                placeholder="johndoe@email.com"
+                value={formData.email}
                 onChange={handleChange}
                 required
                 className="bg-background placeholder:text-muted-foreground/40 focus-visible:ring-0"
@@ -133,37 +132,19 @@ const LoginPage: FC = () => {
               >
                 Password
               </label>
-
-              <div className="bg-input/30 border-input flex rounded-md border-1">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="border-0 !bg-transparent focus-visible:ring-0"
-                />
-
-                <Button
-                  type="button"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  variant={"ghost"}
-                  className="text-muted-foreground hover:text-foreground aspect-square !bg-transparent !p-1 hover:!bg-transparent focus:!outline-none"
-                  onMouseUp={() => setShowPassword(!showPassword)}
-                  onBlur={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" color="red" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
+              <PasswordInput
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
 
               <div className="text-muted-foreground w-full text-right text-xs">
-                Forgot Password?
+                <Link
+                  to="/forgot-password"
+                  className="!p-1 text-xs hover:!bg-transparent hover:text-white"
+                >
+                  Forgot Password?
+                </Link>
               </div>
             </div>
 
