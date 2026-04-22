@@ -2,9 +2,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRegisterMutation } from "@/hooks/queries/auth-hooks";
 import { useRedirectAuthenticated } from "@/hooks/redirect-authenticated";
-import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Check, Loader2 } from "lucide-react";
 import { useRef, useState, type FC, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.email("Invalid email address"),
+  password: z
+    .string()
+    .min(8, "Must be at least 8 characters")
+    .refine((val) => (val.match(/[A-Z]/g) || []).length >= 2, {
+      message: "Must contain at least 2 uppercase letters",
+    })
+    .refine((val) => (val.match(/[^\w\s]/g) || []).length >= 2, {
+      message: "Must contain at least 2 special characters",
+    }),
+});
 
 const RegisterPage: FC = () => {
   useRedirectAuthenticated({ to: "/moderators" });
@@ -20,15 +36,36 @@ const RegisterPage: FC = () => {
   });
   const [errorMessage, setErrorMessage] = useState<string>("");
 
+  const [passwordChecks, setPasswordChecks] = useState({
+    length: false,
+    uppercase: false,
+    special: false,
+  });
+
   const queryParamsRef = useRef(new URLSearchParams(location.search));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const updated = { ...formData, [e.target.name]: e.target.value };
+    setFormData(updated);
+
+    const pwd = updated.password;
+
+    setPasswordChecks({
+      length: pwd.length >= 8,
+      uppercase: (pwd.match(/[A-Z]/g) || []).length >= 2,
+      special: (pwd.match(/[^\w\s]/g) || []).length >= 2,
+    });
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage("");
+
+    const result = registerSchema.safeParse(formData);
+    if (!result.success) {
+      setErrorMessage(result.error.issues[0].message);
+      return;
+    }
 
     registerMutation
       .mutateAsync(formData)
@@ -167,6 +204,47 @@ const RegisterPage: FC = () => {
                 required
                 className="bg-background placeholder:text-muted-foreground/40 focus-visible:ring-0"
               />
+            </div>
+
+            {/* Password Requirements */}
+            <div>
+              <ul>
+                <li
+                  className={cn(
+                    "flex items-center justify-start gap-3",
+                    passwordChecks.length
+                      ? "text-green-500"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  <Check color={passwordChecks.length ? "green" : "gray"} />
+                  <span>At least 8 characters</span>
+                </li>
+                <li
+                  className={cn(
+                    "flex items-center justify-start gap-3",
+                    passwordChecks.uppercase
+                      ? "text-green-500"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  <Check color={passwordChecks.uppercase ? "green" : "gray"} />
+                  <span className="!text-muted-foreground">
+                    2 uppercase characters
+                  </span>
+                </li>
+                <li
+                  className={cn(
+                    "flex items-center justify-start gap-3",
+                    passwordChecks.special
+                      ? "text-green-500"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  <Check color={passwordChecks.special ? "green" : "gray"} />
+                  <span>2 special characters</span>
+                </li>
+              </ul>
             </div>
 
             {errorMessage && (
