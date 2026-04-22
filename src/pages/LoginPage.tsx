@@ -2,11 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLoginMutation } from "@/hooks/queries/auth-hooks";
 import { useRedirectAuthenticated } from "@/hooks/redirect-authenticated";
+import { Eye, EyeOff } from "lucide-react";
 import { useRef, useState, type FC } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 
 const LoginPage: FC = () => {
   useRedirectAuthenticated({ to: "/moderators" });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -130,16 +133,38 @@ const LoginPage: FC = () => {
               >
                 Password
               </label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="bg-background placeholder:text-muted-foreground/40 focus-visible:ring-0"
-              />
+
+              <div className="bg-input/30 border-input flex rounded-md border-1">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="border-0 !bg-transparent focus-visible:ring-0"
+                />
+
+                <Button
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  variant={"ghost"}
+                  className="!bg-transparent text-muted-foreground hover:text-foreground aspect-square !p-1 hover:!bg-transparent focus:!outline-none"
+                  onMouseUp={() => setShowPassword(!showPassword)}
+                  onBlur={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" color="red" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+
+              <div className="text-muted-foreground w-full text-right text-xs">
+                Forgot Password?
+              </div>
             </div>
 
             <Button
