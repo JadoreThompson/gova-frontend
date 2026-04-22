@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { useRegisterMutation } from "@/hooks/queries/auth-hooks";
 import { useRedirectAuthenticated } from "@/hooks/redirect-authenticated";
 import { cn } from "@/lib/utils";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRef, useState, type FC, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { z } from "zod";
@@ -29,6 +29,7 @@ const RegisterPage: FC = () => {
   const navigate = useNavigate();
   const registerMutation = useRegisterMutation();
 
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -186,24 +187,32 @@ const RegisterPage: FC = () => {
               />
             </div>
 
-            <div>
-              <label
-                className="text-muted-foreground mb-1.5 block text-xs font-semibold tracking-widest"
-                htmlFor="password"
-              >
-                Password
-              </label>
+            <div className="bg-input/30 border-input flex rounded-md border-1">
               <Input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
-                disabled={registerMutation.isPending}
                 required
-                className="bg-background placeholder:text-muted-foreground/40 focus-visible:ring-0"
+                className="border-0 !bg-transparent focus-visible:ring-0"
               />
+
+              <Button
+                type="button"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                variant={"ghost"}
+                className="text-muted-foreground hover:text-foreground aspect-square !bg-transparent !p-1 hover:!bg-transparent focus:!outline-none"
+                onMouseUp={() => setShowPassword(!showPassword)}
+                onBlur={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" color="red" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
             </div>
 
             {/* Password Requirements */}

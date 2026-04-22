@@ -150,7 +150,7 @@ const LoginPage: FC = () => {
                   type="button"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   variant={"ghost"}
-                  className="!bg-transparent text-muted-foreground hover:text-foreground aspect-square !p-1 hover:!bg-transparent focus:!outline-none"
+                  className="text-muted-foreground hover:text-foreground aspect-square !bg-transparent !p-1 hover:!bg-transparent focus:!outline-none"
                   onMouseUp={() => setShowPassword(!showPassword)}
                   onBlur={() => setShowPassword(!showPassword)}
                 >
