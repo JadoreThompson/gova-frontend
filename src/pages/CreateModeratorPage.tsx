@@ -1,3 +1,4 @@
+import { UnconnectedCard } from "@/components/connection-card";
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import MessagePlatformImg from "@/components/message-platform-image";
 import CustomToaster from "@/components/toaster";
@@ -11,13 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useMeQuery } from "@/hooks/queries/auth-hooks";
 import {
   useDiscordChannelsQuery,
   useOwnedDiscordGuildsQuery,
 } from "@/hooks/queries/connections-hooks";
 import { useCreateModeratorMutation } from "@/hooks/queries/moderator-hooks";
 import { cn } from "@/lib/utils";
-import { MessagePlatform, type ModeratorCreate } from "@/openapi";
+import {
+  MessagePlatform,
+  type ModeratorCreate,
+  type UserConnection,
+} from "@/openapi";
 import type { DiscordAction, DiscordConfigBody } from "@/types/discord";
 import {
   Tooltip,
@@ -608,32 +614,59 @@ const SelectGuildCard: FC<StageProps<string>> = (props) => {
   );
 };
 
-const SelectPlatformCard: FC<StageProps<MessagePlatform | null>> = (props) => {
-  const borderCols = {
-    [MessagePlatform.discord]: "hover:border-purple-400",
-  };
+const ConnectedCard: FC<{
+  platform: MessagePlatform;
+  conn: UserConnection;
+  onClick: () => void;
+}> = (props) => {
+  return (
+    <Card className="relative h-50 w-50" onClick={props.onClick}>
+      <MessagePlatformImg
+        platform={props.platform}
+        className="absolute top-1 left-1 h-7 w-7 p-1"
+      />
+
+      <CardContent className="flex items-center justify-center">
+        <div className="shadow-secondary flex h-25 w-25 items-center justify-center overflow-hidden rounded-full shadow-md">
+          <img src={props.conn.avatar} className="" />
+        </div>
+      </CardContent>
+      <CardFooter className="">
+        <Button variant={"secondary"} className="pointer-events-none w-full">
+          {/* Connected */}
+          {props.conn.username}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+};
+
+const SelectPlatformCard: FC<{
+  connections: { [key in MessagePlatform]?: string };
+  stageProps: StageProps<MessagePlatform | null>;
+}> = (props) => {
+  console.log("Connections in SelectPlatformCard:", props.connections);
 
   const handleSelectPlatform = (platform: MessagePlatform) => {
-    props.setValue(platform);
-    props.onNext();
+    props.stageProps.setValue(platform);
+    props.stageProps.onNext();
   };
 
   return (
     <>
       <h4 className="mb-3 font-semibold">Select Platform</h4>
-      {Object.values(MessagePlatform).map((v) => (
-        <Card
-          key={v}
-          onClick={() => handleSelectPlatform(v)}
-          className={cn(
-            "relative h-30 w-30 cursor-pointer border duration-200 ease-in-out hover:-translate-y-0.5 hover:scale-101",
-            borderCols[v],
+      {Object.values(MessagePlatform).map((mp) => (
+        <>
+          {Object.keys(props.connections ?? {}).includes(mp) ? (
+            <ConnectedCard
+              platform={mp}
+              conn={props.connections[mp] as unknown as UserConnection}
+              onClick={() => handleSelectPlatform(mp)}
+            />
+          ) : (
+            <UnconnectedCard platform={mp} />
           )}
-        >
-          <CardContent className="flex items-center justify-center">
-            <MessagePlatformImg platform={v} className="" />
-          </CardContent>
-        </Card>
+        </>
       ))}
     </>
   );
@@ -657,6 +690,8 @@ const CreateModeratorPage: FC = () => {
   );
   const [instructions, setInstructions] = useState("");
   const [moderatorName, setModeratorName] = useState("");
+
+  const authMeQuery = useMeQuery();
 
   const goNext = () => setCurStage((prev) => Math.min(prev + 1, maxStages));
   const goPrev = () => setCurStage((prev) => Math.max(prev - 1, 1));
@@ -825,10 +860,13 @@ const CreateModeratorPage: FC = () => {
 
             {curStage === 2 && (
               <SelectPlatformCard
-                value={platform}
-                setValue={setPlatform}
-                onNext={goNext}
-                onPrev={goPrev}
+                connections={authMeQuery.data?.connections || {}}
+                stageProps={{
+                  value: platform,
+                  setValue: setPlatform,
+                  onNext: goNext,
+                  onPrev: goPrev,
+                }}
               />
             )}
 

@@ -17,12 +17,14 @@ const DiscordOAuthCallbackPage: FC = () => {
 
     // If no code or type is present, redirect to /moderators
     if (!code || !type) {
+      console.warn("Missing code or type in query parameters");
       navigate("/moderators");
       return;
     }
 
     // Validate type parameter
     if (type !== "user" && type !== "bot") {
+      console.warn("Invalid type parameter:", type);
       navigate("/moderators");
       return;
     }
@@ -32,14 +34,10 @@ const DiscordOAuthCallbackPage: FC = () => {
       try {
         if (type === "user") {
           // Handle user OAuth flow
-          const response = await discordOauthCallbackAuthDiscordOauthGet({
-            code,
-          });
+          await discordOauthCallbackAuthDiscordOauthGet({ code });
 
           // On success (204), navigate to /connections
-          if (response.status === 204) {
-            navigate("/connections");
-          }
+          navigate("/connections");
         } else if (type === "bot") {
           // Handle bot OAuth flow
           await discordOauthBotCallbackAuthDiscordOauthBotGet({

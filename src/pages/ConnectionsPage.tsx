@@ -1,33 +1,13 @@
+import { UnconnectedCard } from "@/components/connection-card";
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import MessagePlatformImg from "@/components/message-platform-image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useMeQuery } from "@/hooks/queries/auth-hooks";
 import { useDeleteConnectionMutation } from "@/hooks/queries/connections-hooks";
-import { OAUTH2_URLS } from "@/lib/utils/utils";
 import { MessagePlatform, type UserConnection } from "@/openapi";
 import { Trash } from "lucide-react";
 import { type FC } from "react";
-
-const UnconnectedCard: FC<{ platform: MessagePlatform }> = (props) => {
-  return (
-    <Card className="relative h-50 w-50">
-      <CardContent className="flex items-center justify-center">
-        <MessagePlatformImg platform={props.platform} className="h-25 w-25" />
-      </CardContent>
-      <CardFooter>
-        <a
-          href={OAUTH2_URLS[props.platform]}
-          target="_blank"
-          type="button"
-          className="w-full rounded-sm bg-white p-1 text-center text-black"
-        >
-          Connect
-        </a>
-      </CardFooter>
-    </Card>
-  );
-};
 
 const ConnectedCard: FC<{
   platform: MessagePlatform;
@@ -79,20 +59,18 @@ const ConnectionsPage: FC = () => {
           {!authMeQuery.data ? (
             <span>Loading ...</span>
           ) : (
-            Object.values(MessagePlatform).map((pType) => (
+            Object.values(MessagePlatform).map((mp) => (
               <>
                 {Object.keys(authMeQuery.data?.connections ?? {}).includes(
-                  pType,
+                  mp,
                 ) ? (
                   <ConnectedCard
-                    platform={pType}
-                    conn={
-                      authMeQuery.data?.connections![pType] as UserConnection
-                    }
+                    platform={mp}
+                    conn={authMeQuery.data?.connections![mp] as UserConnection}
                     onDelete={handleOnDelete}
                   />
                 ) : (
-                  <UnconnectedCard platform={pType} />
+                  <UnconnectedCard platform={mp} />
                 )}
               </>
             ))

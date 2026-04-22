@@ -68,7 +68,7 @@ const ModeratorsPage: FC = () => {
 
       <div className="mb-6 flex items-center justify-between">
         <div className="bg-secondary flex h-fit w-fit items-center rounded-md border p-1">
-          <Search size={20} />
+          <Search size={15} />
           <Input
             type="text"
             placeholder="Search..."
