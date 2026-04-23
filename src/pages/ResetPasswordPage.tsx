@@ -30,7 +30,7 @@ const ResetPasswordPage: FC = () => {
   const queryParamsRef = useRef(new URLSearchParams(location.search));
   const resetPasswordMutation = useResetPasswordMutation();
 
-  const [passwordUpdated, setPasswordUpdated] = useState(true);
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [formData, setFormData] = useState({
     password: "",
