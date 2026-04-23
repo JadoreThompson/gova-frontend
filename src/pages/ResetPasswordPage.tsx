@@ -3,8 +3,8 @@ import { PasswordRequirements } from "@/components/password-requirements";
 import { Button } from "@/components/ui/button";
 import { useResetPasswordMutation } from "@/hooks/queries/auth-hooks";
 import { Loader2 } from "lucide-react";
-import { useRef, useState, type FC, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
+import { useEffect, useRef, useState, type FC, type FormEvent } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 import { z } from "zod";
 
 const resetPasswordSchema = z
@@ -26,6 +26,7 @@ const resetPasswordSchema = z
   });
 
 const ResetPasswordPage: FC = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const queryParamsRef = useRef(new URLSearchParams(location.search));
   const resetPasswordMutation = useResetPasswordMutation();
@@ -41,6 +42,18 @@ const ResetPasswordPage: FC = () => {
     uppercase: false,
     special: false,
   });
+
+  const code = (queryParamsRef.current.get("code") || "").trim();
+
+  useEffect(() => {
+    if (code) return;
+
+    const timer = setTimeout(() => {
+      navigate("/login");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [code, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const updated = {
@@ -86,6 +99,88 @@ const ResetPasswordPage: FC = () => {
       setErrorMessage("Unable to reset password. Please try again.");
     }
   };
+
+  if (!code) {
+    return (
+      <div className="bg-background relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8">
+        {/* Rising sun glow */}
+        <div
+          className="glow-pulse pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[120%] rounded-full"
+          style={{
+            width: "600px",
+            height: "600px",
+            boxShadow:
+              "0 0 120px 80px rgba(59,130,246,0.3), 0 0 300px 180px rgba(59,130,246,0.18), 0 0 500px 300px rgba(59,130,246,0.08)",
+          }}
+        />
+
+        {/* Horizon shimmer */}
+        <div
+          className="pointer-events-none absolute right-0 bottom-0 left-0 h-px"
+          style={{
+            background:
+              "linear-gradient(to right, transparent 0%, rgba(59,130,246,0) 20%, rgba(99,179,246,0.6) 50%, rgba(59,130,246,0) 80%, transparent 100%)",
+          }}
+        />
+
+        <div className="relative z-10 w-full max-w-[420px]">
+          <div
+            className="relative rounded-2xl border px-10 py-10 text-center"
+            style={{
+              background: "oklch(0.205 0 0)",
+              borderColor: "rgba(255,255,255,0.08)",
+              boxShadow:
+                "inset 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.08), 0 32px 64px -12px rgba(0,0,0,0.7), 0 16px 32px -8px rgba(0,0,0,0.5), 0 0 80px -20px rgba(59,130,246,0.15)",
+            }}
+          >
+            <div
+              className="pointer-events-none absolute right-0 bottom-0 left-0 h-px rounded-b-2xl"
+              style={{
+                background:
+                  "linear-gradient(to right, transparent 0%, rgba(99,102,241,0.4) 30%, rgba(99,102,241,0.8) 50%, rgba(99,102,241,0.4) 70%, transparent 100%)",
+              }}
+            />
+
+            <h2
+              className="text-foreground mb-3 text-2xl font-semibold tracking-tight whitespace-nowrap"
+              style={{
+                fontFamily: "'Space Grotesk', system-ui, sans-serif",
+              }}
+            >
+              Missing Reset Code
+            </h2>
+
+            <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
+              This reset link is incomplete or invalid.
+              <br />
+              Redirecting you to sign in...
+            </p>
+
+            <div
+              className="mb-6 h-px"
+              style={{
+                background:
+                  "linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent)",
+              }}
+            />
+
+            <Button
+              onClick={() => navigate("/login")}
+              className="relative w-full overflow-hidden font-semibold text-white"
+              style={{
+                background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                boxShadow:
+                  "inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 12px rgba(59,130,246,0.4), 0 1px 3px rgba(0,0,0,0.3)",
+                border: "none",
+              }}
+            >
+              Go to Login Now
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8">
